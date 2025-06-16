@@ -1,8 +1,33 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 
+import { getWordsOfDeck } from "../../services/storage";
+import { Word } from "../types/database";
+
 export default function DeckDetailScreen({ route }: any) {
-  const { title, author, words } = route.params;
+  const { deckId, title, author } = route.params;
+  const [words, setWords] = useState<Word[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    try {
+      const data = getWordsOfDeck(deckId);
+      setWords(data);
+    } catch (e) {
+      console.error("Erro ao obter palavras do deck", e);
+      setWords([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [deckId]);
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text>A carregar palavras...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -10,8 +35,8 @@ export default function DeckDetailScreen({ route }: any) {
       <Text style={styles.author}>Autor: {author}</Text>
       <Text style={styles.subtitle}>Palavras:</Text>
       <ScrollView>
-        {words.map((word: { name: string; meaning: string }, idx: number) => (
-          <View key={idx} style={styles.wordContainer}>
+        {words.map((word, idx) => (
+          <View key={word.id} style={styles.wordContainer}>
             <Text style={styles.word}>{word.name}</Text>
             <Text style={styles.meaning}>{word.meaning}</Text>
           </View>
