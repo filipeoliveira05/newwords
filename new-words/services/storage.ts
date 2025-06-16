@@ -48,6 +48,32 @@ export function getDecks(): Deck[] {
   }
 }
 
+export function getDeckById(id: number): Deck | null {
+  try {
+    const result = db.getAllSync<Deck>(
+      "SELECT * FROM decks WHERE id = ? LIMIT 1",
+      [id]
+    );
+    return result.length > 0 ? result[0] : null;
+  } catch (e) {
+    console.error("Erro ao obter deck por id:", e);
+    return null;
+  }
+}
+
+export function getWordCountByDeck(deckId: number): number {
+  try {
+    const [{ count }] = db.getAllSync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM words WHERE deckId = ?",
+      [deckId]
+    );
+    return count;
+  } catch (e) {
+    console.error("Erro ao contar palavras do deck:", e);
+    return 0;
+  }
+}
+
 export function addDeck(title: string, author: string): number | null {
   if (!title.trim() || !author.trim()) {
     console.error("Título e autor são obrigatórios.");
@@ -96,7 +122,7 @@ export function deleteDeck(id: number): boolean {
   }
 }
 
-export function getWordsByDeck(deckId: number): Word[] {
+export function getWordsOfDeck(deckId: number): Word[] {
   try {
     const result = db.getAllSync<Word>(
       "SELECT * FROM words WHERE deckId = ? ORDER BY createdAt DESC",
