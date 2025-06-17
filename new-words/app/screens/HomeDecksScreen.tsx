@@ -6,11 +6,16 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import DeckOverview from "../components/DeckOverview";
-import { getDecks, getWordCountByDeck } from "../../services/storage";
+import {
+  deleteDeck,
+  getDecks,
+  getWordCountByDeck,
+} from "../../services/storage";
 import { Deck } from "../types/database";
 
 export default function HomeDecksScreen({ navigation }: any) {
@@ -76,7 +81,7 @@ export default function HomeDecksScreen({ navigation }: any) {
         <Text style={styles.title}>Os meus conjuntos</Text>
         <TouchableOpacity
           style={styles.addButton}
-          onPress={() => navigation.navigate("AddDeck")}
+          onPress={() => navigation.navigate("AddOrEditDeck")}
         >
           <Ionicons name="add-circle" size={32} color="#4F8EF7" />
         </TouchableOpacity>
@@ -95,6 +100,26 @@ export default function HomeDecksScreen({ navigation }: any) {
                 author: deck.author,
               })
             }
+            onEdit={() =>
+              navigation.navigate("AddOrEditDeck", { deckId: deck.id })
+            }
+            onDelete={() => {
+              Alert.alert(
+                "Apagar conjunto",
+                "Tens a certeza que queres apagar este conjunto?",
+                [
+                  { text: "Cancelar", style: "cancel" },
+                  {
+                    text: "Apagar",
+                    style: "destructive",
+                    onPress: () => {
+                      deleteDeck(deck.id);
+                      setDecks(getDecks());
+                    },
+                  },
+                ]
+              );
+            }}
           />
         ))}
       </ScrollView>
