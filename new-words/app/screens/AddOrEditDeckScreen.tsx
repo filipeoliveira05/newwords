@@ -1,23 +1,41 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Button, StyleSheet, Alert } from "react-native";
 
-import { addDeck } from "../../services/storage";
+import { addDeck, updateDeck, getDeckById } from "../../services/storage";
 
-export default function AddDeckScreen({ navigation }: any) {
+export default function AddOrEditDeckScreen({ navigation, route }: any) {
+  const deckId = route?.params?.deckId;
+  const isEdit = !!deckId;
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
 
-  const handleAddDeck = () => {
+  useEffect(() => {
+    if (isEdit) {
+      const deck = getDeckById(deckId);
+      if (deck) {
+        setTitle(deck.title);
+        setAuthor(deck.author);
+      }
+    }
+  }, [deckId, isEdit]);
+
+  useEffect(() => {
+    navigation.setOptions({
+      title: isEdit ? "Editar conjunto" : "Novo conjunto",
+    });
+  }, [navigation, isEdit]);
+
+  const handleSave = () => {
     if (!title.trim() || !author.trim()) {
       Alert.alert("Erro", "Preenche o título e o autor.");
       return;
     }
-    const id = addDeck(title, author);
-    if (id) {
-      navigation.goBack();
+    if (isEdit) {
+      updateDeck(deckId, title, author);
     } else {
-      Alert.alert("Erro", "Não foi possível criar o conjunto.");
+      addDeck(title, author);
     }
+    navigation.goBack();
   };
 
   return (
@@ -36,7 +54,10 @@ export default function AddDeckScreen({ navigation }: any) {
         onChangeText={setAuthor}
         placeholder="Nome do autor"
       />
-      <Button title="Criar conjunto" onPress={handleAddDeck} />
+      <Button
+        title={isEdit ? "Guardar alterações" : "Criar conjunto"}
+        onPress={handleSave}
+      />
     </View>
   );
 }

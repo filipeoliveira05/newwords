@@ -7,7 +7,7 @@ import HomeDecksScreen from "../screens/HomeDecksScreen";
 import PracticeScreen from "../screens/PracticeScreen";
 import StatsScreen from "../screens/StatsScreen";
 import DeckDetailScreen from "../screens/DeckDetailScreen";
-import AddDeckScreen from "../screens/AddDeckScreen";
+import AddOrEditDeckScreen from "../screens/AddOrEditDeckScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -33,8 +33,8 @@ function HomeStack() {
         options={{ title: "Detalhes do Conjunto", animation: "fade" }}
       />
       <Stack.Screen
-        name="AddDeck"
-        component={AddDeckScreen}
+        name="AddOrEditDeck"
+        component={AddOrEditDeckScreen}
         options={{ title: "Novo Conjunto" }}
       />
     </Stack.Navigator>
