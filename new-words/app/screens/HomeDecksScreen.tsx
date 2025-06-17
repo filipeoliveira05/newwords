@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   Text,
   View,
@@ -9,7 +10,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import DeckOverview from "../components/DeckOverview";
-import { addDeck, getDecks, getWordCountByDeck } from "../../services/storage";
+import { getDecks, getWordCountByDeck } from "../../services/storage";
 import { Deck } from "../types/database";
 
 export default function HomeDecksScreen({ navigation }: any) {
@@ -46,17 +47,20 @@ export default function HomeDecksScreen({ navigation }: any) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    try {
-      const data = getDecks();
-      setDecks(data);
-    } catch (e) {
-      console.error("Erro ao obter decks", e);
-      setDecks([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      setLoading(true);
+      try {
+        const data = getDecks();
+        setDecks(data);
+      } catch (e) {
+        console.error("Erro ao obter decks", e);
+        setDecks([]);
+      } finally {
+        setLoading(false);
+      }
+    }, [])
+  );
 
   if (loading) {
     return (
@@ -66,17 +70,14 @@ export default function HomeDecksScreen({ navigation }: any) {
     );
   }
 
-  const handleAddDeck = () => {
-    addDeck("Novo Conjunto de Teste", "Autor Exemplo");
-    const data = getDecks();
-    setDecks(data);
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Os meus conjuntos</Text>
-        <TouchableOpacity style={styles.addButton} onPress={handleAddDeck}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("AddDeck")}
+        >
           <Ionicons name="add-circle" size={32} color="#4F8EF7" />
         </TouchableOpacity>
       </View>
