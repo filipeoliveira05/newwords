@@ -1,15 +1,49 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  Modal,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { getWordsOfDeck, addWord } from "../../services/storage";
+import { Word } from "../../types/database";
+import WordOverview from "../components/WordOverview";
 
-import { getWordsOfDeck } from "../../services/storage";
-import { Word } from "../types/database";
-
-export default function DeckDetailScreen({ route }: any) {
+export default function DeckDetailScreen({ navigation, route }: any) {
   const { deckId, title, author } = route.params;
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Estado para modal de adicionar palavra
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newWord, setNewWord] = useState("");
+  const [newMeaning, setNewMeaning] = useState("");
+
   useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          style={{ marginRight: 16 }}
+          onPress={() => Alert.alert("Pesquisar", "Funcionalidade em breve!")}
+        >
+          <Ionicons name="search" size={24} color="#4F8EF7" />
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
+  useEffect(() => {
+    fetchWords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deckId]);
+
+  const fetchWords = () => {
+    setLoading(true);
     try {
       const data = getWordsOfDeck(deckId);
       setWords(data);
@@ -19,44 +53,247 @@ export default function DeckDetailScreen({ route }: any) {
     } finally {
       setLoading(false);
     }
-  }, [deckId]);
+  };
 
-  if (loading) {
-    return (
-      <View style={styles.container}>
-        <Text>A carregar palavras...</Text>
-      </View>
-    );
-  }
+  const handleAddWord = () => {
+    if (!newWord.trim() || !newMeaning.trim()) {
+      Alert.alert("Erro", "Preenche a palavra e o significado.");
+      return;
+    }
+    const id = addWord(deckId, newWord, newMeaning);
+    if (id) {
+      setNewWord("");
+      setNewMeaning("");
+      setAddModalVisible(false);
+      fetchWords();
+    } else {
+      Alert.alert("Erro", "Não foi possível adicionar a palavra.");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.author}>Autor: {author}</Text>
+      <View style={styles.deckInfo}>
+        <Text style={styles.deckTitle}>{title}</Text>
+        <Text style={styles.deckAuthor}>Autor: {author}</Text>
+      </View>
       <Text style={styles.subtitle}>Palavras:</Text>
-      <ScrollView>
-        {words.map((word, idx) => (
-          <View key={word.id} style={styles.wordContainer}>
-            <Text style={styles.word}>{word.name}</Text>
-            <Text style={styles.meaning}>{word.meaning}</Text>
+      {loading ? (
+        <Text style={{ marginTop: 16 }}>A carregar palavras...</Text>
+      ) : (
+        <ScrollView style={{ flex: 1 }}>
+          {words.map((word) => (
+            <WordOverview
+              key={word.id}
+              name={word.name}
+              meaning={word.meaning}
+            />
+          ))}
+        </ScrollView>
+      )}
+
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setAddModalVisible(true)}
+      >
+        <Ionicons name="add-circle-outline" size={24} color="#fff" />
+        <Text style={styles.addButtonText}>Adicionar nova palavra</Text>
+      </TouchableOpacity>
+
+      {/* Modal/área expandida para adicionar palavra */}
+      <Modal
+        visible={addModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAddModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Nova palavra</Text>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Palavra</Text>
+              <TextInput
+                style={styles.input}
+                value={newWord}
+                onChangeText={setNewWord}
+                placeholder="Nova palavra"
+                placeholderTextColor="#aaa"
+              />
+            </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Significado</Text>
+              <TextInput
+                style={styles.input}
+                value={newMeaning}
+                onChangeText={setNewMeaning}
+                placeholder="Significado"
+                placeholderTextColor="#aaa"
+              />
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => {
+                  setAddModalVisible(false);
+                  setNewWord("");
+                  setNewMeaning("");
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleAddWord}
+              >
+                <Text style={styles.saveButtonText}>Concluir</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        ))}
-      </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 4 },
-  author: { fontSize: 16, color: "#555", marginBottom: 12 },
-  subtitle: { fontSize: 18, fontWeight: "bold", marginBottom: 8 },
+  container: {
+    flex: 1,
+    backgroundColor: "#f8fafc",
+    padding: 0,
+  },
+  deckInfo: {
+    width: "100%",
+    maxWidth: 400,
+    alignSelf: "center",
+    marginTop: 24,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+  },
+  deckTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 2,
+  },
+  deckAuthor: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 8,
+    marginTop: 8,
+    color: "#4F8EF7",
+    paddingHorizontal: 16,
+  },
   wordContainer: {
     marginBottom: 12,
-    padding: 8,
+    padding: 10,
     backgroundColor: "#f2f2f2",
     borderRadius: 6,
+    maxWidth: 400,
+    marginHorizontal: 16,
   },
   word: { fontSize: 16, fontWeight: "bold" },
   meaning: { fontSize: 14, color: "#333" },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#4F8EF7",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginTop: 18,
+    marginBottom: 24,
+    alignSelf: "center",
+    shadowColor: "#4F8EF7",
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.18)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalCard: {
+    width: "90%",
+    maxWidth: 400,
+    backgroundColor: "#fff",
+    borderRadius: 18,
+    padding: 28,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 18,
+    textAlign: "center",
+  },
+  formGroup: {
+    width: "100%",
+    marginBottom: 10,
+  },
+  label: {
+    fontWeight: "bold",
+    marginBottom: 4,
+    color: "#4F8EF7",
+    fontSize: 15,
+    marginLeft: 2,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    borderRadius: 8,
+    padding: 10,
+    fontSize: 16,
+    backgroundColor: "#f3f6fa",
+    color: "#222",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 22,
+    width: "100%",
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 6,
+  },
+  cancelButton: {
+    backgroundColor: "#e0e0e0",
+  },
+  saveButton: {
+    backgroundColor: "#4F8EF7",
+  },
+  cancelButtonText: {
+    color: "#333",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  saveButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
 });
