@@ -10,7 +10,12 @@ import {
   Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { getWordsOfDeck, addWord } from "../../services/storage";
+import {
+  getWordsOfDeck,
+  addWord,
+  deleteWord,
+  updateWord,
+} from "../../services/storage";
 import { Word } from "../../types/database";
 import WordOverview from "../components/WordOverview";
 
@@ -19,10 +24,12 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const [words, setWords] = useState<Word[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Estado para modal de adicionar palavra
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newWord, setNewWord] = useState("");
   const [newMeaning, setNewMeaning] = useState("");
+
+  const [editMode, setEditMode] = useState(false);
+  const [editingWordId, setEditingWordId] = useState<number | null>(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -55,19 +62,58 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     }
   };
 
-  const handleAddWord = () => {
+  const handleEditWord = (word: Word) => {
+    setEditMode(true);
+    setEditingWordId(word.id);
+    setNewWord(word.name);
+    setNewMeaning(word.meaning);
+    setAddModalVisible(true);
+  };
+
+  const handleDeleteWord = (wordId: number) => {
+    Alert.alert(
+      "Apagar palavra",
+      "Tens a certeza que queres apagar esta palavra?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: () => {
+            deleteWord(wordId);
+            fetchWords();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleSaveWord = () => {
     if (!newWord.trim() || !newMeaning.trim()) {
       Alert.alert("Erro", "Preenche a palavra e o significado.");
       return;
     }
-    const id = addWord(deckId, newWord, newMeaning);
-    if (id) {
+    let sucess = false;
+    if (editMode && editingWordId !== null) {
+      sucess = updateWord(editingWordId, newWord, newMeaning);
+    } else {
+      const id = addWord(deckId, newWord, newMeaning);
+      sucess = !!id;
+    }
+    if (sucess) {
       setNewWord("");
       setNewMeaning("");
       setAddModalVisible(false);
+      setEditMode(false);
+      setEditingWordId(null);
       fetchWords();
     } else {
-      Alert.alert("Erro", "Não foi possível adicionar a palavra.");
+      Alert.alert(
+        "Erro",
+        editMode
+          ? "Não foi possível editar a palavra."
+          : "Não foi possível adicionar a palavra."
+      );
     }
   };
 
@@ -87,6 +133,8 @@ export default function DeckDetailScreen({ navigation, route }: any) {
               key={word.id}
               name={word.name}
               meaning={word.meaning}
+              onEdit={() => handleEditWord(word)}
+              onDelete={() => handleDeleteWord(word.id)}
             />
           ))}
         </ScrollView>
@@ -109,7 +157,9 @@ export default function DeckDetailScreen({ navigation, route }: any) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Nova palavra</Text>
+            <Text style={styles.modalTitle}>
+              {editMode ? "Editar palavra" : "Nova palavra"}
+            </Text>
             <View style={styles.formGroup}>
               <Text style={styles.label}>Palavra</Text>
               <TextInput
@@ -118,6 +168,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                 onChangeText={setNewWord}
                 placeholder="Nova palavra"
                 placeholderTextColor="#aaa"
+                autoCapitalize="none"
               />
             </View>
             <View style={styles.formGroup}>
@@ -128,6 +179,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                 onChangeText={setNewMeaning}
                 placeholder="Significado"
                 placeholderTextColor="#aaa"
+                autoCapitalize="none"
               />
             </View>
             <View style={styles.modalButtons}>
@@ -135,6 +187,8 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                 style={[styles.modalButton, styles.cancelButton]}
                 onPress={() => {
                   setAddModalVisible(false);
+                  setEditMode(false);
+                  setEditingWordId(null);
                   setNewWord("");
                   setNewMeaning("");
                 }}
@@ -143,9 +197,11 @@ export default function DeckDetailScreen({ navigation, route }: any) {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalButton, styles.saveButton]}
-                onPress={handleAddWord}
+                onPress={handleSaveWord}
               >
-                <Text style={styles.saveButtonText}>Concluir</Text>
+                <Text style={styles.saveButtonText}>
+                  {editMode ? "Guardar" : "Concluir"}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
