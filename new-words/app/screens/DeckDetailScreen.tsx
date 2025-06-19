@@ -31,18 +31,13 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const [editMode, setEditMode] = useState(false);
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
 
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity
-          style={{ marginRight: 16 }}
-          onPress={() => Alert.alert("Pesquisar", "Funcionalidade em breve!")}
-        >
-          <Ionicons name="search" size={24} color="#4F8EF7" />
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredWords = words.filter(
+    (word) =>
+      word.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      word.meaning.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   useEffect(() => {
     fetchWords();
@@ -123,12 +118,33 @@ export default function DeckDetailScreen({ navigation, route }: any) {
         <Text style={styles.deckTitle}>{title}</Text>
         <Text style={styles.deckAuthor}>Autor: {author}</Text>
       </View>
+      <View style={styles.searchBarContainer}>
+        <Ionicons
+          name="search"
+          size={20}
+          color="#aaa"
+          style={{ marginRight: 6 }}
+        />
+        <TextInput
+          style={styles.searchInput}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder="Procurar palavra..."
+          autoCapitalize="none"
+          placeholderTextColor="#aaa"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <Ionicons name="close-circle" size={20} color="#aaa" />
+          </TouchableOpacity>
+        )}
+      </View>
       <Text style={styles.subtitle}>Palavras:</Text>
       {loading ? (
         <Text style={{ marginTop: 16 }}>A carregar palavras...</Text>
       ) : (
         <ScrollView style={{ flex: 1 }}>
-          {words.map((word) => (
+          {filteredWords.map((word) => (
             <WordOverview
               key={word.id}
               name={word.name}
@@ -351,5 +367,32 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  searchContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f3f6fa",
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    height: 36,
+    minWidth: 180,
+  },
+  searchBarContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f3f6fa",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    marginHorizontal: 16,
+    marginBottom: 8,
+    height: 38,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#222",
+    paddingVertical: 0,
+    paddingHorizontal: 6,
   },
 });
