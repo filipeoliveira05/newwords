@@ -16,39 +16,9 @@ import {
   getDecks,
   getWordCountByDeck,
 } from "../../services/storage";
-import { Deck } from "../types/database";
+import { Deck } from "../../types/database";
 
 export default function HomeDecksScreen({ navigation }: any) {
-  // const decks = [
-  //   {
-  //     title: "Harry Potter",
-  //     author: "J.K. Rowling",
-  //     totalWords: 42,
-  //     words: [
-  //       { name: "Alohomora", meaning: "Spell to unlock doors" },
-  //       { name: "Expelliarmus", meaning: "Disarming spell" },
-  //     ],
-  //   },
-  //   {
-  //     title: "O Senhor dos Anéis",
-  //     author: "J.R.R. Tolkien",
-  //     totalWords: 58,
-  //     words: [
-  //       { name: "Anel", meaning: "Objeto mágico central da história" },
-  //       { name: "Hobbit", meaning: "Raça fictícia de seres pequenos" },
-  //     ],
-  //   },
-  //   {
-  //     title: "1984",
-  //     author: "George Orwell",
-  //     totalWords: 31,
-  //     words: [
-  //       { name: "Big Brother", meaning: "Figura de autoridade suprema" },
-  //       { name: "Duplipensar", meaning: "Aceitar duas ideias contraditórias" },
-  //     ],
-  //   },
-  // ];
-
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
 

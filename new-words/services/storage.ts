@@ -1,5 +1,5 @@
 import * as SQLite from "expo-sqlite";
-import { Deck, Word } from "@/app/types/database";
+import { Deck, Word } from "@/types/database";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
@@ -125,7 +125,7 @@ export function deleteDeck(id: number): boolean {
 export function getWordsOfDeck(deckId: number): Word[] {
   try {
     const result = db.getAllSync<Word>(
-      "SELECT * FROM words WHERE deckId = ? ORDER BY createdAt DESC",
+      "SELECT * FROM words WHERE deckId = ? ORDER BY createdAt",
       [deckId]
     );
     return result;
