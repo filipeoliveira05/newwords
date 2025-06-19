@@ -23,7 +23,7 @@ function HomeStack() {
   return (
     <Stack.Navigator>
       <Stack.Screen
-        name="HomeDecks"
+        name="HomeDecksList"
         component={HomeDecksScreen}
         options={{ headerShown: false }}
       />
