@@ -11,7 +11,7 @@ export default function RootLayout() {
 
   return (
     <MenuProvider>
-      <AppNavigator />;
+      <AppNavigator />
     </MenuProvider>
   );
 }
