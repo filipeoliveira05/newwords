@@ -22,18 +22,32 @@ export default function HomeDecksScreen({ navigation }: any) {
   const [decks, setDecks] = useState<Deck[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [wordCounts, setWordCounts] = useState<{ [deckId: number]: number }>(
+    {}
+  );
+
   useFocusEffect(
     React.useCallback(() => {
-      setLoading(true);
-      try {
-        const data = getDecks();
-        setDecks(data);
-      } catch (e) {
-        console.error("Erro ao obter decks", e);
-        setDecks([]);
-      } finally {
-        setLoading(false);
-      }
+      const loadDecks = async () => {
+        setLoading(true);
+        try {
+          const data = await getDecks();
+          setDecks(data);
+
+          const counts: { [deckId: number]: number } = {};
+          for (const deck of data) {
+            counts[deck.id] = await getWordCountByDeck(deck.id);
+          }
+          setWordCounts(counts);
+        } catch (e) {
+          console.error("Erro ao obter decks", e);
+          setDecks([]);
+          setWordCounts({});
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadDecks();
     }, [])
   );
 
@@ -62,7 +76,7 @@ export default function HomeDecksScreen({ navigation }: any) {
             key={idx}
             title={deck.title}
             author={deck.author}
-            totalWords={getWordCountByDeck(deck.id)}
+            totalWords={wordCounts[deck.id] ?? 0}
             onPress={() =>
               navigation.navigate("DeckDetail", {
                 deckId: deck.id,
@@ -82,9 +96,10 @@ export default function HomeDecksScreen({ navigation }: any) {
                   {
                     text: "Apagar",
                     style: "destructive",
-                    onPress: () => {
-                      deleteDeck(deck.id);
-                      setDecks(getDecks());
+                    onPress: async () => {
+                      await deleteDeck(deck.id);
+                      const updatedDecks = await getDecks();
+                      setDecks(updatedDecks);
                     },
                   },
                 ]

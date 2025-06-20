@@ -19,11 +19,13 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
 
   useEffect(() => {
     if (isEdit) {
-      const deck = getDeckById(deckId);
-      if (deck) {
-        setTitle(deck.title);
-        setAuthor(deck.author);
-      }
+      (async () => {
+        const deck = await getDeckById(deckId);
+        if (deck) {
+          setTitle(deck.title);
+          setAuthor(deck.author);
+        }
+      })();
     }
   }, [deckId, isEdit]);
 
@@ -39,15 +41,15 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
     });
   }, [navigation, isEdit]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title.trim() || !author.trim()) {
       Alert.alert("Erro", "Preenche o título e o autor.");
       return;
     }
     if (isEdit) {
-      updateDeck(deckId, title, author);
+      await updateDeck(deckId, title, author);
     } else {
-      addDeck(title, author);
+      await addDeck(title, author);
     }
     navigation.goBack();
   };

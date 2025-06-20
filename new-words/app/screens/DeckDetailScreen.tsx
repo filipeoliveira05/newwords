@@ -44,10 +44,10 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deckId]);
 
-  const fetchWords = () => {
+  const fetchWords = async () => {
     setLoading(true);
     try {
-      const data = getWordsOfDeck(deckId);
+      const data = await getWordsOfDeck(deckId);
       setWords(data);
     } catch (e) {
       console.error("Erro ao obter palavras do deck", e);
@@ -74,34 +74,43 @@ export default function DeckDetailScreen({ navigation, route }: any) {
         {
           text: "Apagar",
           style: "destructive",
-          onPress: () => {
-            deleteWord(wordId);
-            fetchWords();
+          onPress: async () => {
+            await deleteWord(wordId);
+            await fetchWords();
           },
         },
       ]
     );
   };
 
-  const handleSaveWord = () => {
+  const handleSaveWord = async () => {
     if (!newWord.trim() || !newMeaning.trim()) {
       Alert.alert("Erro", "Preenche a palavra e o significado.");
       return;
     }
-    let sucess = false;
+    let success = false;
     if (editMode && editingWordId !== null) {
-      sucess = updateWord(editingWordId, newWord, newMeaning);
+      try {
+        await updateWord(editingWordId, newWord, newMeaning);
+        success = true;
+      } catch {
+        success = false;
+      }
     } else {
-      const id = addWord(deckId, newWord, newMeaning);
-      sucess = !!id;
+      try {
+        const id = await addWord(deckId, newWord, newMeaning);
+        success = !!id;
+      } catch {
+        success = false;
+      }
     }
-    if (sucess) {
+    if (success) {
       setNewWord("");
       setNewMeaning("");
       setAddModalVisible(false);
       setEditMode(false);
       setEditingWordId(null);
-      fetchWords();
+      await fetchWords();
     } else {
       Alert.alert(
         "Erro",
