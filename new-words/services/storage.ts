@@ -31,159 +31,151 @@ export const initializeDB = () => {
     `);
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
+    throw e;
   }
 };
 
-//FUNÇÕES CRUD
+// --- Deck Functions
 
-export function getDecks(): Deck[] {
+export async function getDecks(): Promise<Deck[]> {
   try {
-    const result = db.getAllSync<Deck>(
+    return await db.getAllAsync<Deck>(
       "SELECT * FROM decks ORDER BY createdAt DESC"
     );
-    return result;
   } catch (e) {
     console.error("Erro ao obter decks:", e);
-    return [];
+    throw e;
   }
 }
 
-export function getDeckById(id: number): Deck | null {
+export async function getDeckById(id: number): Promise<Deck | null> {
   try {
-    const result = db.getAllSync<Deck>(
-      "SELECT * FROM decks WHERE id = ? LIMIT 1",
-      [id]
-    );
-    return result.length > 0 ? result[0] : null;
+    return await db.getFirstAsync<Deck>("SELECT * FROM decks WHERE id = ?", [
+      id,
+    ]);
   } catch (e) {
     console.error("Erro ao obter deck por id:", e);
-    return null;
+    throw e;
   }
 }
 
-export function getWordCountByDeck(deckId: number): number {
+export async function getWordCountByDeck(deckId: number): Promise<number> {
   try {
-    const [{ count }] = db.getAllSync<{ count: number }>(
+    const result = await db.getFirstAsync<{ count: number }>(
       "SELECT COUNT(*) as count FROM words WHERE deckId = ?",
       [deckId]
     );
-    return count;
+    return result?.count ?? 0;
   } catch (e) {
     console.error("Erro ao contar palavras do deck:", e);
-    return 0;
+    throw e;
   }
 }
 
-export function addDeck(title: string, author: string): number | null {
+export async function addDeck(title: string, author: string): Promise<number> {
   if (!title.trim() || !author.trim()) {
-    console.error("Título e autor são obrigatórios.");
-    return null;
+    throw new Error("Título e autor são obrigatórios.");
   }
   try {
-    db.runSync("INSERT INTO decks (title, author) VALUES (?, ?)", [
-      title,
-      author,
-    ]);
-    const [{ id }] = db.getAllSync<{ id: number }>(
-      "SELECT last_insert_rowid() as id"
+    const result = await db.runAsync(
+      "INSERT INTO decks (title, author) VALUES (?, ?)",
+      [title, author]
     );
-    return id;
+    return result.lastInsertRowId;
   } catch (e) {
     console.error("Erro ao adicionar deck:", e);
-    return null;
+    throw e;
   }
 }
 
-export function updateDeck(id: number, title: string, author: string): boolean {
+export async function updateDeck(
+  id: number,
+  title: string,
+  author: string
+): Promise<void> {
   if (!title.trim() || !author.trim()) {
-    console.error("Título e autor são obrigatórios.");
-    return false;
+    throw new Error("Título e autor são obrigatórios.");
   }
   try {
-    db.runSync("UPDATE decks SET title = ?, author = ? WHERE id = ?", [
+    await db.runAsync("UPDATE decks SET title = ?, author = ? WHERE id = ?", [
       title,
       author,
       id,
     ]);
-    return true;
   } catch (e) {
     console.error("Erro ao atualizar deck:", e);
-    return false;
+    throw e;
   }
 }
 
-export function deleteDeck(id: number): boolean {
+export async function deleteDeck(id: number): Promise<void> {
   try {
-    db.runSync("DELETE FROM decks WHERE id = ?", [id]);
-    return true;
+    await db.runAsync("DELETE FROM decks WHERE id = ?", [id]);
   } catch (e) {
     console.error("Erro ao apagar deck:", e);
-    return false;
+    throw e;
   }
 }
 
-export function getWordsOfDeck(deckId: number): Word[] {
+// --- Word Functions
+
+export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   try {
-    const result = db.getAllSync<Word>(
+    return await db.getAllAsync<Word>(
       "SELECT * FROM words WHERE deckId = ? ORDER BY createdAt",
       [deckId]
     );
-    return result;
   } catch (e) {
     console.error("Erro ao obter palavras do deck:", e);
-    return [];
+    throw e;
   }
 }
 
-export function addWord(
+export async function addWord(
   deckId: number,
   name: string,
   meaning: string
-): number | null {
+): Promise<number> {
   if (!name.trim() || !meaning.trim()) {
-    console.error("Nome e significado são obrigatórios.");
-    return null;
+    throw new Error("Nome e significado são obrigatórios.");
   }
   try {
-    db.runSync("INSERT INTO words (deckId, name, meaning) VALUES (?, ?, ?)", [
-      deckId,
-      name,
-      meaning,
-    ]);
-    const [{ id }] = db.getAllSync<{ id: number }>(
-      "SELECT last_insert_rowid() as id"
+    const result = await db.runAsync(
+      "INSERT INTO words (deckId, name, meaning) VALUES (?, ?, ?)",
+      [deckId, name, meaning]
     );
-    return id;
+    return result.lastInsertRowId;
   } catch (e) {
     console.error("Erro ao adicionar palavra:", e);
-    return null;
+    throw e;
   }
 }
 
-export function updateWord(id: number, name: string, meaning: string): boolean {
+export async function updateWord(
+  id: number,
+  name: string,
+  meaning: string
+): Promise<void> {
   if (!name.trim() || !meaning.trim()) {
-    console.error("Nome e significado são obrigatórios.");
-    return false;
+    throw new Error("Nome e significado são obrigatórios.");
   }
   try {
-    db.runSync("UPDATE words SET name = ?, meaning = ? WHERE id = ?", [
+    await db.runAsync("UPDATE words SET name = ?, meaning = ? WHERE id = ?", [
       name,
       meaning,
       id,
     ]);
-    return true;
   } catch (e) {
     console.error("Erro ao atualizar palavra:", e);
-    return false;
+    throw e;
   }
 }
 
-export function deleteWord(id: number): boolean {
+export async function deleteWord(id: number): Promise<void> {
   try {
-    db.runSync("DELETE FROM words WHERE id = ?", [id]);
-    return true;
+    await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
   } catch (e) {
     console.error("Erro ao apagar palavra:", e);
-    return false;
+    throw e;
   }
 }
