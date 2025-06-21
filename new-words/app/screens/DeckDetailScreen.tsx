@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
@@ -8,21 +8,24 @@ import {
   TextInput,
   Alert,
   Modal,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  getWordsOfDeck,
-  addWord,
-  deleteWord,
-  updateWord,
-} from "../../services/storage";
+import { useWordStore } from "@/stores/wordStore";
 import { Word } from "../../types/database";
 import WordOverview from "../components/WordOverview";
 
 export default function DeckDetailScreen({ navigation, route }: any) {
   const { deckId, title, author } = route.params;
-  const [words, setWords] = useState<Word[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    words,
+    loading,
+    fetchWords,
+    addWord,
+    updateWord,
+    deleteWord,
+    clearWords,
+  } = useWordStore();
 
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newWord, setNewWord] = useState("");
@@ -31,31 +34,42 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const [editMode, setEditMode] = useState(false);
   const [editingWordId, setEditingWordId] = useState<number | null>(null);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredWords = words.filter(
-    (word) =>
-      word.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      word.meaning.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredWords = useMemo(() => {
+    if (!searchQuery) {
+      return words;
+    }
+    const query = searchQuery.toLowerCase();
+    return words.filter(
+      (word) =>
+        word.name.toLowerCase().includes(query) ||
+        word.meaning.toLowerCase().includes(query)
+    );
+  }, [words, searchQuery]);
+
+  const resetModal = () => {
+    setAddModalVisible(false);
+    setEditMode(false);
+    setEditingWordId(null);
+    setNewWord("");
+    setNewMeaning("");
+  };
 
   useEffect(() => {
-    fetchWords();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deckId]);
-
-  const fetchWords = async () => {
-    setLoading(true);
-    try {
-      const data = await getWordsOfDeck(deckId);
-      setWords(data);
-    } catch (e) {
-      console.error("Erro ao obter palavras do deck", e);
-      setWords([]);
-    } finally {
-      setLoading(false);
+    if (deckId) {
+      fetchWords(deckId);
     }
-  };
+    return () => {
+      clearWords();
+    };
+  }, [deckId, fetchWords, clearWords]);
+
+  useEffect(() => {
+    navigation.setOptions({ title });
+  }, [navigation, title]);
 
   const handleEditWord = (word: Word) => {
     setEditMode(true);
@@ -75,8 +89,12 @@ export default function DeckDetailScreen({ navigation, route }: any) {
           text: "Apagar",
           style: "destructive",
           onPress: async () => {
-            await deleteWord(wordId);
-            await fetchWords();
+            try {
+              await deleteWord(wordId);
+            } catch (error) {
+              console.error("Falha ao apagar a palavra:", error);
+              Alert.alert("Erro", "Não foi possível apagar a palavra.");
+            }
           },
         },
       ]
@@ -88,36 +106,24 @@ export default function DeckDetailScreen({ navigation, route }: any) {
       Alert.alert("Erro", "Preenche a palavra e o significado.");
       return;
     }
-    let success = false;
-    if (editMode && editingWordId !== null) {
-      try {
+    setIsSaving(true);
+    try {
+      if (editMode && editingWordId !== null) {
         await updateWord(editingWordId, newWord, newMeaning);
-        success = true;
-      } catch {
-        success = false;
+      } else {
+        await addWord(deckId, newWord, newMeaning);
       }
-    } else {
-      try {
-        const id = await addWord(deckId, newWord, newMeaning);
-        success = !!id;
-      } catch {
-        success = false;
-      }
-    }
-    if (success) {
-      setNewWord("");
-      setNewMeaning("");
-      setAddModalVisible(false);
-      setEditMode(false);
-      setEditingWordId(null);
-      await fetchWords();
-    } else {
+      resetModal();
+    } catch (error) {
+      console.error("Falha ao guardar a palavra:", error);
       Alert.alert(
         "Erro",
         editMode
           ? "Não foi possível editar a palavra."
           : "Não foi possível adicionar a palavra."
       );
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -221,12 +227,21 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                 <Text style={styles.cancelButtonText}>Cancelar</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
+                style={[
+                  styles.modalButton,
+                  styles.saveButton,
+                  isSaving && styles.buttonDisabled,
+                ]}
                 onPress={handleSaveWord}
+                disabled={isSaving}
               >
-                <Text style={styles.saveButtonText}>
-                  {editMode ? "Guardar" : "Concluir"}
-                </Text>
+                {isSaving ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>
+                    {editMode ? "Guardar" : "Concluir"}
+                  </Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -366,6 +381,9 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     backgroundColor: "#4F8EF7",
+  },
+  buttonDisabled: {
+    backgroundColor: "#a9c7f5",
   },
   cancelButtonText: {
     color: "#333",

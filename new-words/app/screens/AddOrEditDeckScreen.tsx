@@ -7,27 +7,38 @@ import {
   StyleSheet,
   Alert,
   Platform,
+  ActivityIndicator,
 } from "react-native";
-import { addDeck, updateDeck, getDeckById } from "../../services/storage";
 import { Ionicons } from "@expo/vector-icons";
+
+import { useDeckStore } from "@/stores/deckStore";
 
 export default function AddOrEditDeckScreen({ navigation, route }: any) {
   const deckId = route?.params?.deckId;
   const isEdit = !!deckId;
+
+  const { addDeck, updateDeck, decks } = useDeckStore();
+
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
 
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    if (isEdit) {
-      (async () => {
-        const deck = await getDeckById(deckId);
-        if (deck) {
-          setTitle(deck.title);
-          setAuthor(deck.author);
-        }
-      })();
+    if (isEdit && deckId) {
+      const deck = decks.find((d) => d.id === deckId);
+      if (deck) {
+        setTitle(deck.title);
+        setAuthor(deck.author);
+      } else {
+        Alert.alert(
+          "Erro",
+          "O conjunto que está a tentar editar não foi encontrado. A voltar para o ecrã anterior.",
+          [{ text: "OK", onPress: () => navigation.goBack() }]
+        );
+      }
     }
-  }, [deckId, isEdit]);
+  }, [deckId, isEdit, decks, navigation]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -46,12 +57,25 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
       Alert.alert("Erro", "Preenche o título e o autor.");
       return;
     }
-    if (isEdit) {
-      await updateDeck(deckId, title, author);
-    } else {
-      await addDeck(title, author);
+
+    setIsSaving(true);
+
+    try {
+      if (isEdit && deckId) {
+        await updateDeck(deckId, title.trim(), author.trim());
+      } else {
+        await addDeck(title.trim(), author.trim());
+      }
+      navigation.goBack();
+    } catch (error) {
+      console.error("Falha ao guardar o conjunto:", error);
+      Alert.alert(
+        "Erro",
+        "Não foi possível guardar o conjunto. Tente novamente."
+      );
+    } finally {
+      setIsSaving(false);
     }
-    navigation.goBack();
   };
 
   return (
@@ -89,10 +113,18 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
             placeholderTextColor="#aaa"
           />
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleSave}>
-          <Text style={styles.buttonText}>
-            {isEdit ? "Guardar alterações" : "Criar conjunto"}
-          </Text>
+        <TouchableOpacity
+          style={[styles.button, isSaving && styles.buttonDisabled]}
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>
+              {isEdit ? "Guardar alterações" : "Criar conjunto"}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>
@@ -174,6 +206,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
+  },
+  buttonDisabled: {
+    backgroundColor: "#a9c7f5",
   },
   buttonText: {
     color: "#fff",

@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import { useFocusEffect } from "@react-navigation/native";
+import React, { useEffect } from "react";
 import {
   Text,
   View,
@@ -7,54 +6,41 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import { useDeckStore } from "@/stores/deckStore";
 import DeckOverview from "../components/DeckOverview";
-import {
-  deleteDeck,
-  getDecks,
-  getWordCountByDeck,
-} from "../../services/storage";
-import { Deck } from "../../types/database";
 
 export default function HomeDecksScreen({ navigation }: any) {
-  const [decks, setDecks] = useState<Deck[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
 
-  const [wordCounts, setWordCounts] = useState<{ [deckId: number]: number }>(
-    {}
-  );
-
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadDecks = async () => {
-        setLoading(true);
-        try {
-          const data = await getDecks();
-          setDecks(data);
-
-          const counts: { [deckId: number]: number } = {};
-          for (const deck of data) {
-            counts[deck.id] = await getWordCountByDeck(deck.id);
-          }
-          setWordCounts(counts);
-        } catch (e) {
-          console.error("Erro ao obter decks", e);
-          setDecks([]);
-          setWordCounts({});
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadDecks();
-    }, [])
-  );
+  useEffect(() => {
+    fetchDecks();
+  }, [fetchDecks]);
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <Text>A carregar conjuntos...</Text>
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#4F8EF7" />
+        <Text style={{ marginTop: 8 }}>A carregar conjuntos...</Text>
+      </View>
+    );
+  }
+
+  if (!decks || decks.length === 0) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.title}>Ainda não tem conjuntos.</Text>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("AddOrEditDeck")}
+        >
+          <Text style={{ color: "#4F8EF7", marginTop: 16 }}>
+            Crie o seu primeiro!
+          </Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -71,12 +57,12 @@ export default function HomeDecksScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
       <ScrollView contentContainerStyle={styles.list}>
-        {decks.map((deck, idx) => (
+        {decks.map((deck) => (
           <DeckOverview
-            key={idx}
+            key={deck.id}
             title={deck.title}
             author={deck.author}
-            totalWords={wordCounts[deck.id] ?? 0}
+            totalWords={deck.wordCount}
             onPress={() =>
               navigation.navigate("DeckDetail", {
                 deckId: deck.id,
@@ -97,9 +83,15 @@ export default function HomeDecksScreen({ navigation }: any) {
                     text: "Apagar",
                     style: "destructive",
                     onPress: async () => {
-                      await deleteDeck(deck.id);
-                      const updatedDecks = await getDecks();
-                      setDecks(updatedDecks);
+                      try {
+                        await deleteDeck(deck.id);
+                      } catch (error) {
+                        console.error("Falha ao apagar o conjunto:", error);
+                        Alert.alert(
+                          "Erro",
+                          "Não foi possível apagar o conjunto. Tente novamente."
+                        );
+                      }
                     },
                   },
                 ]
@@ -118,6 +110,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     paddingTop: 40,
     paddingHorizontal: 16,
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   header: {
     flexDirection: "row",
