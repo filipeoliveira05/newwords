@@ -15,17 +15,17 @@ import { useWordStore } from "@/stores/wordStore";
 import { Word } from "../../types/database";
 import WordOverview from "../components/WordOverview";
 
+const EMPTY_WORDS_ARRAY: Word[] = [];
+
 export default function DeckDetailScreen({ navigation, route }: any) {
   const { deckId, title, author } = route.params;
-  const {
-    words,
-    loading,
-    fetchWords,
-    addWord,
-    updateWord,
-    deleteWord,
-    clearWords,
-  } = useWordStore();
+
+  const wordsForCurrentDeck = useWordStore(
+    (state) => state.words[deckId] || EMPTY_WORDS_ARRAY
+  );
+  const loading = useWordStore((state) => state.loading);
+  const { fetchWords, addWord, updateWord, deleteWord } =
+    useWordStore.getState();
 
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newWord, setNewWord] = useState("");
@@ -40,15 +40,15 @@ export default function DeckDetailScreen({ navigation, route }: any) {
 
   const filteredWords = useMemo(() => {
     if (!searchQuery) {
-      return words;
+      return wordsForCurrentDeck;
     }
     const query = searchQuery.toLowerCase();
-    return words.filter(
-      (word) =>
+    return wordsForCurrentDeck.filter(
+      (word: Word) =>
         word.name.toLowerCase().includes(query) ||
         word.meaning.toLowerCase().includes(query)
     );
-  }, [words, searchQuery]);
+  }, [wordsForCurrentDeck, searchQuery]);
 
   const resetModal = () => {
     setAddModalVisible(false);
@@ -62,10 +62,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     if (deckId) {
       fetchWords(deckId);
     }
-    return () => {
-      clearWords();
-    };
-  }, [deckId, fetchWords, clearWords]);
+  }, [deckId]);
 
   useEffect(() => {
     navigation.setOptions({ title });
