@@ -9,9 +9,8 @@ import { useDeckStore } from "./deckStore";
 import type { Word } from "../types/database";
 
 interface WordState {
-  words: Word[];
+  words: { [deckId: number]: Word[] };
   loading: boolean;
-  currentDeckId: number | null;
   fetchWords: (deckId: number) => Promise<void>;
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
@@ -20,27 +19,31 @@ interface WordState {
 }
 
 export const useWordStore = create<WordState>((set, get) => ({
-  words: [],
-  loading: true,
-  currentDeckId: null,
+  words: {},
+  loading: false,
 
   fetchWords: async (deckId) => {
-    set({ loading: true, currentDeckId: deckId });
+    if (get().words[deckId]) {
+      return;
+    }
+
+    set({ loading: true });
     try {
       const data = await dbGetWordsOfDeck(deckId);
-      set({ words: data, loading: false });
+      set((state) => ({
+        words: {
+          ...state.words,
+          [deckId]: data,
+        },
+        loading: false,
+      }));
     } catch (error) {
       console.error("Erro ao obter palavras no store", error);
-      set({ words: [], loading: false });
+      set({ loading: false });
     }
   },
 
   addWord: async (deckId, name, meaning) => {
-    const currentDeck = get().currentDeckId;
-    if (deckId !== currentDeck) {
-      console.error("ID do deck inconsistente ao adicionar palavra");
-      return;
-    }
     try {
       const newWordId = await dbAddWord(deckId, name, meaning);
       const newWord: Word = {
@@ -54,7 +57,15 @@ export const useWordStore = create<WordState>((set, get) => ({
         lastTrained: null,
         createdAt: new Date().toISOString(),
       };
-      set((state) => ({ words: [...state.words, newWord] }));
+      set((state) => {
+        const currentWordsForDeck = state.words[deckId] || [];
+        return {
+          words: {
+            ...state.words,
+            [deckId]: [...currentWordsForDeck, newWord],
+          },
+        };
+      });
 
       useDeckStore.getState().incrementWordCount(deckId);
     } catch (error) {
@@ -64,15 +75,28 @@ export const useWordStore = create<WordState>((set, get) => ({
   },
 
   updateWord: async (id, name, meaning) => {
-    const deckId = get().currentDeckId;
-    if (!deckId) return;
     try {
       await dbUpdateWord(id, name, meaning);
-      set((state) => ({
-        words: state.words.map((word) =>
+      set((state) => {
+        const wordToUpdate = Object.values(state.words)
+          .flat()
+          .find((w) => w.id === id);
+
+        if (!wordToUpdate) return state;
+
+        const { deckId } = wordToUpdate;
+
+        const updatedWordsForDeck = state.words[deckId].map((word) =>
           word.id === id ? { ...word, name, meaning } : word
-        ),
-      }));
+        );
+
+        return {
+          words: {
+            ...state.words,
+            [deckId]: updatedWordsForDeck,
+          },
+        };
+      });
     } catch (error) {
       console.error("Erro ao atualizar palavra no store", error);
       throw error;
@@ -80,15 +104,29 @@ export const useWordStore = create<WordState>((set, get) => ({
   },
 
   deleteWord: async (id) => {
-    const deckId = get().currentDeckId;
-    if (!deckId) {
-      throw new Error("Não é possível apagar uma palavra sem um deck ativo.");
-    }
     try {
+      const wordToDelete = Object.values(get().words)
+        .flat()
+        .find((w) => w.id === id);
+
+      if (!wordToDelete) {
+        throw new Error("Palavra não encontrada na store para apagar.");
+      }
+
+      const { deckId } = wordToDelete;
+
       await dbDeleteWord(id);
-      set((state) => ({
-        words: state.words.filter((word) => word.id !== id),
-      }));
+      set((state) => {
+        const filteredWords = state.words[deckId].filter(
+          (word) => word.id !== id
+        );
+        return {
+          words: {
+            ...state.words,
+            [deckId]: filteredWords,
+          },
+        };
+      });
       useDeckStore.getState().decrementWordCount(deckId);
     } catch (error) {
       console.error("Erro ao apagar palavra no store", error);
@@ -97,6 +135,6 @@ export const useWordStore = create<WordState>((set, get) => ({
   },
 
   clearWords: () => {
-    set({ words: [], currentDeckId: null, loading: true });
+    set({ words: {}, loading: false });
   },
 }));
