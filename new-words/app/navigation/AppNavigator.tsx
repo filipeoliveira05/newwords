@@ -3,13 +3,65 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
+import {
+  HomeStackParamList,
+  PracticeStackParamList,
+  RootTabParamList,
+} from "./types";
+
 import HomeDecksScreen from "../screens/HomeDecksScreen";
-import PracticeScreen from "../screens/PracticeScreen";
-import StatsScreen from "../screens/StatsScreen";
 import DeckDetailScreen from "../screens/DeckDetailScreen";
 import AddOrEditDeckScreen from "../screens/AddOrEditDeckScreen";
 
-const Tab = createBottomTabNavigator();
+import PracticeHubScreen from "../screens/PracticeHubScreen";
+import PracticeGameScreen from "../screens/PracticeGameScreen";
+
+import StatsScreen from "../screens/StatsScreen";
+
+const Tab = createBottomTabNavigator<RootTabParamList>();
+
+const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
+
+function HomeStack() {
+  return (
+    <HomeStackNav.Navigator>
+      <HomeStackNav.Screen
+        name="HomeDecksList"
+        component={HomeDecksScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStackNav.Screen
+        name="DeckDetail"
+        component={DeckDetailScreen}
+        options={{ title: "Detalhes do Conjunto", animation: "fade" }}
+      />
+      <HomeStackNav.Screen
+        name="AddOrEditDeck"
+        component={AddOrEditDeckScreen}
+        options={{ title: "Novo Conjunto" }}
+      />
+    </HomeStackNav.Navigator>
+  );
+}
+
+const PracticeStackNav = createNativeStackNavigator<PracticeStackParamList>();
+
+function PracticeStack() {
+  return (
+    <PracticeStackNav.Navigator>
+      <PracticeStackNav.Screen
+        name="PracticeHub"
+        component={PracticeHubScreen}
+        options={{ headerShown: false }} // pode se alterar
+      />
+      <PracticeStackNav.Screen
+        name="PracticeGame"
+        component={PracticeGameScreen}
+        options={{ headerShown: false }} //pode se alterar
+      />
+    </PracticeStackNav.Navigator>
+  );
+}
 
 const iconMapping = {
   HomeDecks: ["home", "home-outline"],
@@ -17,38 +69,13 @@ const iconMapping = {
   Stats: ["stats-chart", "stats-chart-outline"],
 };
 
-const Stack = createNativeStackNavigator();
-
-function HomeStack() {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name="HomeDecksList"
-        component={HomeDecksScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="DeckDetail"
-        component={DeckDetailScreen}
-        options={{ title: "Detalhes do Conjunto", animation: "fade" }}
-      />
-      <Stack.Screen
-        name="AddOrEditDeck"
-        component={AddOrEditDeckScreen}
-        options={{ title: "Novo Conjunto" }}
-      />
-    </Stack.Navigator>
-  );
-}
-
 export default function AppNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
-          const [iconFocused, iconInactive] =
-            iconMapping[route.name as keyof typeof iconMapping];
+          const [iconFocused, iconInactive] = iconMapping[route.name];
           const iconName = focused ? iconFocused : iconInactive;
 
           return <Ionicons name={iconName as any} size={size} color={color} />;
@@ -62,7 +89,7 @@ export default function AppNavigator() {
       />
       <Tab.Screen
         name="Practice"
-        component={PracticeScreen}
+        component={PracticeStack}
         options={{ tabBarLabel: "Praticar" }}
       />
       <Tab.Screen
