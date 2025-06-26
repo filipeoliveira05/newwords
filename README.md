@@ -1,81 +1,91 @@
 # NewWords 📚
 
-Bem-vindo ao NewWords, uma aplicação móvel construída com React Native e Expo, desenhada para ajudar os utilizadores a expandirem o seu vocabulário através da leitura. A aplicação permite criar conjuntos de palavras (flashcards) por livro, praticar de forma inteligente e acompanhar o progresso com estatísticas detalhadas.
+Welcome to NewWords, a mobile application built with React Native and Expo, designed to help users expand their vocabulary in an effective and fun way. The application allows users to create word sets (flashcards), practice with different mini-games, and track their learning progress.
 
-## ✨ Visão Geral
+## ✨ Overview
 
-O objetivo principal desta aplicação é ser mais do que um simples bloco de notas; é ser um **tutor de aprendizagem pessoal**. Através de um sistema de repetição espaçada e futuras integrações com IA, a aplicação visa otimizar o processo de memorização de novo vocabulário, tornando a aprendizagem mais eficaz e motivadora.
-
----
-
-## 🚀 Funcionalidades Implementadas
-
-A fundação da aplicação está completa, com uma arquitetura robusta e escalável. As seguintes funcionalidades estão 100% operacionais:
-
-### 1. Gestão Completa de Decks (Conjuntos)
-- **Criar Decks:** Adicionar novos conjuntos de palavras, associados a um livro ou tema, com título e autor.
-- **Listar Decks:** Visualizar todos os decks existentes, com uma contagem em tempo real do número de palavras em cada um.
-- **Editar Decks:** Modificar o título e o autor de um deck existente.
-- **Apagar Decks:** Remover um deck e todas as suas palavras associadas de forma segura, com um diálogo de confirmação.
-
-### 2. Gestão Completa de Palavras (Flashcards)
-- **Adicionar Palavras:** Inserir novas palavras num deck específico, com o seu significado ou sinónimos.
-- **Listar Palavras:** Visualizar todas as palavras de um deck com uma interface limpa.
-- **Pesquisar Palavras:** Filtrar rapidamente as palavras dentro de um deck.
-- **Editar Palavras:** Corrigir ou melhorar uma palavra ou o seu significado.
-- **Apagar Palavras:** Remover uma palavra individualmente.
-
-### 3. Arquitetura e Qualidade Técnica
-- **Estado Centralizado (Zustand):** Toda a lógica de dados da aplicação é gerida por stores centrais (`deckStore`, `wordStore`), garantindo uma UI reativa e consistente, sem bugs de sincronização.
-- **Base de Dados Robusta (Expo-SQLite):** Utiliza uma base de dados SQLite local, com uma camada de acesso a dados totalmente **assíncrona** e com gestão de erros explícita.
-- **UI Polida e Responsiva:** A aplicação inclui indicadores de carregamento e gravação, proporcionando um feedback claro ao utilizador sobre o estado do sistema.
+The main goal of this application is to be more than just a simple notepad; it aims to be a **personal learning tutor**. Through a robust architecture and plans for a Spaced Repetition System (SRS) and AI integrations, the application aims to optimize the process of memorizing new vocabulary.
 
 ---
 
-## 🗺️ Roadmap de Desenvolvimento
+## 🚀 Implemented Features
 
-Com a fundação sólida já construída, o foco agora é desenvolver as funcionalidades que entregam o valor principal da aplicação ao utilizador.
+The application has a solid and scalable foundation, with the following features being 100% operational:
 
-### 🎯 Prioridades Atuais
+### 1. Full Deck Management
 
-1.  **Implementar o Core Loop de Aprendizagem (`PracticeScreen`)**
-    - [ ] Desenvolver o algoritmo de seleção de palavras (priorizando as menos treinadas e mais antigas).
-    - [ ] Construir a interface de treino, mostrando um flashcard de cada vez.
-    - [ ] Implementar a lógica para os botões "Certo" e "Errado", atualizando as estatísticas de cada palavra na base de dados.
+- **Full CRUD:** Create, view, edit, and delete decks.
+- **Word Count:** The interface displays a real-time count of the number of words in each deck, keeping data synchronized across screens.
 
-2.  **Implementar o Ecrã de Estatísticas (`StatsScreen`)**
-    - [ ] Criar queries SQL para obter dados agregados (ex: palavras mais erradas, taxa de acerto global).
-    - [ ] Desenvolver a UI para mostrar as estatísticas de forma clara e motivadora.
-    - [ ] (Opcional) Integrar uma biblioteca de gráficos (`react-native-gifted-charts`) para visualizações de dados mais ricas.
+### 2. Full Word (Flashcard) Management
 
-3.  **Internacionalização (i18n)**
-    - [ ] Integrar a biblioteca `i18next` e `react-i18next`.
-    - [ ] Abstrair todos os textos da UI para ficheiros de tradução (começando com `pt` e `en`).
-    - [ ] Implementar a deteção automática do idioma do dispositivo.
+- **Full CRUD:** Add, view, edit, and delete words within a specific deck.
+- **Smart Search:** A search field allows for quick filtering of words by name or meaning.
+- **Polished Modal Interface:** A clean and reusable modal UI for adding and editing words, with saving indicators for enhanced UX feedback.
 
-### 🔮 Funcionalidades Futuras (Próximos Níveis)
+### 3. Advanced Architecture and Navigation
 
-#### Nível 1: Melhorar o Core
-- [ ] **Sistema de Repetição Espaçada (SRS):** Evoluir o algoritmo de treino para um verdadeiro SRS, que calcula o intervalo de revisão ótimo para cada palavra.
-- [ ] **Modos de Treino Alternativos:** Adicionar mais formas de praticar (ex: escolha múltipla, escrever a palavra).
+- **Centralized & Reactive State (Zustand):** All application data logic is managed by central stores (`deckStore`, `wordStore`, `practiceStore`).
+- **Robust Database (Expo-SQLite):** Utilizes a local SQLite database with a fully asynchronous data access layer.
+- **Typed & Nested Navigation (React Navigation):** The app uses a `BottomTabNavigator` with nested `StackNavigator`s, allowing for independent and type-safe navigation flows for each section (Decks, Practice, Stats). All navigation types are defined, ensuring code safety.
+- **Optimized Components:** Rendering optimization techniques (e.g., `React.memo`, atomic state selectors) have been implemented to ensure a fluid UI without infinite loops.
 
-#### Nível 2: A Magia da IA
-- [ ] **Gerador de Definições:** Usar uma API de LLM (como Gemini ou GPT) para preencher automaticamente o significado de uma palavra.
-- [ ] **Gerador de Frases de Exemplo:** Para cada palavra, gerar uma frase que a use em contexto.
-- [ ] **"Descobridor" de Palavras:** Permitir ao utilizador extrair vocabulário a partir de uma foto ou de um texto colado.
+### 4. Practice Hub Foundation
 
-#### Nível 3: Polimento e Crescimento
-- [ ] **Autenticação e Sincronização na Nuvem (Supabase ou Firebase):** Permitir que os utilizadores criem uma conta e façam backup dos seus dados.
-- [ ] **Notificações Push:** Implementar lembretes diários/semanais para incentivar o treino.
-- [ ] **Modo Escuro:** Oferecer uma alternativa visual para a interface.
+- **Mini-Game Hub:** The "Practice" tab is now a game hub, allowing the user to choose how they want to train.
+- **Global Training Mode:** The games operate on a set of **all words from all decks**, providing a consolidated review experience.
+- **Complete Practice Loop (Flashcard Mode):**
+  - Selecting the "Classic Review" game starts a practice session.
+  - The game screen (`FlashcardView`) allows the user to review cards and assess their performance (Correct/Incorrect).
+  - The Session Results screen displays a performance summary, highlighting incorrect words for future review.
 
 ---
 
-## 🛠️ Stack Tecnológica Principal
+## 🗺️ Development Roadmap
+
+With the practice architecture now in place, the focus is on enriching the learning experience and completing the core functionalities.
+
+### 🎯 Current Priorities
+
+1.  **Expand the Practice Hub**
+
+    - [ ] **Implement "Quick Quiz" Mini-Game**: Build the multiple-choice interface where the user selects the correct meaning from 4 options.
+    - [ ] **Progress Bar:** Add a visual indicator on the game screen to show the current session's progress (e.g., 5/20 words).
+    - [ ] **(Optional) Refine Practice UI/UX:** Add animations for flipping the flashcard or for providing answer feedback (correct/incorrect).
+
+2.  **Connect Statistics to Practice**
+
+    - [ ] **Update the Database:** Modify the `recordAnswer` action in `usePracticeStore` to not only manage the session state but also call a function to update the word's metadata in the database (`timesTrained`, `timesCorrect`, `lastTrained`, etc.).
+    - [ ] **Implement the Statistics Screen (`StatsScreen`):** Create SQL queries to fetch aggregate data and develop the UI to display stats like a global success rate, most frequently missed words, etc.
+
+3.  **Improve the Word Selection Algorithm**
+    - [ ] **Implement Spaced Repetition (SRS) - Level 1:** Modify the word selection logic in the `PracticeHubScreen`. Instead of fetching all words, prioritize those that haven't been trained for the longest time (`lastTrained`) or have a lower success rate.
+
+### 🔮 Future Features (Next Levels)
+
+#### Level 1: Core Improvements
+
+- [ ] **Alternative Training Modes:** Add a "Writing Game" (type the word based on its meaning).
+- [ ] **Internationalization (i18n):** Abstract all UI text into translation files.
+
+#### Level 2: AI Magic
+
+- [ ] **Definition and Example Sentence Generator:** Use an LLM API to assist in creating flashcards.
+- [ ] **Word "Discoverer":** Extract vocabulary from a photo or pasted text.
+
+#### Level 3: Polish and Growth
+
+- [ ] **Authentication and Cloud Sync.**
+- [ ] **Push Notifications for Practice Reminders.**
+- [ ] **Dark Mode.**
+
+---
+
+## 🛠️ Main Tech Stack
 
 - **Framework:** React Native (Expo)
-- **Linguagem:** TypeScript
-- **Gestão de Estado:** Zustand
-- **Base de Dados:** Expo-SQLite (com API `next`)
-- **Navegação:** React Navigation
-- **UI:** Componentes nativos do React Native
+- **Language:** TypeScript
+- **State Management:** Zustand
+- **Database:** Expo-SQLite (with `next` API)
+- **Navigation:** React Navigation (v6)
+- **UI:** React Native's built-in components and icon libraries.
