@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   getWordsOfDeck as dbGetWordsOfDeck,
+  getAllWords as dbGetAllWords,
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
@@ -11,7 +12,8 @@ import type { Word } from "../types/database";
 interface WordState {
   words: { [deckId: number]: Word[] };
   loading: boolean;
-  fetchWords: (deckId: number) => Promise<void>;
+  fetchWordsOfDeck: (deckId: number) => Promise<void>;
+  fetchAllWords: () => Promise<void>;
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
@@ -22,7 +24,7 @@ export const useWordStore = create<WordState>((set, get) => ({
   words: {},
   loading: false,
 
-  fetchWords: async (deckId) => {
+  fetchWordsOfDeck: async (deckId) => {
     if (get().words[deckId]) {
       return;
     }
@@ -38,25 +40,36 @@ export const useWordStore = create<WordState>((set, get) => ({
         loading: false,
       }));
     } catch (error) {
-      console.error("Erro ao obter palavras no store", error);
+      console.error("Erro ao obter palavras do deck no store", error);
+      set({ loading: false });
+    }
+  },
+
+  fetchAllWords: async () => {
+    set({ loading: true });
+    try {
+      const allWords = await dbGetAllWords();
+
+      // Agrupa as palavras por deckId
+      const wordsByDeck = allWords.reduce((acc, word) => {
+        const deckKey = word.deckId;
+        if (!acc[deckKey]) {
+          acc[deckKey] = [];
+        }
+        acc[deckKey].push(word);
+        return acc;
+      }, {} as { [deckId: number]: Word[] });
+
+      set({ words: wordsByDeck, loading: false });
+    } catch (error) {
+      console.error("Erro ao obter todas as palavras no store", error);
       set({ loading: false });
     }
   },
 
   addWord: async (deckId, name, meaning) => {
     try {
-      const newWordId = await dbAddWord(deckId, name, meaning);
-      const newWord: Word = {
-        id: newWordId,
-        deckId,
-        name,
-        meaning,
-        timesTrained: 0,
-        timesCorrect: 0,
-        timesIncorrect: 0,
-        lastTrained: null,
-        createdAt: new Date().toISOString(),
-      };
+      const newWord = await dbAddWord(deckId, name, meaning);
       set((state) => {
         const currentWordsForDeck = state.words[deckId] || [];
         return {

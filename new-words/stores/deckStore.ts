@@ -46,15 +46,12 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
   addDeck: async (title, author) => {
     try {
-      const newDeckId = await dbAddDeck(title, author);
-      const newDeck: DeckWithCount = {
-        id: newDeckId,
-        title,
-        author,
+      const newDeckData = await dbAddDeck(title, author);
+      const newDeckWithCount: DeckWithCount = {
+        ...newDeckData,
         wordCount: 0,
-        createdAt: new Date().toISOString(),
       };
-      set((state) => ({ decks: [newDeck, ...state.decks] }));
+      set((state) => ({ decks: [newDeckWithCount, ...state.decks] }));
     } catch (error) {
       console.error("Erro ao adicionar deck no store", error);
       throw error;

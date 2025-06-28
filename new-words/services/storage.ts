@@ -72,18 +72,21 @@ export async function getWordCountByDeck(deckId: number): Promise<number> {
   }
 }
 
-export async function addDeck(title: string, author: string): Promise<number> {
+export async function addDeck(title: string, author: string): Promise<Deck> {
   if (!title.trim() || !author.trim()) {
     throw new Error("Título e autor são obrigatórios.");
   }
   try {
-    const result = await db.runAsync(
-      "INSERT INTO decks (title, author) VALUES (?, ?)",
+    const result = await db.getFirstAsync<Deck>(
+      "INSERT INTO decks (title, author) VALUES (?, ?) RETURNING *",
       [title, author]
     );
-    return result.lastInsertRowId;
+    if (!result) {
+      throw new Error("Falha ao adicionar deck e obter o resultado.");
+    }
+    return result;
   } catch (e) {
-    console.error("Erro ao adicionar deck:", e);
+    console.error("Erro ao adicionar o deck:", e);
     throw e;
   }
 }
@@ -119,6 +122,17 @@ export async function deleteDeck(id: number): Promise<void> {
 
 // --- Word Functions
 
+export async function getAllWords(): Promise<Word[]> {
+  try {
+    return await db.getAllAsync<Word>(
+      "SELECT * FROM words ORDER BY createdAt DESC"
+    );
+  } catch (e) {
+    console.error("Erro ao obter palavras:", e);
+    throw e;
+  }
+}
+
 export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   try {
     return await db.getAllAsync<Word>(
@@ -135,18 +149,21 @@ export async function addWord(
   deckId: number,
   name: string,
   meaning: string
-): Promise<number> {
+): Promise<Word> {
   if (!name.trim() || !meaning.trim()) {
     throw new Error("Nome e significado são obrigatórios.");
   }
   try {
-    const result = await db.runAsync(
-      "INSERT INTO words (deckId, name, meaning) VALUES (?, ?, ?)",
+    const result = await db.getFirstAsync<Word>(
+      "INSERT INTO words (deckId, name, meaning) VALUES (?, ?, ?) RETURNING *",
       [deckId, name, meaning]
     );
-    return result.lastInsertRowId;
+    if (!result) {
+      throw new Error("Falha ao adicionar palavra e obter o resultado.");
+    }
+    return result;
   } catch (e) {
-    console.error("Erro ao adicionar palavra:", e);
+    console.error("Erro ao adicionar a palavra:", e);
     throw e;
   }
 }
