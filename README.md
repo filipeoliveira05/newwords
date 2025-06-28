@@ -55,7 +55,7 @@ With the practice architecture now in place, the focus is on enriching the learn
 
 2.  **Connect Statistics to Practice**
 
-    - [ ] **Update the Database:** Modify the `recordAnswer` action in `usePracticeStore` to not only manage the session state but also call a function to update the word's metadata in the database (`timesTrained`, `timesCorrect`, `lastTrained`, etc.).
+    - [x] **Update the Database:** Modify the `recordAnswer` action in `usePracticeStore` to not only manage the session state but also call a function to update the word's metadata in the database (`timesTrained`, `timesCorrect`, `lastTrained`, etc.).
     - [ ] **Implement the Statistics Screen (`StatsScreen`):** Create SQL queries to fetch aggregate data and develop the UI to display stats like a global success rate, most frequently missed words, etc.
 
 3.  **Improve the Word Selection Algorithm**
