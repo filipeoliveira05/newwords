@@ -24,7 +24,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     (state) => state.words[deckId] || EMPTY_WORDS_ARRAY
   );
   const loading = useWordStore((state) => state.loading);
-  const { fetchWords, addWord, updateWord, deleteWord } =
+  const { fetchWordsOfDeck, addWord, updateWord, deleteWord } =
     useWordStore.getState();
 
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -60,7 +60,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
 
   useEffect(() => {
     if (deckId) {
-      fetchWords(deckId);
+      fetchWordsOfDeck(deckId);
     }
   }, [deckId]);
 
