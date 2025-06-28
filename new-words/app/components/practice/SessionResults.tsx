@@ -10,6 +10,7 @@ import { useNavigation } from "@react-navigation/native";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
+import { updateUserPracticeMetrics } from "../../../services/storage";
 
 import { Word } from "@/types/database";
 
@@ -28,6 +29,9 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const wordsForSession = usePracticeStore(
     (state) => state.wordsForSession || EMPTY_WORDS_ARRAY
   );
+  const highestStreakThisRound = usePracticeStore(
+    (state) => state.highestStreakThisRound
+  );
 
   // Get the action from wordStore to save stats
   const { updateStatsAfterSession } = useWordStore.getState();
@@ -39,6 +43,8 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
         // Only save if there are results to save
         if (correctAnswers.length > 0 || incorrectAnswers.length > 0) {
           await updateStatsAfterSession(correctAnswers, incorrectAnswers);
+          // Também atualiza as métricas do utilizador com a maior streak da ronda
+          await updateUserPracticeMetrics(highestStreakThisRound);
         }
       } catch (error) {
         console.error("Falha ao guardar as estatísticas da sessão:", error);

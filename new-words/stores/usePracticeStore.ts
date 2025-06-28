@@ -17,6 +17,7 @@ interface PracticeState {
   incorrectAnswers: number[];
   sessionMode: SessionMode;
   streak: number;
+  highestStreakThisRound: number;
   startSession: (words: PracticeWord[], mode: NonNullable<SessionMode>) => void;
   recordAnswer: (wordId: number, isCorrect: boolean) => void;
   nextWord: () => void;
@@ -34,6 +35,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   incorrectAnswers: [],
   sessionMode: null, // 'flashcard', 'multiple-choice', etc.
   streak: 0,
+  highestStreakThisRound: 0,
 
   // --- ACTIONS ---
   startSession: (words, mode) => {
@@ -49,7 +51,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       correctAnswers: [],
       incorrectAnswers: [],
       sessionState: "in-progress",
-      streak: 0,
+      // A streak não é reiniciada, mas o pico da ronda começa com o valor atual da streak
+      highestStreakThisRound: get().streak,
     });
   },
 
@@ -63,7 +66,11 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         !isCorrect && !state.incorrectAnswers.includes(wordId)
           ? [...state.incorrectAnswers, wordId]
           : state.incorrectAnswers,
-      streak: isCorrect ? state.streak + 1 : 0,
+      streak: isCorrect ? state.streak + 1 : 0, // Reinicia a streak se errar, incrementa se acertar
+      // Regista o valor mais alto que a streak atingiu nesta ronda
+      highestStreakThisRound: isCorrect
+        ? Math.max(state.highestStreakThisRound, state.streak + 1)
+        : state.highestStreakThisRound,
     }));
   },
 
@@ -85,7 +92,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       correctAnswers: [],
       incorrectAnswers: [],
       sessionMode: null,
-      streak: 0,
+      streak: 0, // A streak é totalmente reiniciada ao sair do ecrã de prática
+      highestStreakThisRound: 0,
     });
   },
 

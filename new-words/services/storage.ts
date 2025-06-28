@@ -1,5 +1,6 @@
 import * as SQLite from "expo-sqlite";
 import { Deck, Word } from "@/types/database";
+import { startOfDay, isYesterday, isToday } from "date-fns";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
@@ -27,6 +28,11 @@ export const initializeDB = () => {
             lastTrained TEXT,
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
             FOREIGN KEY (deckId) REFERENCES decks(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS user_metadata (
+            key TEXT PRIMARY KEY NOT NULL,
+            value TEXT NOT NULL
         );
     `);
   } catch (e) {
@@ -145,54 +151,6 @@ export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   }
 }
 
-// --- Stats Functions ---
-
-export async function updateWordStats(
-  correctWordIds: number[],
-  incorrectWordIds: number[]
-): Promise<void> {
-  const allTrainedIds = [...new Set([...correctWordIds, ...incorrectWordIds])];
-  if (allTrainedIds.length === 0) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-
-  try {
-    await db.withTransactionAsync(async () => {
-      // Update all trained words (increment timesTrained and set lastTrained)
-      if (allTrainedIds.length > 0) {
-        const placeholders = allTrainedIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesTrained = timesTrained + 1, lastTrained = ? WHERE id IN (${placeholders})`,
-          [now, ...allTrainedIds]
-        );
-      }
-
-      // Increment timesCorrect for correct words
-      if (correctWordIds.length > 0) {
-        const placeholders = correctWordIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesCorrect = timesCorrect + 1 WHERE id IN (${placeholders})`,
-          correctWordIds
-        );
-      }
-
-      // Increment timesIncorrect for incorrect words
-      if (incorrectWordIds.length > 0) {
-        const placeholders = incorrectWordIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesIncorrect = timesIncorrect + 1 WHERE id IN (${placeholders})`,
-          incorrectWordIds
-        );
-      }
-    });
-  } catch (e) {
-    console.error("Erro ao atualizar estatísticas das palavras:", e);
-    throw e;
-  }
-}
-
 export async function addWord(
   deckId: number,
   name: string,
@@ -241,6 +199,182 @@ export async function deleteWord(id: number): Promise<void> {
     await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
   } catch (e) {
     console.error("Erro ao apagar palavra:", e);
+    throw e;
+  }
+}
+
+export async function updateWordStats(
+  correctWordIds: number[],
+  incorrectWordIds: number[]
+): Promise<void> {
+  const allTrainedIds = [...new Set([...correctWordIds, ...incorrectWordIds])];
+  if (allTrainedIds.length === 0) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  try {
+    await db.withTransactionAsync(async () => {
+      // Update all trained words (increment timesTrained and set lastTrained)
+      if (allTrainedIds.length > 0) {
+        const placeholders = allTrainedIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesTrained = timesTrained + 1, lastTrained = ? WHERE id IN (${placeholders})`,
+          [now, ...allTrainedIds]
+        );
+      }
+
+      // Increment timesCorrect for correct words
+      if (correctWordIds.length > 0) {
+        const placeholders = correctWordIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesCorrect = timesCorrect + 1 WHERE id IN (${placeholders})`,
+          correctWordIds
+        );
+      }
+
+      // Increment timesIncorrect for incorrect words
+      if (incorrectWordIds.length > 0) {
+        const placeholders = incorrectWordIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesIncorrect = timesIncorrect + 1 WHERE id IN (${placeholders})`,
+          incorrectWordIds
+        );
+      }
+    });
+  } catch (e) {
+    console.error("Erro ao atualizar estatísticas das palavras:", e);
+    throw e;
+  }
+}
+
+// --- Stats Functions ---
+
+export type GlobalStats = {
+  successRate: number;
+  wordsMastered: number;
+};
+
+export async function getGlobalStats(): Promise<GlobalStats> {
+  try {
+    const result = await db.getFirstAsync<GlobalStats>(`
+      SELECT
+        COALESCE(SUM(timesCorrect) * 100.0 / SUM(timesTrained), 0) as successRate,
+        (SELECT COUNT(*) FROM words WHERE timesTrained >= 3 AND (CAST(timesCorrect AS REAL) / timesTrained) >= 0.9) as wordsMastered
+      FROM words
+    `);
+    return result || { successRate: 0, wordsMastered: 0 };
+  } catch (e) {
+    console.error("Erro ao obter estatísticas globais:", e);
+    throw e;
+  }
+}
+
+export type ChallengingWord = {
+  id: number;
+  name: string;
+  successRate: number;
+};
+
+export async function getChallengingWords(): Promise<ChallengingWord[]> {
+  try {
+    return await db.getAllAsync<ChallengingWord>(`
+      SELECT
+        id,
+        name,
+        (CAST(timesCorrect AS REAL) * 100 / timesTrained) as successRate
+      FROM words
+      WHERE timesTrained > 0
+      ORDER BY successRate ASC, timesIncorrect DESC
+      LIMIT 3
+    `);
+  } catch (e) {
+    console.error("Erro ao obter palavras desafiadoras:", e);
+    throw e;
+  }
+}
+
+export type UserPracticeMetrics = {
+  longestStreak: number;
+  consecutiveDays: number;
+};
+
+// A helper to get a single metadata value
+async function getMetaValue(
+  key: string,
+  defaultValue: string
+): Promise<string> {
+  const result = await db.getFirstAsync<{ value: string }>(
+    "SELECT value FROM user_metadata WHERE key = ?",
+    [key]
+  );
+  return result?.value ?? defaultValue;
+}
+
+// A helper to set a single metadata value
+async function setMetaValue(key: string, value: string): Promise<void> {
+  await db.runAsync(
+    "INSERT OR REPLACE INTO user_metadata (key, value) VALUES (?, ?)",
+    [key, value]
+  );
+}
+
+export async function getUserPracticeMetrics(): Promise<UserPracticeMetrics> {
+  try {
+    const [longestStreak, consecutiveDays] = await Promise.all([
+      getMetaValue("longest_streak", "0"),
+      getMetaValue("consecutive_days", "0"),
+    ]);
+
+    return {
+      longestStreak: parseInt(longestStreak, 10),
+      consecutiveDays: parseInt(consecutiveDays, 10),
+    };
+  } catch (e) {
+    console.error("Erro ao obter métricas de prática do utilizador:", e);
+    throw e;
+  }
+}
+
+export async function updateUserPracticeMetrics(
+  sessionStreak: number
+): Promise<void> {
+  try {
+    await db.withTransactionAsync(async () => {
+      const currentLongestStreak = parseInt(
+        await getMetaValue("longest_streak", "0"),
+        10
+      );
+      const currentConsecutiveDays = parseInt(
+        await getMetaValue("consecutive_days", "0"),
+        10
+      );
+      const lastPracticeDateStr = await getMetaValue("last_practice_date", "");
+
+      const today = startOfDay(new Date());
+      const lastPracticeDate = lastPracticeDateStr
+        ? startOfDay(new Date(lastPracticeDateStr))
+        : null;
+
+      let newConsecutiveDays = lastPracticeDate
+        ? isYesterday(lastPracticeDate)
+          ? currentConsecutiveDays + 1
+          : isToday(lastPracticeDate)
+          ? currentConsecutiveDays
+          : 1
+        : 1;
+
+      const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
+
+      await Promise.all([
+        setMetaValue("longest_streak", newLongestStreak.toString()),
+        setMetaValue("consecutive_days", newConsecutiveDays.toString()),
+        setMetaValue("last_practice_date", today.toISOString()),
+      ]);
+    });
+  } catch (e) {
+    console.error("Erro ao atualizar métricas de prática do utilizador:", e);
     throw e;
   }
 }
