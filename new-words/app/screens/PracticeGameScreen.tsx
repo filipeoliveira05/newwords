@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { RouteProp } from "@react-navigation/native";
+import React, { useEffect, useRef } from "react";
+import { View, Text, StyleSheet, Alert, AppState } from "react-native";
+import { RouteProp, useNavigation } from "@react-navigation/native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { PracticeStackParamList } from "../navigation/types";
 
@@ -14,6 +14,9 @@ type Props = {
 
 export default function PracticeGameScreen({ route }: Props) {
   const { mode, words } = route.params;
+  const navigation = useNavigation();
+
+  const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
   const startSession = usePracticeStore((state) => state.startSession);
@@ -22,10 +25,40 @@ export default function PracticeGameScreen({ route }: Props) {
   useEffect(() => {
     startSession(words, mode);
 
+    hasConfirmedExit.current = false;
+
     return () => {
       endSession();
     };
   }, [words, mode, startSession, endSession]);
+
+  useEffect(
+    () =>
+      navigation.addListener("beforeRemove", (e) => {
+        if (hasConfirmedExit.current || sessionState !== "in-progress") {
+          return;
+        }
+
+        e.preventDefault();
+
+        Alert.alert(
+          "Sair da Prática?",
+          "O seu progresso nesta sessão será perdido. Tem a certeza que quer sair?",
+          [
+            { text: "Ficar", style: "cancel", onPress: () => {} },
+            {
+              text: "Sair",
+              style: "destructive",
+              onPress: () => {
+                hasConfirmedExit.current = true;
+                navigation.dispatch(e.data.action);
+              },
+            },
+          ]
+        );
+      }),
+    [navigation, sessionState]
+  );
 
   if (sessionState === "finished") {
     return <SessionResults />;
