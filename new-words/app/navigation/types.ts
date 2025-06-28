@@ -1,4 +1,5 @@
 import { Word } from "@/types/database";
+import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type HomeStackParamList = {
   HomeDecksList: undefined;
@@ -19,7 +20,7 @@ export type StatsStackParamList = {
 };
 
 export type RootTabParamList = {
-  HomeDecks: undefined;
-  Practice: undefined;
+  HomeDecks: NavigatorScreenParams<HomeStackParamList>;
+  Practice: NavigatorScreenParams<PracticeStackParamList>;
   Stats: undefined;
 };

@@ -1,5 +1,8 @@
 import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  createBottomTabNavigator,
+  BottomTabScreenProps,
+} from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
@@ -87,6 +90,12 @@ export default function AppNavigator() {
         name="HomeDecks"
         component={HomeStack}
         options={{ tabBarLabel: "Conjuntos" }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate("HomeDecks", { screen: "HomeDecksList" });
+          },
+        })}
       />
       <Tab.Screen
         name="Practice"
@@ -100,6 +109,12 @@ export default function AppNavigator() {
             return {};
           })(route),
           tabBarLabel: "Praticar",
+        })}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            e.preventDefault();
+            navigation.navigate("Practice", { screen: "PracticeHub" });
+          },
         })}
       />
       <Tab.Screen
