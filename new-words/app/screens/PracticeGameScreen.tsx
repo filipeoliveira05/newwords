@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import { Word } from "@/types/database";
 import { PracticeStackParamList } from "../navigation/types";
 
 import { shuffle } from "../../utils/arrayUtils";
@@ -25,7 +26,30 @@ export default function PracticeGameScreen({ route }: Props) {
   const endSession = usePracticeStore((state) => state.endSession);
 
   const startNewRound = useCallback(() => {
-    const roundWords = shuffle([...allWords]).slice(0, 10);
+    // --- LÓGICA DE SELEÇÃO INTELIGENTE (SRS Nível 1) ---
+    const sortedWords = [...allWords].sort((a, b) => {
+      // Critério 1: Palavras nunca treinadas vêm primeiro
+      if (a.timesTrained === 0 && b.timesTrained > 0) return -1;
+      if (b.timesTrained === 0 && a.timesTrained > 0) return 1;
+
+      // Critério 2: Priorizar palavras com maior taxa de erro
+      const errorRateA =
+        a.timesTrained > 0 ? a.timesIncorrect / a.timesTrained : 0;
+      const errorRateB =
+        b.timesTrained > 0 ? b.timesIncorrect / b.timesTrained : 0;
+      if (errorRateA > errorRateB) return -1;
+      if (errorRateB > errorRateA) return 1;
+
+      // Critério 3: Priorizar palavras não treinadas há mais tempo
+      const dateA = a.lastTrained ? new Date(a.lastTrained).getTime() : 0;
+      const dateB = b.lastTrained ? new Date(b.lastTrained).getTime() : 0;
+      if (dateA < dateB) return -1; // Mais antigo primeiro
+      if (dateB < dateA) return 1;
+
+      return 0; // Manter a ordem se tudo for igual
+    });
+
+    const roundWords = sortedWords.slice(0, 10);
     startSession(roundWords, mode);
     hasConfirmedExit.current = false;
   }, [allWords, mode, startSession]);
