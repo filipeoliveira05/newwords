@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useCallback } from "react";
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { PracticeStackParamList } from "../navigation/types";
 
+import StreakCounter from "../components/practice/StreakCounter";
 import ProgressBar from "../components/practice/ProgressBar";
 import FlashcardView from "../components/practice/FlashcardView";
 import MultipleChoiceView from "../components/practice/MultipleChoiceView";
@@ -25,16 +27,21 @@ const GameHeader = ({
 }: {
   mode: "flashcard" | "multiple-choice";
   onBackPress: () => void;
-}) => (
-  <View style={styles.headerContainer}>
-    <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-      <Ionicons name="arrow-back" size={24} color="#4a4e69" />
-    </TouchableOpacity>
-    <Text style={styles.headerTitle}>{gameModeTitles[mode]}</Text>
-    {/* Placeholder to keep title centered */}
-    <View style={styles.backButton} />
-  </View>
-);
+}) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={[styles.headerContainer, { paddingTop: insets.top + 15 }]}>
+      <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+        <Ionicons name="arrow-back" size={24} color="#4a4e69" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>{gameModeTitles[mode]}</Text>
+      <View style={styles.headerRight}>
+        <StreakCounter />
+      </View>
+    </View>
+  );
+};
 
 export default function PracticeGameScreen({ route }: Props) {
   const { mode, words: allWords } = route.params;
@@ -138,7 +145,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     backgroundColor: "#f0f4f8",
-    paddingTop: 40, // Reduced padding as header will manage its own space
+    paddingTop: 100, // Increased padding to create more space for the absolute header
   },
   headerContainer: {
     width: "100%",
@@ -146,7 +153,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 20, // Safe area for status bar
     paddingBottom: 10,
     position: "absolute",
     top: 0,
@@ -161,5 +167,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#4a4e69",
+  },
+  headerRight: {
+    minWidth: 40, // Approx width of back button to keep title centered
+    alignItems: "flex-end",
   },
 });

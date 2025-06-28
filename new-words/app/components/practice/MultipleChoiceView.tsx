@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { shuffle } from "../../../utils/arrayUtils";
 
@@ -47,6 +48,11 @@ export default function MultipleChoiceView() {
     if (hasAnswered || !currentWord) return;
 
     const isCorrect = selectedId === currentWord.id;
+    if (isCorrect) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
     setHasAnswered(true);
     setSelectedOptionId(selectedId);
     recordAnswer(currentWord.id, isCorrect);

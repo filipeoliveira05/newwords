@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 
 export default function FlashcardView() {
@@ -25,6 +26,11 @@ export default function FlashcardView() {
   };
 
   const handleAnswer = (isCorrect: boolean) => {
+    if (isCorrect) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } else {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
     recordAnswer(currentWord.id, isCorrect);
     nextWord();
   };

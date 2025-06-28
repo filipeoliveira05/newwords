@@ -7,6 +7,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
 
@@ -52,6 +53,8 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const scorePercentage =
     totalWords > 0 ? Math.round((numCorrect / totalWords) * 100) : 0;
 
+  const isPerfectRound = totalWords > 0 && incorrectAnswers.length === 0;
+
   // Find incorrect words
   const incorrectWordIds = new Set(incorrectAnswers);
   const wordsToReview = wordsForSession.filter((word) =>
@@ -60,7 +63,19 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Resultados da Sessão</Text>
+      {/* Confetti for perfect rounds! */}
+      {isPerfectRound && (
+        <ConfettiCannon
+          count={200}
+          origin={{ x: -10, y: 0 }}
+          autoStart={true}
+          fadeOut={true}
+        />
+      )}
+
+      <Text style={styles.title}>
+        {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
+      </Text>
 
       <View style={styles.summaryCard}>
         <Text style={styles.scoreText}>

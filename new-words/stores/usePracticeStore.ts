@@ -16,6 +16,7 @@ interface PracticeState {
   correctAnswers: number[];
   incorrectAnswers: number[];
   sessionMode: SessionMode;
+  streak: number;
   startSession: (words: PracticeWord[], mode: NonNullable<SessionMode>) => void;
   recordAnswer: (wordId: number, isCorrect: boolean) => void;
   nextWord: () => void;
@@ -32,6 +33,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   correctAnswers: [],
   incorrectAnswers: [],
   sessionMode: null, // 'flashcard', 'multiple-choice', etc.
+  streak: 0,
 
   // --- ACTIONS ---
   startSession: (words, mode) => {
@@ -47,6 +49,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       correctAnswers: [],
       incorrectAnswers: [],
       sessionState: "in-progress",
+      streak: 0,
     });
   },
 
@@ -60,6 +63,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         !isCorrect && !state.incorrectAnswers.includes(wordId)
           ? [...state.incorrectAnswers, wordId]
           : state.incorrectAnswers,
+      streak: isCorrect ? state.streak + 1 : 0,
     }));
   },
 
@@ -81,6 +85,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       correctAnswers: [],
       incorrectAnswers: [],
       sessionMode: null,
+      streak: 0,
     });
   },
 
