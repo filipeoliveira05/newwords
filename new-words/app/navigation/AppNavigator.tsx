@@ -1,5 +1,6 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -90,7 +91,16 @@ export default function AppNavigator() {
       <Tab.Screen
         name="Practice"
         component={PracticeStack}
-        options={{ tabBarLabel: "Praticar" }}
+        options={({ route }) => ({
+          tabBarStyle: ((route) => {
+            const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+            if (routeName === "PracticeGame") {
+              return { display: "none" };
+            }
+            return {};
+          })(route),
+          tabBarLabel: "Praticar",
+        })}
       />
       <Tab.Screen
         name="Stats"
