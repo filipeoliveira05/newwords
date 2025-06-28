@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   Text,
   View,
@@ -7,15 +7,26 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import StatCard from "../components/stats/StatCard";
 import {
   getGlobalStats,
   getChallengingWords,
   getUserPracticeMetrics,
+  getPracticeHistory,
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
+  PracticeHistory,
 } from "../../services/storage";
+
+type MarkedDates = {
+  [key: string]: {
+    selected: boolean;
+    selectedColor: string;
+    disableTouchEvent: boolean;
+  };
+};
 
 export default function StatsScreen() {
   const [loading, setLoading] = useState(true);
@@ -26,20 +37,24 @@ export default function StatsScreen() {
   const [challengingWords, setChallengingWords] = useState<ChallengingWord[]>(
     []
   );
+  const [practiceHistory, setPracticeHistory] = useState<PracticeHistory[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       const fetchStats = async () => {
         try {
           setLoading(true);
-          const [globalStats, challenging, metrics] = await Promise.all([
-            getGlobalStats(),
-            getChallengingWords(),
-            getUserPracticeMetrics(),
-          ]);
+          const [globalStats, challenging, metrics, history] =
+            await Promise.all([
+              getGlobalStats(),
+              getChallengingWords(),
+              getUserPracticeMetrics(),
+              getPracticeHistory(),
+            ]);
           setStats(globalStats);
           setChallengingWords(challenging);
           setUserMetrics(metrics);
+          setPracticeHistory(history);
         } catch (error) {
           console.error("Failed to fetch stats:", error);
         } finally {
@@ -50,6 +65,42 @@ export default function StatsScreen() {
       fetchStats();
     }, [])
   );
+
+  const markedDates: MarkedDates = useMemo(() => {
+    const getHeatmapColor = (count: number) => {
+      if (count >= 20) return "#2a9d8f"; // Darkest
+      if (count >= 10) return "#83c5be";
+      if (count > 0) return "#edf6f9"; // Lightest
+      return "transparent";
+    };
+
+    return practiceHistory.reduce((acc, day) => {
+      acc[day.date] = {
+        selected: true,
+        selectedColor: getHeatmapColor(day.words_trained),
+        disableTouchEvent: true,
+      };
+      return acc;
+    }, {} as MarkedDates);
+  }, [practiceHistory]);
+
+  // Configura o calendário para português
+  LocaleConfig.locales["pt"] = {
+    monthNames:
+      "Janeiro_Fevereiro_Março_Abril_Maio_Junho_Julho_Agosto_Setembro_Outubro_Novembro_Dezembro".split(
+        "_"
+      ),
+    monthNamesShort: "Jan_Fev_Mar_Abr_Mai_Jun_Jul_Ago_Set_Out_Nov_Dez".split(
+      "_"
+    ),
+    dayNames:
+      "Domingo_Segunda-feira_Terça-feira_Quarta-feira_Quinta-feira_Sexta-feira_Sábado".split(
+        "_"
+      ),
+    dayNamesShort: "D_S_T_Q_Q_S_S".split("_"),
+    today: "Hoje",
+  };
+  LocaleConfig.defaultLocale = "pt";
 
   if (loading) {
     return (
@@ -98,11 +149,21 @@ export default function StatsScreen() {
       {/* Secção 2: Mapa de Atividade (Placeholder) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Mapa de Atividade</Text>
-        <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>
-            [Calendário de atividade virá aqui]
-          </Text>
-        </View>
+        <Calendar
+          markedDates={markedDates}
+          theme={{
+            calendarBackground: "#fff",
+            textSectionTitleColor: "#b6c1cd",
+            selectedDayBackgroundColor: "#00adf5",
+            selectedDayTextColor: "#ffffff",
+            todayTextColor: "#e76f51",
+            dayTextColor: "#2d4150",
+            textDisabledColor: "#d9e1e8",
+            arrowColor: "#e76f51",
+            monthTextColor: "#22223b",
+            textMonthFontWeight: "bold",
+          }}
+        />
       </View>
 
       {/* Secção 3: Palavras Desafiadoras */}

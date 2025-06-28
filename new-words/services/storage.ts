@@ -1,6 +1,6 @@
 import * as SQLite from "expo-sqlite";
 import { Deck, Word } from "@/types/database";
-import { startOfDay, isYesterday, isToday } from "date-fns";
+import { startOfDay, isYesterday, isToday, format } from "date-fns";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
@@ -33,6 +33,11 @@ export const initializeDB = () => {
         CREATE TABLE IF NOT EXISTS user_metadata (
             key TEXT PRIMARY KEY NOT NULL,
             value TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS practice_history (
+            date TEXT PRIMARY KEY NOT NULL,
+            words_trained INTEGER NOT NULL DEFAULT 0
         );
     `);
   } catch (e) {
@@ -337,9 +342,30 @@ export async function getUserPracticeMetrics(): Promise<UserPracticeMetrics> {
   }
 }
 
+export type PracticeHistory = {
+  date: string; // YYYY-MM-DD
+  words_trained: number;
+};
+
+export async function getPracticeHistory(): Promise<PracticeHistory[]> {
+  try {
+    return await db.getAllAsync<PracticeHistory>(
+      "SELECT date, words_trained FROM practice_history ORDER BY date ASC"
+    );
+  } catch (e) {
+    console.error("Erro ao obter histórico de prática:", e);
+    throw e;
+  }
+}
+
 export async function updateUserPracticeMetrics(
-  sessionStreak: number
+  sessionStreak: number,
+  wordsTrainedInSession: number
 ): Promise<void> {
+  if (wordsTrainedInSession === 0) {
+    return;
+  }
+
   try {
     await db.withTransactionAsync(async () => {
       const currentLongestStreak = parseInt(
@@ -366,6 +392,13 @@ export async function updateUserPracticeMetrics(
         : 1;
 
       const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
+
+      // Atualiza o histórico de prática
+      const todayStr = format(today, "yyyy-MM-dd");
+      await db.runAsync(
+        "INSERT INTO practice_history (date, words_trained) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET words_trained = words_trained + excluded.words_trained",
+        [todayStr, wordsTrainedInSession]
+      );
 
       await Promise.all([
         setMetaValue("longest_streak", newLongestStreak.toString()),

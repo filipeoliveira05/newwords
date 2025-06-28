@@ -39,12 +39,16 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   // Use an effect to save the stats to the database when results are shown
   useEffect(() => {
     const saveStats = async () => {
+      const wordsTrainedCount = correctAnswers.length + incorrectAnswers.length;
       try {
         // Only save if there are results to save
-        if (correctAnswers.length > 0 || incorrectAnswers.length > 0) {
+        if (wordsTrainedCount > 0) {
           await updateStatsAfterSession(correctAnswers, incorrectAnswers);
           // Também atualiza as métricas do utilizador com a maior streak da ronda
-          await updateUserPracticeMetrics(highestStreakThisRound);
+          await updateUserPracticeMetrics(
+            highestStreakThisRound,
+            wordsTrainedCount
+          );
         }
       } catch (error) {
         console.error("Falha ao guardar as estatísticas da sessão:", error);
