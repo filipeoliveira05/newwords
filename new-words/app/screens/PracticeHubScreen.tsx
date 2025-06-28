@@ -1,7 +1,14 @@
 import React, { useCallback, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useWordStore } from "@/stores/wordStore";
-import { Word } from "@/types/database"; // Ajuste o caminho se necessário
+import { Word } from "@/types/database";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PracticeStackParamList } from "../navigation/types";
@@ -9,15 +16,13 @@ import { PracticeStackParamList } from "../navigation/types";
 type Props = NativeStackScreenProps<PracticeStackParamList, "PracticeHub">;
 
 export default function PracticeHubScreen({ navigation }: Props) {
-  //const fetchAllWords = useWordStore((state) => state.fetchAllWords); // Vamos criar esta função
+  const fetchAllWords = useWordStore((state) => state.fetchAllWords);
   const allWordsCache = useWordStore((state) => state.words);
+  const loading = useWordStore((state) => state.loading);
 
   useEffect(() => {
-    // Vamos adicionar uma função `fetchAllWords` à nossa wordStore para ser mais explícito
-    // e evitar sobrecarregar `fetchWords(deckId)`.
-    // Por agora, vamos assumir que os decks já foram carregados na Home.
-    // Se não, precisaríamos de uma função para carregar tudo aqui.
-  }, []); // Por agora, deixamos vazio.
+    fetchAllWords();
+  }, [fetchAllWords]);
 
   const handleStartGame = useCallback(
     (mode: "flashcard" | "multiple-choice") => {
@@ -38,6 +43,15 @@ export default function PracticeHubScreen({ navigation }: Props) {
     },
     [navigation, allWordsCache]
   );
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <ActivityIndicator size="large" color="#4F8EF7" />
+        <Text style={{ marginTop: 10 }}>A carregar palavras...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -84,6 +98,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     padding: 20,
     paddingTop: 60,
+  },
+  centerContent: {
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 28,
