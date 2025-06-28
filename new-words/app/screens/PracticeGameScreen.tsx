@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
-import { View, Text, StyleSheet, Alert, AppState } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { PracticeStackParamList } from "../navigation/types";
 
+import ProgressBar from "../components/practice/ProgressBar";
 import FlashcardView from "../components/practice/FlashcardView";
 // import MultipleChoiceView from '../components/practice/MultipleChoiceView';
 import SessionResults from "../components/practice/SessionResults";
@@ -67,7 +68,7 @@ export default function PracticeGameScreen({ route }: Props) {
   if (sessionState === "in-progress") {
     return (
       <View style={styles.container}>
-        {/* Futuramente: <ProgressBar /> */}
+        <ProgressBar />
         {mode === "flashcard" && <FlashcardView />}
         {
           mode === "multiple-choice" && (
@@ -88,8 +89,9 @@ export default function PracticeGameScreen({ route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "#f0f4f8",
+    paddingTop: 80,
   },
 });

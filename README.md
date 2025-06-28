@@ -50,7 +50,7 @@ With the practice architecture now in place, the focus is on enriching the learn
 1.  **Expand the Practice Hub**
 
     - [ ] **Implement "Quick Quiz" Mini-Game**: Build the multiple-choice interface where the user selects the correct meaning from 4 options.
-    - [ ] **Progress Bar:** Add a visual indicator on the game screen to show the current session's progress (e.g., 5/20 words).
+    - [x] **Progress Bar:** Add a visual indicator on the game screen to show the current session's progress (e.g., 5/20 words).
     - [ ] **(Optional) Refine Practice UI/UX:** Add animations for flipping the flashcard or for providing answer feedback (correct/incorrect).
 
 2.  **Connect Statistics to Practice**
@@ -99,17 +99,20 @@ This section documents the **launch strategy** and system setup.
 ### 🪄 Pre-Launch System Setup
 
 #### ✅ 1. Waitlist Page
+
 - **Goal:** Validate interest and build a pre-launch audience.
 - **Status:** _Planned_
 - **Tools:** `Framer` for landing page, `FormSpark` for email collection.
 
 #### ✅ 2. App Analytics
+
 - **Goal:** Track usage, understand churn, guide decisions.
 - **To Do:**
   - [ ] Integrate analytics (e.g., `PostHog` or similar).
   - [ ] Track key events like onboarding, training sessions, and retention patterns.
 
 #### ✅ 3. Feedback Board
+
 - **Goal:** Collect and prioritize user feature requests.
 - **To Do:**
   - [ ] Set up a board (e.g., `Canny` or `User Jot`).
@@ -117,6 +120,7 @@ This section documents the **launch strategy** and system setup.
   - [ ] Use feedback to shape roadmap priorities.
 
 #### ✅ 4. Email Sequence System
+
 - **Goal:** Improve retention via onboarding and feature education.
 - **To Do:**
   - [ ] Implement `Loops` (or alternative) for sequences like:
@@ -126,6 +130,7 @@ This section documents the **launch strategy** and system setup.
   - [ ] Sync with waitlist and live user base.
 
 #### ✅ 5. Google/App Store Listing
+
 - **Goal:** Maximize visibility via Google/App Store search.
 - **To Do:**
   - [ ] Design high-quality screenshots (spend 3–4 days).
@@ -133,6 +138,7 @@ This section documents the **launch strategy** and system setup.
   - [ ] Prepare metadata before Google/App Store submission.
 
 #### ✅ 6. Landing Page
+
 - **Goal:** Showcase the app and drive installs.
 - **To Do:**
   - [ ] Build with `Framer` (reuse assets from screenshots).
@@ -155,6 +161,7 @@ This section documents the **launch strategy** and system setup.
 Depending on time and resources:
 
 - **Soft Launch (current plan):**
+
   - YouTube demo (optional).
   - Announcements on Twitter, LinkedIn.
   - Email the waitlist.
