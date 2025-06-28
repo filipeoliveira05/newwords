@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import { useWordStore } from "@/stores/wordStore";
 
 import { Word } from "@/types/database";
 
@@ -20,20 +21,38 @@ type SessionResultsProps = {
 export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const navigation = useNavigation();
 
-  // 1. Selecionamos cada pedaço de estado de forma independente.
+  // Select each piece of state
   const correctAnswers = usePracticeStore((state) => state.correctAnswers);
   const incorrectAnswers = usePracticeStore((state) => state.incorrectAnswers);
   const wordsForSession = usePracticeStore(
     (state) => state.wordsForSession || EMPTY_WORDS_ARRAY
   );
 
-  // 2. Calculamos as estatísticas (esta lógica não muda)
+  // Get the action from wordStore to save stats
+  const { updateStatsAfterSession } = useWordStore.getState();
+
+  // Use an effect to save the stats to the database when results are shown
+  useEffect(() => {
+    const saveStats = async () => {
+      try {
+        // Only save if there are results to save
+        if (correctAnswers.length > 0 || incorrectAnswers.length > 0) {
+          await updateStatsAfterSession(correctAnswers, incorrectAnswers);
+        }
+      } catch (error) {
+        console.error("Falha ao guardar as estatísticas da sessão:", error);
+      }
+    };
+    saveStats();
+  }, []);
+
+  // Calculate the statistics
   const totalWords = wordsForSession.length;
   const numCorrect = correctAnswers.length;
   const scorePercentage =
     totalWords > 0 ? Math.round((numCorrect / totalWords) * 100) : 0;
 
-  // 3. Encontramos os objetos das palavras que foram erradas (esta lógica não muda)
+  // Find incorrect words
   const incorrectWordIds = new Set(incorrectAnswers);
   const wordsToReview = wordsForSession.filter((word) =>
     incorrectWordIds.has(word.id)
@@ -50,7 +69,7 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
         <Text style={styles.percentageText}>{scorePercentage}%</Text>
       </View>
 
-      {/* Só mostramos esta secção se o utilizador tiver errado alguma palavra */}
+      {/* Only show if user has incorrect words */}
       {wordsToReview.length > 0 && (
         <View style={styles.reviewSection}>
           <Text style={styles.reviewTitle}>Palavras a Rever:</Text>
@@ -65,7 +84,7 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
         </View>
       )}
 
-      {/* O botão de ação principal para concluir */}
+      {/* Main button section to conclude or keep going */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={[styles.button, styles.secondaryButton]}
@@ -123,7 +142,7 @@ const styles = StyleSheet.create({
   },
   reviewSection: {
     width: "100%",
-    flex: 1, // Faz com que ocupe o espaço disponível
+    flex: 1,
   },
   reviewTitle: {
     fontSize: 18,
@@ -141,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 8,
     borderLeftWidth: 4,
-    borderLeftColor: "#ff4d6d", // Destaque para indicar que é um erro
+    borderLeftColor: "#ff4d6d",
   },
   wordFront: {
     fontSize: 16,

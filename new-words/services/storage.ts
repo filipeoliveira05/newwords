@@ -145,6 +145,54 @@ export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   }
 }
 
+// --- Stats Functions ---
+
+export async function updateWordStats(
+  correctWordIds: number[],
+  incorrectWordIds: number[]
+): Promise<void> {
+  const allTrainedIds = [...new Set([...correctWordIds, ...incorrectWordIds])];
+  if (allTrainedIds.length === 0) {
+    return;
+  }
+
+  const now = new Date().toISOString();
+
+  try {
+    await db.withTransactionAsync(async () => {
+      // Update all trained words (increment timesTrained and set lastTrained)
+      if (allTrainedIds.length > 0) {
+        const placeholders = allTrainedIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesTrained = timesTrained + 1, lastTrained = ? WHERE id IN (${placeholders})`,
+          [now, ...allTrainedIds]
+        );
+      }
+
+      // Increment timesCorrect for correct words
+      if (correctWordIds.length > 0) {
+        const placeholders = correctWordIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesCorrect = timesCorrect + 1 WHERE id IN (${placeholders})`,
+          correctWordIds
+        );
+      }
+
+      // Increment timesIncorrect for incorrect words
+      if (incorrectWordIds.length > 0) {
+        const placeholders = incorrectWordIds.map(() => "?").join(",");
+        await db.runAsync(
+          `UPDATE words SET timesIncorrect = timesIncorrect + 1 WHERE id IN (${placeholders})`,
+          incorrectWordIds
+        );
+      }
+    });
+  } catch (e) {
+    console.error("Erro ao atualizar estatísticas das palavras:", e);
+    throw e;
+  }
+}
+
 export async function addWord(
   deckId: number,
   name: string,

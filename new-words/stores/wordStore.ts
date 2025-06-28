@@ -5,6 +5,7 @@ import {
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
+  updateWordStats as dbUpdateWordStats,
 } from "../services/storage";
 import { useDeckStore } from "./deckStore";
 import type { Word } from "../types/database";
@@ -18,6 +19,10 @@ interface WordState {
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
   clearWords: () => void;
+  updateStatsAfterSession: (
+    correctWordIds: number[],
+    incorrectWordIds: number[]
+  ) => Promise<void>;
 }
 
 export const useWordStore = create<WordState>((set, get) => ({
@@ -149,5 +154,38 @@ export const useWordStore = create<WordState>((set, get) => ({
 
   clearWords: () => {
     set({ words: {}, loading: false });
+  },
+
+  updateStatsAfterSession: async (correctWordIds, incorrectWordIds) => {
+    try {
+      await dbUpdateWordStats(correctWordIds, incorrectWordIds);
+
+      // Also update the local state to keep the UI consistent
+      set((state) => {
+        const newWordsState = { ...state.words };
+        const allIds = [...correctWordIds, ...incorrectWordIds];
+        const now = new Date().toISOString();
+
+        for (const deckId in newWordsState) {
+          newWordsState[deckId] = newWordsState[deckId].map((word) => {
+            if (allIds.includes(word.id)) {
+              const isCorrect = correctWordIds.includes(word.id);
+              return {
+                ...word,
+                timesTrained: word.timesTrained + 1,
+                timesCorrect: word.timesCorrect + (isCorrect ? 1 : 0),
+                timesIncorrect: word.timesIncorrect + (!isCorrect ? 1 : 0),
+                lastTrained: now,
+              };
+            }
+            return word;
+          });
+        }
+        return { words: newWordsState };
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar estatísticas no store", error);
+      throw error;
+    }
   },
 }));
