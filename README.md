@@ -89,3 +89,80 @@ With the practice architecture now in place, the focus is on enriching the learn
 - **Database:** Expo-SQLite (with `next` API)
 - **Navigation:** React Navigation (v6)
 - **UI:** React Native's built-in components and icon libraries.
+
+---
+
+## 🧭 Launch Checklist
+
+This section documents the **launch strategy** and system setup.
+
+### 🪄 Pre-Launch System Setup
+
+#### ✅ 1. Waitlist Page
+- **Goal:** Validate interest and build a pre-launch audience.
+- **Status:** _Planned_
+- **Tools:** `Framer` for landing page, `FormSpark` for email collection.
+
+#### ✅ 2. App Analytics
+- **Goal:** Track usage, understand churn, guide decisions.
+- **To Do:**
+  - [ ] Integrate analytics (e.g., `PostHog` or similar).
+  - [ ] Track key events like onboarding, training sessions, and retention patterns.
+
+#### ✅ 3. Feedback Board
+- **Goal:** Collect and prioritize user feature requests.
+- **To Do:**
+  - [ ] Set up a board (e.g., `Canny` or `User Jot`).
+  - [ ] Embed or link it in-app for easy access.
+  - [ ] Use feedback to shape roadmap priorities.
+
+#### ✅ 4. Email Sequence System
+- **Goal:** Improve retention via onboarding and feature education.
+- **To Do:**
+  - [ ] Implement `Loops` (or alternative) for sequences like:
+    - Welcome email.
+    - Inactivity reminders (e.g., no practice in 7 days).
+    - Feature highlights (e.g., mini-games, stats).
+  - [ ] Sync with waitlist and live user base.
+
+#### ✅ 5. Google/App Store Listing
+- **Goal:** Maximize visibility via Google/App Store search.
+- **To Do:**
+  - [ ] Design high-quality screenshots (spend 3–4 days).
+  - [ ] Write optimized title, description, and tags.
+  - [ ] Prepare metadata before Google/App Store submission.
+
+#### ✅ 6. Landing Page
+- **Goal:** Showcase the app and drive installs.
+- **To Do:**
+  - [ ] Build with `Framer` (reuse assets from screenshots).
+  - [ ] Include clear CTAs, feature highlights, and testimonials (if available).
+
+---
+
+### 🧪 Launch Timing Strategy
+
+- Use **beta testing** to measure user engagement and stickiness.
+- Launch when:
+  - [ ] Users show sustained activity over a few days.
+  - [ ] Analytics indicate solid early retention.
+  - [ ] Confidence level is high (even if not perfect).
+
+---
+
+### 📣 Launch Actions
+
+Depending on time and resources:
+
+- **Soft Launch (current plan):**
+  - YouTube demo (optional).
+  - Announcements on Twitter, LinkedIn.
+  - Email the waitlist.
+
+- **Optional Big Launch:**
+  - 4-week lead-up with teaser posts.
+  - Product Hunt launch.
+  - Reddit & online communities.
+  - Collab posts from friends/influencers.
+
+--
