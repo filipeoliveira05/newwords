@@ -32,34 +32,31 @@ The application has a solid and scalable foundation, with the following features
 
 ### 4. Practice Hub Foundation
 
-- **Mini-Game Hub:** The "Practice" tab is now a game hub, allowing the user to choose how they want to train.
-- **Global Training Mode:** The games operate on a set of **all words from all decks**, providing a consolidated review experience.
-- **Complete Practice Loop (Flashcard Mode):**
-  - Selecting the "Classic Review" game starts a practice session.
-  - The game screen (`FlashcardView`) allows the user to review cards and assess their performance (Correct/Incorrect).
-  - The Session Results screen displays a performance summary, highlighting incorrect words for future review.
+- **Multiple Game Modes:** The "Practice" tab is a hub where users can choose between "Classic Review" (Flashcards) and "Quick Quiz" (Multiple-Choice).
+- **Intelligent Word Selection (SRS Level 1):** The practice algorithm is no longer random. It prioritizes words that have never been trained, have a higher error rate, or haven't been reviewed in a longer time.
+- **Complete Practice Loop:**
+  - Games are structured in rounds (e.g., 10 words).
+  - A progress bar shows the user's position in the current round.
+  - The results screen summarizes performance and allows the user to start a new round or exit.
+- **Engaging UI/UX:**
+  - **Animations:** The flashcard features a dynamic 3D flip animation.
+  - **Gamification:** A "streak" counter tracks consecutive correct answers, and perfect rounds are celebrated with a confetti animation.
+  - **Sensory Feedback:** Haptic feedback (vibrations) is provided for correct and incorrect answers, enhancing the interactive experience.
+- **Persistent Stats Tracking:** Every answer in a practice session updates the word's statistics (`timesTrained`, `timesCorrect`, `lastTrained`, etc.) in the local database, laying the groundwork for advanced analytics.
 
 ---
 
 ## 🗺️ Development Roadmap
 
-With the practice architecture now in place, the focus is on enriching the learning experience and completing the core functionalities.
+With a robust and engaging practice system now in place, the focus shifts to providing users with meaningful insights into their learning journey.
 
 ### 🎯 Current Priorities
 
-1.  **Expand the Practice Hub**
-
-    - [x] **Implement "Quick Quiz" Mini-Game**: Build the multiple-choice interface where the user selects the correct meaning from 4 options.
-    - [x] **Progress Bar:** Add a visual indicator on the game screen to show the current session's progress (e.g., 5/20 words).
-    - [ ] **(Optional) Refine Practice UI/UX:** Add animations for flipping the flashcard or for providing answer feedback (correct/incorrect).
-
-2.  **Connect Statistics to Practice**
-
-    - [x] **Update the Database:** Modify the `recordAnswer` action in `usePracticeStore` to not only manage the session state but also call a function to update the word's metadata in the database (`timesTrained`, `timesCorrect`, `lastTrained`, etc.).
-    - [ ] **Implement the Statistics Screen (`StatsScreen`):** Create SQL queries to fetch aggregate data and develop the UI to display stats like a global success rate, most frequently missed words, etc.
-
-3.  **Improve the Word Selection Algorithm**
-    - [x] **Implement Spaced Repetition (SRS) - Level 1:** Modify the word selection logic in the `PracticeHubScreen`. Instead of fetching all words, prioritize those that haven't been trained for the longest time (`lastTrained`) or have a lower success rate.
+1.  **Implement the Statistics Screen (`StatsScreen`)**
+    - **Goal:** Allow users to visualize their learning progress.
+    - **Tasks:**
+      - [ ] **Create SQL Queries:** Develop functions in `services/storage.ts` to fetch aggregate data (e.g., global success rate, most frequently missed words, practice activity over time).
+      - [ ] **Build the UI:** Design and implement the `StatsScreen` to display this data using charts and lists, providing actionable insights for the user.
 
 ### 🔮 Future Features (Next Levels)
 
