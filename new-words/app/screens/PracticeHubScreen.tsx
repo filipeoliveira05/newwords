@@ -74,7 +74,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
         style={styles.gameButton}
         onPress={() => handleStartGame("multiple-choice")}
       >
-        <Text style={styles.gameButtonText}>Quiz Rápido</Text>
+        <Text style={styles.gameButtonText}>Escolha Múltipla</Text>
         <Text style={styles.gameButtonDescription}>
           Mostramos uma palavra, você escolhe o significado correto entre 4
           opções.

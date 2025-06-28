@@ -49,7 +49,7 @@ With the practice architecture now in place, the focus is on enriching the learn
 
 1.  **Expand the Practice Hub**
 
-    - [ ] **Implement "Quick Quiz" Mini-Game**: Build the multiple-choice interface where the user selects the correct meaning from 4 options.
+    - [x] **Implement "Quick Quiz" Mini-Game**: Build the multiple-choice interface where the user selects the correct meaning from 4 options.
     - [x] **Progress Bar:** Add a visual indicator on the game screen to show the current session's progress (e.g., 5/20 words).
     - [ ] **(Optional) Refine Practice UI/UX:** Add animations for flipping the flashcard or for providing answer feedback (correct/incorrect).
 
@@ -59,7 +59,7 @@ With the practice architecture now in place, the focus is on enriching the learn
     - [ ] **Implement the Statistics Screen (`StatsScreen`):** Create SQL queries to fetch aggregate data and develop the UI to display stats like a global success rate, most frequently missed words, etc.
 
 3.  **Improve the Word Selection Algorithm**
-    - [ ] **Implement Spaced Repetition (SRS) - Level 1:** Modify the word selection logic in the `PracticeHubScreen`. Instead of fetching all words, prioritize those that haven't been trained for the longest time (`lastTrained`) or have a lower success rate.
+    - [x] **Implement Spaced Repetition (SRS) - Level 1:** Modify the word selection logic in the `PracticeHubScreen`. Instead of fetching all words, prioritize those that haven't been trained for the longest time (`lastTrained`) or have a lower success rate.
 
 ### 🔮 Future Features (Next Levels)
 
