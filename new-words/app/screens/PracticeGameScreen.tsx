@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { PracticeStackParamList } from "../navigation/types";
 
+import { shuffle } from "../../utils/arrayUtils";
 import ProgressBar from "../components/practice/ProgressBar";
 import FlashcardView from "../components/practice/FlashcardView";
 // import MultipleChoiceView from '../components/practice/MultipleChoiceView';
@@ -14,7 +15,7 @@ type Props = {
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const { mode, words } = route.params;
+  const { mode, words: allWords } = route.params;
   const navigation = useNavigation();
 
   const hasConfirmedExit = useRef(false);
@@ -23,15 +24,19 @@ export default function PracticeGameScreen({ route }: Props) {
   const startSession = usePracticeStore((state) => state.startSession);
   const endSession = usePracticeStore((state) => state.endSession);
 
-  useEffect(() => {
-    startSession(words, mode);
-
+  const startNewRound = useCallback(() => {
+    const roundWords = shuffle([...allWords]).slice(0, 10);
+    startSession(roundWords, mode);
     hasConfirmedExit.current = false;
+  }, [allWords, mode, startSession]);
+
+  useEffect(() => {
+    startNewRound();
 
     return () => {
       endSession();
     };
-  }, [words, mode, startSession, endSession]);
+  }, [startNewRound, endSession]);
 
   useEffect(
     () =>
@@ -62,7 +67,7 @@ export default function PracticeGameScreen({ route }: Props) {
   );
 
   if (sessionState === "finished") {
-    return <SessionResults />;
+    return <SessionResults onPlayAgain={startNewRound} />;
   }
 
   if (sessionState === "in-progress") {

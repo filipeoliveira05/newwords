@@ -13,7 +13,11 @@ import { Word } from "@/types/database";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
-export default function SessionResults() {
+type SessionResultsProps = {
+  onPlayAgain: () => void;
+};
+
+export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const navigation = useNavigation();
 
   // 1. Selecionamos cada pedaço de estado de forma independente.
@@ -64,10 +68,16 @@ export default function SessionResults() {
       {/* O botão de ação principal para concluir */}
       <View style={styles.buttonContainer}>
         <TouchableOpacity
-          style={[styles.modalButton, styles.saveButton]}
+          style={[styles.button, styles.secondaryButton]}
           onPress={() => navigation.goBack()}
         >
-          <Text style={styles.saveButtonText}>Concluir e Voltar ao Início</Text>
+          <Text style={styles.secondaryButtonText}>Sair</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.primaryButton]}
+          onPress={onPlayAgain}
+        >
+          <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -146,19 +156,34 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 20,
     paddingVertical: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  modalButton: {
-    //flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
+  button: {
+    flex: 1,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: "center",
-    marginHorizontal: 6,
+    marginHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  saveButton: {
+  primaryButton: {
     backgroundColor: "#4F8EF7",
   },
-  saveButtonText: {
+  primaryButtonText: {
     color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  secondaryButton: {
+    backgroundColor: "#e9ecef",
+  },
+  secondaryButtonText: {
+    color: "#495057",
     fontWeight: "bold",
     fontSize: 16,
   },
