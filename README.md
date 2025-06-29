@@ -60,17 +60,11 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-0.  **HomeDecks Screen Improvements**
-
-    - **Tasks:**
-      - [ ] **Add features to Deck dropdown menu:** Add words, archive
-      - [ ] **Improve UI:** Self explanatory
-
 1.  **Enable Focused Learning**
 
     - **Goal:** Allow users to target their practice sessions for maximum efficiency.
     - **Tasks:**
-      - [ ] **Practice by Deck:** Add a "Practice this Deck" button to the `DeckDetailScreen` to allow users to study words from a single deck. This is a fundamental feature for focused learning.
+      - [x] **Practice by Deck:** Add a "Practice this Deck" button to the `DeckDetailScreen` to allow users to study words from a single deck. This is a fundamental feature for focused learning.
       - [ ] **Practice Mistakes:** On the session results screen, add a button to "Practice Mistakes" from the last round, creating a tight feedback loop for correcting errors.
 
 2.  **Enhance Learning Feedback**

@@ -40,6 +40,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [practiceModalVisible, setPracticeModalVisible] = useState(false);
 
   const newWordInputRef = useRef<TextInput>(null);
   const newMeaningInputRef = useRef<TextInput>(null);
@@ -144,6 +145,29 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     }
   };
 
+  const handleStartPractice = (mode: "flashcard" | "multiple-choice") => {
+    setPracticeModalVisible(false); // Fecha o modal imediatamente
+
+    const requiredWords = mode === "multiple-choice" ? 4 : 1;
+    const friendlyModeName =
+      mode === "multiple-choice" ? "de escolha múltipla" : "de revisão";
+
+    if (wordsForCurrentDeck.length < requiredWords) {
+      Alert.alert(
+        "Poucas Palavras",
+        `Precisa de ter pelo menos ${requiredWords} ${
+          requiredWords > 1 ? "palavras" : "palavra"
+        } neste conjunto para praticar no modo ${friendlyModeName}.`
+      );
+      return;
+    }
+
+    navigation.navigate("Practice", {
+      screen: "PracticeGame",
+      params: { mode, words: wordsForCurrentDeck },
+    });
+  };
+
   const renderEmptyComponent = () => {
     if (loading) {
       return (
@@ -224,13 +248,24 @@ export default function DeckDetailScreen({ navigation, route }: any) {
         showsVerticalScrollIndicator={false}
       />
 
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setAddModalVisible(true)}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color="#fff" />
-      </TouchableOpacity>
+      <View style={styles.fabContainer}>
+        {wordsForCurrentDeck.length > 0 && (
+          <TouchableOpacity
+            style={[styles.fab, styles.practiceFab]}
+            onPress={() => setPracticeModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="flash" size={28} color="#fff" />
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity
+          style={[styles.fab, styles.addFab]}
+          onPress={() => setAddModalVisible(true)}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={32} color="#fff" />
+        </TouchableOpacity>
+      </View>
 
       <Modal
         visible={addModalVisible}
@@ -312,6 +347,66 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                   {editMode ? "Guardar Alterações" : "Adicionar Palavra"}
                 </Text>
               )}
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Practice Mode Selection Modal */}
+      <Modal
+        visible={practiceModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPracticeModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setPracticeModalVisible(false)}
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Escolha um Modo</Text>
+              <TouchableOpacity
+                onPress={() => setPracticeModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#6c757d" />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.modeButton}
+              onPress={() => handleStartPractice("flashcard")}
+            >
+              <Ionicons
+                name="albums-outline"
+                size={24}
+                style={styles.modeIcon}
+              />
+              <View>
+                <Text style={styles.modeTitle}>Revisão Clássica</Text>
+                <Text style={styles.modeDescription}>
+                  Flashcards simples: veja a palavra, adivinhe o significado.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modeButton}
+              onPress={() => handleStartPractice("multiple-choice")}
+            >
+              <Ionicons name="list-outline" size={24} style={styles.modeIcon} />
+              <View>
+                <Text style={styles.modeTitle}>Escolha Múltipla</Text>
+                <Text style={styles.modeDescription}>
+                  Escolha o significado correto entre 4 opções.
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -402,21 +497,34 @@ const styles = StyleSheet.create({
     marginTop: 10,
     color: "#6c757d",
   },
-  fab: {
+  fabContainer: {
     position: "absolute",
-    right: 20,
     bottom: 30,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  fab: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#4F8EF7",
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
-    shadowColor: "#4F8EF7",
+    shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
+  },
+  practiceFab: {
+    backgroundColor: "#f4a261", // Orange, like in stats
+    marginRight: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  addFab: {
+    backgroundColor: "#4F8EF7",
   },
   modalOverlay: {
     flex: 1,
@@ -504,5 +612,29 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 17,
     letterSpacing: 0.5,
+  },
+  modeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  modeIcon: {
+    color: "#4F8EF7",
+    marginRight: 16,
+  },
+  modeTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#22223b",
+  },
+  modeDescription: {
+    fontSize: 14,
+    color: "#6c757d",
+    marginTop: 2,
   },
 });
