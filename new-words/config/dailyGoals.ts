@@ -1,4 +1,4 @@
-import { PracticeHistory } from "../../services/storage";
+import { PracticeHistory } from "../services/storage";
 import { Ionicons } from "@expo/vector-icons";
 
 export type DailyGoal = {

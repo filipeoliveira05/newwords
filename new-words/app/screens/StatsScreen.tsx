@@ -29,10 +29,10 @@ import {
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../services/storage";
-import { RootTabParamList } from "../navigation/types";
-import { allPossibleDailyGoals, DailyGoal } from "../config/dailyGoals";
+import { RootTabParamList } from "../../types/navigation";
+import { allPossibleDailyGoals, DailyGoal } from "../../config/dailyGoals";
 import DailyGoalProgress from "../components/stats/DailyGoalProgress";
-import { achievements, Achievement } from "../config/achievements";
+import { achievements, Achievement } from "../../config/achievements";
 import AchievementBadge from "../components/stats/AchievementBadge";
 
 // Define the type for the marked dates object locally.

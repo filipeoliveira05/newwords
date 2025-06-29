@@ -11,7 +11,7 @@ import { useWordStore } from "@/stores/wordStore";
 import { Word } from "@/types/database";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { PracticeStackParamList } from "../navigation/types";
+import { PracticeStackParamList } from "../../types/navigation";
 
 type Props = NativeStackScreenProps<PracticeStackParamList, "PracticeHub">;
 

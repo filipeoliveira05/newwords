@@ -4,7 +4,7 @@ import { RouteProp, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
-import { PracticeStackParamList } from "../navigation/types";
+import { PracticeStackParamList } from "../../types/navigation";
 
 import StreakCounter from "../components/practice/StreakCounter";
 import ProgressBar from "../components/practice/ProgressBar";

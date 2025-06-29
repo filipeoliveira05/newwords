@@ -2,7 +2,7 @@ import {
   GlobalStats,
   UserPracticeMetrics,
   PracticeHistory,
-} from "../../services/storage";
+} from "../services/storage";
 import { Ionicons } from "@expo/vector-icons";
 import { differenceInDays } from "date-fns";
 

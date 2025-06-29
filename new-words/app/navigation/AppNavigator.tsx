@@ -11,7 +11,7 @@ import {
   HomeStackParamList,
   PracticeStackParamList,
   RootTabParamList,
-} from "./types";
+} from "../../types/navigation";
 
 import HomeDecksScreen from "../screens/HomeDecksScreen";
 import DeckDetailScreen from "../screens/DeckDetailScreen";
