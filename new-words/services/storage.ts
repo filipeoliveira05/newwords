@@ -39,6 +39,11 @@ export const initializeDB = () => {
             date TEXT PRIMARY KEY NOT NULL,
             words_trained INTEGER NOT NULL DEFAULT 0
         );
+
+        CREATE TABLE IF NOT EXISTS unlocked_achievements (
+            achievement_id TEXT PRIMARY KEY NOT NULL,
+            unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+        );
     `);
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
@@ -204,6 +209,18 @@ export async function deleteWord(id: number): Promise<void> {
     await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
   } catch (e) {
     console.error("Erro ao apagar palavra:", e);
+    throw e;
+  }
+}
+
+export async function getTotalWordCount(): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM words"
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar o total de palavras:", e);
     throw e;
   }
 }
@@ -408,6 +425,40 @@ export async function updateUserPracticeMetrics(
     });
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);
+    throw e;
+  }
+}
+
+// --- Achievement Functions ---
+
+export async function getUnlockedAchievementIds(): Promise<string[]> {
+  try {
+    const results = await db.getAllAsync<{ achievement_id: string }>(
+      "SELECT achievement_id FROM unlocked_achievements"
+    );
+    return results.map((r) => r.achievement_id);
+  } catch (e) {
+    console.error("Erro ao obter conquistas desbloqueadas:", e);
+    throw e;
+  }
+}
+
+export async function unlockAchievements(
+  achievementIds: string[]
+): Promise<void> {
+  if (achievementIds.length === 0) return;
+
+  try {
+    await db.withTransactionAsync(async () => {
+      for (const id of achievementIds) {
+        await db.runAsync(
+          "INSERT OR IGNORE INTO unlocked_achievements (achievement_id) VALUES (?)",
+          [id]
+        );
+      }
+    });
+  } catch (e) {
+    console.error("Erro ao desbloquear conquistas:", e);
     throw e;
   }
 }

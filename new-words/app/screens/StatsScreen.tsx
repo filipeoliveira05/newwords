@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import StatCard from "../components/stats/StatCard";
 import {
@@ -14,12 +15,20 @@ import {
   getChallengingWords,
   getUserPracticeMetrics,
   getPracticeHistory,
+  getUnlockedAchievementIds,
+  getTotalWordCount,
+  unlockAchievements,
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../services/storage";
+import { achievements, Achievement } from "../config/achievements";
+import AchievementBadge from "../components/stats/AchievementBadge";
 
+// Define the type for the marked dates object locally.
+// This is necessary because the version of `react-native-calendars`
+// installed might not export the `MarkedDates` type directly.
 type MarkedDates = {
   [key: string]: {
     selected: boolean;
@@ -39,22 +48,81 @@ export default function StatsScreen() {
   );
   const [practiceHistory, setPracticeHistory] = useState<PracticeHistory[]>([]);
 
+  const [processedAchievements, setProcessedAchievements] = useState<
+    (Achievement & { unlocked: boolean })[]
+  >([]);
+
   useFocusEffect(
     useCallback(() => {
       const fetchStats = async () => {
         try {
           setLoading(true);
-          const [globalStats, challenging, metrics, history] =
-            await Promise.all([
-              getGlobalStats(),
-              getChallengingWords(),
-              getUserPracticeMetrics(),
-              getPracticeHistory(),
-            ]);
+          const [
+            globalStats,
+            challenging,
+            metrics,
+            history,
+            unlockedIds,
+            totalWords,
+          ] = await Promise.all([
+            getGlobalStats(),
+            getChallengingWords(),
+            getUserPracticeMetrics(),
+            getPracticeHistory(),
+            getUnlockedAchievementIds(),
+            getTotalWordCount(),
+          ]);
           setStats(globalStats);
           setChallengingWords(challenging);
           setUserMetrics(metrics);
           setPracticeHistory(history);
+
+          // Lógica de verificação de conquistas otimizada
+          if (globalStats && metrics && history && totalWords !== undefined) {
+            const unlockedIdsSet = new Set(unlockedIds);
+            const newlyUnlocked: Achievement[] = [];
+
+            const checkedAchievements = achievements.map((ach) => {
+              const isAlreadyUnlocked = unlockedIdsSet.has(ach.id);
+              if (isAlreadyUnlocked) {
+                return { ...ach, unlocked: true };
+              }
+
+              // Se não estiver desbloqueada, verifica agora
+              const isNowUnlocked = ach.check({
+                global: globalStats,
+                user: metrics,
+                history: history,
+                totalWords: totalWords,
+              });
+
+              if (isNowUnlocked) {
+                newlyUnlocked.push(ach);
+              }
+
+              return { ...ach, unlocked: isNowUnlocked };
+            });
+
+            // Se houver novas conquistas, guarda-as na DB
+            if (newlyUnlocked.length > 0) {
+              const newIds = newlyUnlocked.map((ach) => ach.id);
+              await unlockAchievements(newIds);
+              // Mostra uma notificação para cada nova conquista!
+              newlyUnlocked.forEach((ach, index) => {
+                // Adiciona um pequeno delay para não sobrepor as notificações
+                setTimeout(() => {
+                  Toast.show({
+                    type: "success",
+                    text1: "Conquista Desbloqueada! 🎉",
+                    text2: ach.title,
+                    visibilityTime: 4000,
+                  });
+                }, index * 600);
+              });
+            }
+
+            setProcessedAchievements(checkedAchievements);
+          }
         } catch (error) {
           console.error("Failed to fetch stats:", error);
         } finally {
@@ -188,11 +256,15 @@ export default function StatsScreen() {
       {/* Secção 4: Conquistas (Placeholder) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Conquistas</Text>
-        <View style={styles.placeholderBox}>
-          <Text style={styles.placeholderText}>
-            [Medalhas/Badges virão aqui]
-          </Text>
-        </View>
+        {processedAchievements.map((ach) => (
+          <AchievementBadge
+            key={ach.id}
+            title={ach.title}
+            description={ach.description}
+            icon={ach.icon}
+            unlocked={ach.unlocked}
+          />
+        ))}
       </View>
     </ScrollView>
   );
