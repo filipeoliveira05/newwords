@@ -23,7 +23,7 @@ type SessionResultsProps = {
 export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const navigation = useNavigation();
 
-  // Select each piece of state
+  // Select state and actions from the store individually to prevent re-renders
   const correctAnswers = usePracticeStore((state) => state.correctAnswers);
   const incorrectAnswers = usePracticeStore((state) => state.incorrectAnswers);
   const wordsForSession = usePracticeStore(
@@ -32,6 +32,8 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const highestStreakThisRound = usePracticeStore(
     (state) => state.highestStreakThisRound
   );
+  const sessionMode = usePracticeStore((state) => state.sessionMode);
+  const startSession = usePracticeStore((state) => state.startSession);
 
   // Get the action from wordStore to save stats
   const { updateStatsAfterSession } = useWordStore.getState();
@@ -55,7 +57,12 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
       }
     };
     saveStats();
-  }, []);
+  }, [
+    correctAnswers,
+    incorrectAnswers,
+    highestStreakThisRound,
+    updateStatsAfterSession,
+  ]);
 
   // Calculate the statistics
   const totalWords = wordsForSession.length;
@@ -70,6 +77,14 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const wordsToReview = wordsForSession.filter((word) =>
     incorrectWordIds.has(word.id)
   );
+
+  const handlePracticeMistakes = () => {
+    if (wordsToReview.length > 0 && sessionMode) {
+      // Inicia uma nova sessão apenas com as palavras erradas,
+      // no mesmo modo de jogo.
+      startSession(wordsToReview, sessionMode);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -110,19 +125,31 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
       )}
 
       {/* Main button section to conclude or keep going */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.secondaryButtonText}>Sair</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
-          onPress={onPlayAgain}
-        >
-          <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
-        </TouchableOpacity>
+      <View style={styles.actionsContainer}>
+        {wordsToReview.length > 0 && (
+          <TouchableOpacity
+            style={[styles.button, styles.practiceMistakesButton]}
+            onPress={handlePracticeMistakes}
+          >
+            <Text style={styles.primaryButtonText}>
+              Praticar Erros ({wordsToReview.length})
+            </Text>
+          </TouchableOpacity>
+        )}
+        <View style={styles.buttonRow}>
+          <TouchableOpacity
+            style={[styles.button, styles.secondaryButton, styles.halfButton]}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.secondaryButtonText}>Sair</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.primaryButton, styles.halfButton]}
+            onPress={onPlayAgain}
+          >
+            <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -196,24 +223,32 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 2,
   },
-  buttonContainer: {
+  actionsContainer: {
     width: "100%",
     marginTop: 20,
     paddingVertical: 10,
+  },
+  buttonRow: {
     flexDirection: "row",
     justifyContent: "space-between",
   },
   button: {
-    flex: 1,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
-    marginHorizontal: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  halfButton: {
+    flex: 1,
+    marginHorizontal: 8,
+  },
+  practiceMistakesButton: {
+    backgroundColor: "#f4a261", // Orange color for high visibility
+    marginBottom: 16,
   },
   primaryButton: {
     backgroundColor: "#4F8EF7",

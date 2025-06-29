@@ -65,12 +65,12 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
     - **Goal:** Allow users to target their practice sessions for maximum efficiency.
     - **Tasks:**
       - [x] **Practice by Deck:** Add a "Practice this Deck" button to the `DeckDetailScreen` to allow users to study words from a single deck. This is a fundamental feature for focused learning.
-      - [ ] **Practice Mistakes:** On the session results screen, add a button to "Practice Mistakes" from the last round, creating a tight feedback loop for correcting errors.
+      - [x] **Practice Mistakes:** On the session results screen, add a button to "Practice Mistakes" from the last round, creating a tight feedback loop for correcting errors.
 
 2.  **Enhance Learning Feedback**
     - **Goal:** Provide instant, clear feedback to accelerate memorization.
     - **Tasks:**
-      - [ ] **Immediate Correction:** In the multiple-choice game, when a user selects an incorrect answer, immediately highlight the correct answer to reinforce the correct association.
+      - [x] **Immediate Correction:** In the multiple-choice game, when a user selects an incorrect answer, immediately highlight the correct answer to reinforce the correct association.
       - [ ] **Achievement Unlock Animation:** Add a special animation to the `AchievementBadge` component the first time it is rendered as "unlocked," making the moment of discovery more rewarding.
 
 ### 🔮 Future Features (Next Levels)
