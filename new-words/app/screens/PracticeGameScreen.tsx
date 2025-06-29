@@ -44,7 +44,7 @@ const GameHeader = ({
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const { mode, words: allWords } = route.params;
+  const { mode, words: wordsFromRoute } = route.params;
   const navigation = useNavigation();
 
   const hasConfirmedExit = useRef(false);
@@ -55,7 +55,7 @@ export default function PracticeGameScreen({ route }: Props) {
 
   const startNewRound = useCallback(() => {
     // --- LÓGICA DE SELEÇÃO INTELIGENTE (SRS Nível 1) ---
-    const sortedWords = [...allWords].sort((a, b) => {
+    const sortedWords = [...wordsFromRoute].sort((a, b) => {
       // Critério 1: Palavras nunca treinadas vêm primeiro
       if (a.timesTrained === 0 && b.timesTrained > 0) return -1;
       if (b.timesTrained === 0 && a.timesTrained > 0) return 1;
@@ -80,7 +80,7 @@ export default function PracticeGameScreen({ route }: Props) {
     const roundWords = sortedWords.slice(0, 10);
     startSession(roundWords, mode);
     hasConfirmedExit.current = false;
-  }, [allWords, mode, startSession]);
+  }, [wordsFromRoute, mode, startSession]);
 
   useEffect(() => {
     startNewRound();
