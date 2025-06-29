@@ -7,7 +7,7 @@ interface PracticeWord {
   meaning: string;
 }
 
-type SessionMode = "flashcard" | "multiple-choice" | null;
+type SessionMode = "flashcard" | "multiple-choice" | "writing" | null;
 
 interface PracticeState {
   sessionState: "not-started" | "in-progress" | "finished";

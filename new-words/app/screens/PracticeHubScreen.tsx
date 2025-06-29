@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
 import { Word } from "@/types/database";
 
@@ -25,13 +26,22 @@ export default function PracticeHubScreen({ navigation }: Props) {
   }, [fetchAllWords]);
 
   const handleStartGame = useCallback(
-    (mode: "flashcard" | "multiple-choice") => {
+    (mode: "flashcard" | "multiple-choice" | "writing") => {
       const allWords: Word[] = Object.values(allWordsCache).flat();
+      const requiredWords = mode === "multiple-choice" ? 4 : 1;
+      const friendlyModeName =
+        mode === "multiple-choice"
+          ? "de escolha múltipla"
+          : mode === "writing"
+          ? "de escrita"
+          : "de revisão";
 
-      if (allWords.length < 4) {
+      if (allWords.length < requiredWords) {
         Alert.alert(
           "Poucas Palavras",
-          "Precisa de ter pelo menos 4 palavras no total (em todos os baralhos) para jogar. Adicione mais algumas e volte!"
+          `Precisa de ter pelo menos ${requiredWords} ${
+            requiredWords > 1 ? "palavras" : "palavra"
+          } no total para jogar no modo ${friendlyModeName}.`
         );
         return;
       }
@@ -55,39 +65,54 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Centro de Prática</Text>
-      <Text style={styles.subtitle}>
-        Escolha um mini-jogo para treinar todas as suas palavras.
-      </Text>
-
-      <TouchableOpacity
-        style={styles.gameButton}
-        onPress={() => handleStartGame("flashcard")}
-      >
-        <Text style={styles.gameButtonText}>Revisão Clássica</Text>
-        <Text style={styles.gameButtonDescription}>
-          Flashcards simples: veja a palavra, adivinhe o significado.
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.gameButton}
-        onPress={() => handleStartGame("multiple-choice")}
-      >
-        <Text style={styles.gameButtonText}>Escolha Múltipla</Text>
-        <Text style={styles.gameButtonDescription}>
-          Mostramos uma palavra, você escolhe o significado correto entre 4
-          opções.
-        </Text>
-      </TouchableOpacity>
-
-      {/* Placeholder para o futuro */}
-      <View style={[styles.gameButton, styles.disabledButton]}>
-        <Text style={styles.gameButtonText}>Jogo da Escrita (Em breve)</Text>
-        <Text style={styles.gameButtonDescription}>
-          Nós mostramos o significado, você escreve a palavra.
+      <View style={styles.header}>
+        <Text style={styles.title}>Centro de Prática</Text>
+        <Text style={styles.subtitle}>
+          Escolha um modo de jogo para treinar todas as suas palavras.
         </Text>
       </View>
+
+      <TouchableOpacity
+        style={styles.modeButton}
+        onPress={() => handleStartGame("flashcard")}
+      >
+        <Ionicons name="albums-outline" size={28} style={styles.modeIcon} />
+        <View style={styles.modeTextContainer}>
+          <Text style={styles.modeTitle}>Revisão Clássica</Text>
+          <Text style={styles.modeDescription}>
+            Flashcards simples: veja a palavra, adivinhe o significado.
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.modeButton}
+        onPress={() => handleStartGame("multiple-choice")}
+      >
+        <Ionicons name="list-outline" size={28} style={styles.modeIcon} />
+        <View style={styles.modeTextContainer}>
+          <Text style={styles.modeTitle}>Escolha Múltipla</Text>
+          <Text style={styles.modeDescription}>
+            Escolha o significado correto entre 4 opções.
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.modeButton}
+        onPress={() => handleStartGame("writing")}
+      >
+        <Ionicons name="pencil-outline" size={28} style={styles.modeIcon} />
+        <View style={styles.modeTextContainer}>
+          <Text style={styles.modeTitle}>Jogo da Escrita</Text>
+          <Text style={styles.modeDescription}>
+            Nós mostramos o significado, você escreve a palavra.
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -96,12 +121,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    padding: 20,
-    paddingTop: 60,
+    paddingHorizontal: 20,
   },
   centerContent: {
     justifyContent: "center",
     alignItems: "center",
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   title: {
     fontSize: 28,
@@ -111,32 +139,48 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 16,
-    color: "#555",
-    marginBottom: 40,
+    color: "#6c757d",
   },
-  gameButton: {
+  modeButton: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
     marginBottom: 16,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  modeIcon: {
+    color: "#4F8EF7",
+    marginRight: 20,
+  },
+  modeTextContainer: {
+    flex: 1,
+  },
+  modeTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginBottom: 4,
+  },
+  modeDescription: {
+    fontSize: 14,
+    color: "#6c757d",
   },
   disabledButton: {
     backgroundColor: "#e9ecef",
-    opacity: 0.6,
+    borderColor: "#dee2e6",
   },
-  gameButtonText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4F8EF7",
-    marginBottom: 4,
+  disabledIcon: {
+    color: "#adb5bd",
   },
-  gameButtonDescription: {
-    fontSize: 14,
-    color: "#666",
+  disabledText: {
+    color: "#adb5bd",
   },
 });

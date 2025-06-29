@@ -15,7 +15,7 @@ export type HomeStackParamList = {
 export type PracticeStackParamList = {
   PracticeHub: undefined;
   PracticeGame: {
-    mode: "flashcard" | "multiple-choice";
+    mode: "flashcard" | "multiple-choice" | "writing";
     words: Word[];
   };
 };

@@ -145,12 +145,17 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     }
   };
 
-  const handleStartPractice = (mode: "flashcard" | "multiple-choice") => {
+  const handleStartPractice = (
+    mode: "flashcard" | "multiple-choice" | "writing"
+  ) => {
     setPracticeModalVisible(false); // Fecha o modal imediatamente
 
-    const requiredWords = mode === "multiple-choice" ? 4 : 1;
-    const friendlyModeName =
-      mode === "multiple-choice" ? "de escolha múltipla" : "de revisão";
+    const requiredWords = mode === "multiple-choice" ? 4 : 1; // Flashcard e Writing precisam de apenas 1
+    const friendlyModeName = {
+      "multiple-choice": "de escolha múltipla",
+      flashcard: "de revisão",
+      writing: "de escrita",
+    }[mode];
 
     if (wordsForCurrentDeck.length < requiredWords) {
       Alert.alert(
@@ -405,6 +410,23 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                 <Text style={styles.modeTitle}>Escolha Múltipla</Text>
                 <Text style={styles.modeDescription}>
                   Escolha o significado correto entre 4 opções.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modeButton}
+              onPress={() => handleStartPractice("writing")}
+            >
+              <Ionicons
+                name="pencil-outline"
+                size={24}
+                style={styles.modeIcon}
+              />
+              <View>
+                <Text style={styles.modeTitle}>Jogo da Escrita</Text>
+                <Text style={styles.modeDescription}>
+                  Nós mostramos o significado, você escreve a palavra.
                 </Text>
               </View>
             </TouchableOpacity>

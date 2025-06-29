@@ -10,6 +10,7 @@ import StreakCounter from "../components/practice/StreakCounter";
 import ProgressBar from "../components/practice/ProgressBar";
 import FlashcardView from "../components/practice/FlashcardView";
 import MultipleChoiceView from "../components/practice/MultipleChoiceView";
+import WritingView from "../components/practice/WritingView";
 import SessionResults from "../components/practice/SessionResults";
 
 type Props = {
@@ -19,13 +20,14 @@ type Props = {
 const gameModeTitles = {
   flashcard: "Revisão Clássica",
   "multiple-choice": "Escolha Múltipla",
+  writing: "Jogo da Escrita",
 };
 
 const GameHeader = ({
   mode,
   onBackPress,
 }: {
-  mode: "flashcard" | "multiple-choice";
+  mode: "flashcard" | "multiple-choice" | "writing";
   onBackPress: () => void;
 }) => {
   const insets = useSafeAreaInsets();
@@ -129,6 +131,7 @@ export default function PracticeGameScreen({ route }: Props) {
         <ProgressBar key={sessionState} />
         {mode === "flashcard" && <FlashcardView />}
         {mode === "multiple-choice" && <MultipleChoiceView />}
+        {mode === "writing" && <WritingView />}
       </View>
     );
   }
