@@ -298,9 +298,7 @@ export async function getGlobalStats(): Promise<GlobalStats> {
   }
 }
 
-export type ChallengingWord = {
-  id: number;
-  name: string;
+export type ChallengingWord = Word & {
   successRate: number;
 };
 
@@ -308,12 +306,11 @@ export async function getChallengingWords(): Promise<ChallengingWord[]> {
   try {
     return await db.getAllAsync<ChallengingWord>(`
       SELECT
-        id,
-        name,
+        *,
         (CAST(timesCorrect AS REAL) * 100 / timesTrained) as successRate
       FROM words
       WHERE timesTrained > 0
-      ORDER BY successRate ASC, timesIncorrect DESC
+      ORDER BY successRate ASC, timesIncorrect DESC, lastTrained ASC
       LIMIT 3
     `);
   } catch (e) {

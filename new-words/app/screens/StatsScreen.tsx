@@ -5,9 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { Ionicons } from "@expo/vector-icons";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import StatCard from "../components/stats/StatCard";
 import {
@@ -26,6 +29,7 @@ import {
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../services/storage";
+import { RootTabParamList } from "../navigation/types";
 import { allPossibleDailyGoals, DailyGoal } from "../config/dailyGoals";
 import DailyGoalProgress from "../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../config/achievements";
@@ -76,6 +80,9 @@ export default function StatsScreen() {
   const [processedAchievements, setProcessedAchievements] = useState<
     (Achievement & { unlocked: boolean })[]
   >([]);
+
+  const navigation =
+    useNavigation<BottomTabNavigationProp<RootTabParamList, "Stats">>();
 
   // Countdown timer effect
   useEffect(() => {
@@ -224,6 +231,20 @@ export default function StatsScreen() {
     }, {} as MarkedDates);
   }, [practiceHistory]);
 
+  const handlePracticeChallengingWords = () => {
+    if (challengingWords.length === 0) return;
+
+    // Navega para o ecrã de prática, passando apenas as palavras desafiadoras.
+    // O modo 'multiple-choice' é ótimo para uma revisão focada.
+    navigation.navigate("Practice", {
+      screen: "PracticeGame",
+      params: {
+        mode: "multiple-choice",
+        words: challengingWords,
+      },
+    });
+  };
+
   // Configura o calendário para português
   LocaleConfig.locales["pt"] = {
     monthNames:
@@ -327,14 +348,25 @@ export default function StatsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Palavras Desafiadoras</Text>
         {challengingWords.length > 0 ? (
-          challengingWords.map((word) => (
-            <View key={word.id} style={styles.wordItem}>
-              <Text style={styles.wordName}>{word.name}</Text>
-              <Text style={styles.wordSuccessRate}>
-                Acerto: {Math.round(word.successRate)}%
+          <>
+            {challengingWords.map((word) => (
+              <View key={word.id} style={styles.wordItem}>
+                <Text style={styles.wordName}>{word.name}</Text>
+                <Text style={styles.wordSuccessRate}>
+                  Acerto: {Math.round(word.successRate)}%
+                </Text>
+              </View>
+            ))}
+            <TouchableOpacity
+              style={styles.practiceButton}
+              onPress={handlePracticeChallengingWords}
+            >
+              <Ionicons name="flame-outline" size={20} color="#fff" />
+              <Text style={styles.practiceButtonText}>
+                Praticar estas palavras
               </Text>
-            </View>
-          ))
+            </TouchableOpacity>
+          </>
         ) : (
           <Text style={styles.placeholderText}>
             Nenhuma palavra difícil por agora. Bom trabalho!
@@ -441,6 +473,21 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: "#adb5bd",
     fontSize: 14,
+  },
+  practiceButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#f4a261",
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  practiceButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
   loadingText: {
     marginTop: 10,
