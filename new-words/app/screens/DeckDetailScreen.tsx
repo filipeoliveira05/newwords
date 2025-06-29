@@ -1,14 +1,17 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   TextInput,
   Alert,
   Modal,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
@@ -18,7 +21,7 @@ import WordOverview from "../components/WordOverview";
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
 export default function DeckDetailScreen({ navigation, route }: any) {
-  const { deckId, title, author } = route.params;
+  const { deckId, title, author, openAddWordModal } = route.params;
 
   const wordsForCurrentDeck = useWordStore(
     (state) => state.words[deckId] || EMPTY_WORDS_ARRAY
@@ -37,6 +40,9 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+
+  const newWordInputRef = useRef<TextInput>(null);
+  const newMeaningInputRef = useRef<TextInput>(null);
 
   const filteredWords = useMemo(() => {
     if (!searchQuery) {
@@ -62,11 +68,25 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     if (deckId) {
       fetchWordsOfDeck(deckId);
     }
-  }, [deckId]);
+
+    if (openAddWordModal) {
+      setAddModalVisible(true);
+    }
+  }, [deckId, openAddWordModal]);
 
   useEffect(() => {
-    navigation.setOptions({ title });
-  }, [navigation, title]);
+    navigation.setOptions({
+      title: "", // Title is now in the custom header
+      headerBackTitleVisible: false,
+      headerStyle: {
+        backgroundColor: "#f8fafc",
+        elevation: 0,
+        shadowOpacity: 0,
+        borderBottomWidth: 0,
+      },
+      headerTintColor: "#22223b",
+    });
+  }, [navigation]);
 
   const handleEditWord = (word: Word) => {
     setEditMode(true);
@@ -106,9 +126,9 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     setIsSaving(true);
     try {
       if (editMode && editingWordId !== null) {
-        await updateWord(editingWordId, newWord, newMeaning);
+        await updateWord(editingWordId, newWord.trim(), newMeaning.trim());
       } else {
-        await addWord(deckId, newWord, newMeaning);
+        await addWord(deckId, newWord.trim(), newMeaning.trim());
       }
       resetModal();
     } catch (error) {
@@ -124,125 +144,177 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     }
   };
 
+  const renderEmptyComponent = () => {
+    if (loading) {
+      return (
+        <View style={styles.emptyContainer}>
+          <ActivityIndicator size="large" color="#4F8EF7" />
+          <Text style={styles.emptyText}>A carregar palavras...</Text>
+        </View>
+      );
+    }
+
+    if (searchQuery) {
+      return (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="search-circle-outline" size={60} color="#ced4da" />
+          <Text style={styles.emptyTitle}>Nenhum resultado</Text>
+          <Text style={styles.emptySubtitle}>
+            Não encontrámos palavras para `{searchQuery}`.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyContainer}>
+        <Ionicons name="document-text-outline" size={60} color="#ced4da" />
+        <Text style={styles.emptyTitle}>Nenhuma palavra ainda</Text>
+        <Text style={styles.emptySubtitle}>
+          Este conjunto está vazio. Adicione a sua primeira palavra para começar
+          a aprender.
+        </Text>
+        <TouchableOpacity
+          style={styles.emptyButton}
+          onPress={() => setAddModalVisible(true)}
+        >
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.emptyButtonText}>Adicionar Palavra</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.deckInfo}>
+      <View style={styles.headerContainer}>
         <Text style={styles.deckTitle}>{title}</Text>
-        <Text style={styles.deckAuthor}>Autor: {author}</Text>
-      </View>
-      <View style={styles.searchBarContainer}>
-        <Ionicons
-          name="search"
-          size={20}
-          color="#aaa"
-          style={{ marginRight: 6 }}
-        />
-        <TextInput
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Procurar palavra..."
-          autoCapitalize="none"
-          placeholderTextColor="#aaa"
-        />
-        {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
-            <Ionicons name="close-circle" size={20} color="#aaa" />
+        <Text style={styles.deckAuthor}>por {author}</Text>
+        <View style={styles.searchBarContainer}>
+          <Ionicons name="search-outline" size={20} color="#9e9e9e" />
+          <TextInput
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Procurar por palavra ou significado..."
+            placeholderTextColor="#9e9e9e"
+          />
+          <TouchableOpacity
+            onPress={() => setSearchQuery("")}
+            disabled={!searchQuery}
+            style={{ opacity: searchQuery ? 1 : 0 }}
+          >
+            <Ionicons name="close-circle" size={20} color="#9e9e9e" />
           </TouchableOpacity>
-        )}
+        </View>
       </View>
-      <Text style={styles.subtitle}>Palavras:</Text>
-      {loading ? (
-        <Text style={{ marginTop: 16 }}>A carregar palavras...</Text>
-      ) : (
-        <ScrollView style={{ flex: 1 }}>
-          {filteredWords.map((word) => (
-            <WordOverview
-              key={word.id}
-              name={word.name}
-              meaning={word.meaning}
-              onEdit={() => handleEditWord(word)}
-              onDelete={() => handleDeleteWord(word.id)}
-            />
-          ))}
-        </ScrollView>
-      )}
+      <FlatList
+        data={filteredWords}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <WordOverview
+            name={item.name}
+            meaning={item.meaning}
+            onEdit={() => handleEditWord(item)}
+            onDelete={() => handleDeleteWord(item.id)}
+          />
+        )}
+        ListEmptyComponent={renderEmptyComponent}
+        contentContainerStyle={styles.listContentContainer}
+        showsVerticalScrollIndicator={false}
+      />
 
       <TouchableOpacity
-        style={styles.addButton}
+        style={styles.fab}
         onPress={() => setAddModalVisible(true)}
+        activeOpacity={0.8}
       >
-        <Ionicons name="add-circle-outline" size={24} color="#fff" />
-        <Text style={styles.addButtonText}>Adicionar nova palavra</Text>
+        <Ionicons name="add" size={32} color="#fff" />
       </TouchableOpacity>
 
-      {/* Modal/área expandida para adicionar palavra */}
       <Modal
         visible={addModalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setAddModalVisible(false)}
+        onRequestClose={resetModal}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
-              {editMode ? "Editar palavra" : "Nova palavra"}
-            </Text>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Palavra</Text>
-              <TextInput
-                style={styles.input}
-                value={newWord}
-                onChangeText={setNewWord}
-                placeholder="Nova palavra"
-                placeholderTextColor="#aaa"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Significado</Text>
-              <TextInput
-                style={styles.input}
-                value={newMeaning}
-                onChangeText={setNewMeaning}
-                placeholder="Significado"
-                placeholderTextColor="#aaa"
-                autoCapitalize="none"
-              />
-            </View>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => {
-                  setAddModalVisible(false);
-                  setEditMode(false);
-                  setEditingWordId(null);
-                  setNewWord("");
-                  setNewMeaning("");
-                }}
-              >
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.modalButton,
-                  styles.saveButton,
-                  isSaving && styles.buttonDisabled,
-                ]}
-                onPress={handleSaveWord}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Text style={styles.saveButtonText}>
-                    {editMode ? "Guardar" : "Concluir"}
-                  </Text>
-                )}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <Pressable style={StyleSheet.absoluteFill} onPress={resetModal} />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {editMode ? "Editar Palavra" : "Nova Palavra"}
+              </Text>
+              <TouchableOpacity onPress={resetModal} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color="#6c757d" />
               </TouchableOpacity>
             </View>
+
+            <View style={styles.form}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>PALAVRA</Text>
+                <Pressable
+                  style={styles.inputContainer}
+                  onPress={() => newWordInputRef.current?.focus()}
+                >
+                  <Ionicons
+                    name="text-outline"
+                    style={styles.inputIcon}
+                    size={22}
+                  />
+                  <TextInput
+                    ref={newWordInputRef}
+                    style={styles.input}
+                    value={newWord}
+                    onChangeText={setNewWord}
+                    placeholder="Ex: Apple"
+                    placeholderTextColor="#999"
+                  />
+                </Pressable>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>SIGNIFICADO</Text>
+                <Pressable
+                  style={styles.inputContainer}
+                  onPress={() => newMeaningInputRef.current?.focus()}
+                >
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    style={styles.inputIcon}
+                    size={22}
+                  />
+                  <TextInput
+                    ref={newMeaningInputRef}
+                    style={styles.input}
+                    value={newMeaning}
+                    onChangeText={setNewMeaning}
+                    placeholder="Ex: Maçã"
+                    placeholderTextColor="#999"
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+              onPress={handleSaveWord}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveButtonText}>
+                  {editMode ? "Guardar Alterações" : "Adicionar Palavra"}
+                </Text>
+              )}
+            </TouchableOpacity>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -252,171 +324,185 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    padding: 0,
   },
-  deckInfo: {
-    width: "100%",
-    maxWidth: 400,
-    alignSelf: "center",
-    marginTop: 24,
-    marginBottom: 8,
+  listContentContainer: {
+    flexGrow: 1,
     paddingHorizontal: 16,
+    paddingBottom: 100, // Space for FAB
+  },
+  headerContainer: {
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    backgroundColor: "#f8fafc",
   },
   deckTitle: {
-    fontSize: 22,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#22223b",
-    marginBottom: 2,
   },
   deckAuthor: {
     fontSize: 16,
-    color: "#555",
-    marginBottom: 10,
+    color: "#6c757d",
+    marginTop: 4,
   },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 8,
-    marginTop: 8,
-    color: "#4F8EF7",
-    paddingHorizontal: 16,
-  },
-  wordContainer: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 6,
-    maxWidth: 400,
-    marginHorizontal: 16,
-  },
-  word: { fontSize: 16, fontWeight: "bold" },
-  meaning: { fontSize: 14, color: "#333" },
-  addButton: {
+  searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginTop: 24,
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#222",
+    marginLeft: 12,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    marginTop: 40,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#495057",
+    marginTop: 16,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: "#adb5bd",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 24,
+    maxWidth: "80%",
+  },
+  emptyButton: {
+    flexDirection: "row",
+    backgroundColor: "#4F8EF7",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  emptyText: {
+    marginTop: 10,
+    color: "#6c757d",
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#4F8EF7",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#4F8EF7",
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingTop: 12,
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#e0e0e0",
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#22223b",
+  },
+  closeButton: {
+    padding: 8,
+  },
+  form: {
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "bold",
+    color: "#adb5bd",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8fafc",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    color: "#adb5bd",
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#222",
+    paddingVertical: 14,
+  },
+  saveButton: {
     backgroundColor: "#4F8EF7",
     paddingVertical: 14,
-    paddingHorizontal: 24,
     borderRadius: 8,
-    marginTop: 18,
-    marginBottom: 24,
-    alignSelf: "center",
+    alignItems: "center",
     shadowColor: "#4F8EF7",
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-    marginLeft: 8,
-  },
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.18)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalCard: {
-    width: "90%",
-    maxWidth: 400,
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 28,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 8,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#22223b",
-    marginBottom: 18,
-    textAlign: "center",
-  },
-  formGroup: {
-    width: "100%",
-    marginBottom: 10,
-  },
-  label: {
-    fontWeight: "bold",
-    marginBottom: 4,
-    color: "#4F8EF7",
-    fontSize: 15,
-    marginLeft: 2,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    padding: 10,
-    fontSize: 16,
-    backgroundColor: "#f3f6fa",
-    color: "#222",
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 22,
-    width: "100%",
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 6,
-  },
-  cancelButton: {
-    backgroundColor: "#e0e0e0",
-  },
-  saveButton: {
-    backgroundColor: "#4F8EF7",
-  },
   buttonDisabled: {
     backgroundColor: "#a9c7f5",
-  },
-  cancelButtonText: {
-    color: "#333",
-    fontWeight: "bold",
-    fontSize: 16,
   },
   saveButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 16,
-  },
-  searchContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f3f6fa",
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginRight: 8,
-    height: 36,
-    minWidth: 180,
-  },
-  searchBarContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f3f6fa",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginHorizontal: 16,
-    marginBottom: 8,
-    height: 38,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#222",
-    paddingVertical: 0,
-    paddingHorizontal: 6,
+    fontSize: 17,
+    letterSpacing: 0.5,
   },
 });

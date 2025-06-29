@@ -23,92 +23,87 @@ export default function WordOverview({
 }: WordOverviewProps) {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.textContainer}>
         <Text style={styles.word}>{name}</Text>
-        <Menu>
-          <MenuTrigger
-            customStyles={{
-              TriggerTouchableComponent: TouchableOpacity,
-              triggerWrapper: styles.menuButton,
-            }}
-          >
-            <Ionicons name="ellipsis-vertical" size={20} color="#555" />
-          </MenuTrigger>
-          <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
-            <MenuOption onSelect={onEdit}>
-              <View style={styles.menuItem}>
-                <Ionicons
-                  name="pencil"
-                  size={16}
-                  color="#222"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={styles.menuText}>Editar palavra</Text>
-              </View>
-            </MenuOption>
-            <View style={styles.separator} />
-            <MenuOption onSelect={onDelete}>
-              <View style={styles.menuItem}>
-                <Ionicons
-                  name="trash"
-                  size={16}
-                  color="#d11a2a"
-                  style={{ marginRight: 10 }}
-                />
-                <Text style={[styles.menuText, { color: "#d11a2a" }]}>
-                  Apagar palavra
-                </Text>
-              </View>
-            </MenuOption>
-          </MenuOptions>
-        </Menu>
+        <Text style={styles.meaning}>{meaning}</Text>
       </View>
-      <Text style={styles.meaning}>{meaning}</Text>
+      <Menu>
+        <MenuTrigger
+          customStyles={{
+            TriggerTouchableComponent: TouchableOpacity,
+            triggerWrapper: styles.menuTrigger,
+          }}
+        >
+          <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
+        </MenuTrigger>
+        <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
+          <MenuOption onSelect={onEdit}>
+            <View style={styles.menuItem}>
+              <Ionicons name="pencil-outline" size={18} color="#222" />
+              <Text style={styles.menuText}>Editar</Text>
+            </View>
+          </MenuOption>
+          <View style={styles.separator} />
+          <MenuOption onSelect={onDelete}>
+            <View style={styles.menuItem}>
+              <Ionicons name="trash-outline" size={18} color="#d11a2a" />
+              <Text style={[styles.menuText, { color: "#d11a2a" }]}>
+                Apagar
+              </Text>
+            </View>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 12,
-    padding: 10,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 6,
-    maxWidth: 400,
-    marginHorizontal: 16,
-  },
-  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
   },
-  menuButton: {
-    padding: 4,
+  textContainer: {
+    flex: 1,
+    marginRight: 10,
   },
   word: {
     fontSize: 16,
     fontWeight: "bold",
-    flex: 1,
+    color: "#22223b",
+    marginBottom: 4,
   },
   meaning: {
     fontSize: 14,
-    color: "#333",
-    marginTop: 4,
+    color: "#6c757d",
+  },
+  menuTrigger: {
+    padding: 8,
   },
   menu: {
     borderRadius: 8,
     elevation: 4,
-    minWidth: 160,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   menuText: {
     fontSize: 15,
     color: "#222",
+    marginLeft: 12,
   },
   separator: {
     height: 1,

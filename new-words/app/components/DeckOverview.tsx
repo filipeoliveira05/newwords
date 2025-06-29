@@ -14,6 +14,7 @@ type DeckOverviewProps = {
   totalWords: number;
   onPress?: () => void;
   onEdit?: () => void;
+  onAddWord?: () => void;
   onDelete?: () => void;
 };
 
@@ -23,6 +24,7 @@ export default function DeckOverview({
   totalWords,
   onPress,
   onEdit,
+  onAddWord,
   onDelete,
 }: DeckOverviewProps) {
   return (
@@ -32,27 +34,39 @@ export default function DeckOverview({
       activeOpacity={0.8}
       accessibilityLabel={`Abrir o conjunto ${title}, do autor ${author}`}
     >
-      <View style={styles.header}>
-        <Text style={styles.title}>{title}</Text>
+      <View style={styles.content}>
+        <View style={styles.iconContainer}>
+          <Ionicons name="albums-outline" size={28} color="#4F8EF7" />
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.title} numberOfLines={2}>
+            {title}
+          </Text>
+          <Text style={styles.author}>por {author}</Text>
+        </View>
+      </View>
+      <View style={styles.footer}>
+        <Text style={styles.words}>{totalWords} palavras</Text>
         <Menu>
           <MenuTrigger
             customStyles={{
               TriggerTouchableComponent: TouchableOpacity,
-              triggerWrapper: styles.menuButton,
+              triggerWrapper: styles.menuTrigger,
             }}
           >
-            <Ionicons name="ellipsis-vertical" size={22} color="#555" />
+            <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
+            <MenuOption onSelect={onAddWord}>
+              <View style={styles.menuItem}>
+                <Ionicons name="add" size={20} color="#222" />
+                <Text style={styles.menuText}>Adicionar palavra</Text>
+              </View>
+            </MenuOption>
             <MenuOption onSelect={onEdit}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="pencil"
-                  size={18}
-                  color="#222"
-                  style={{ marginRight: 12 }}
-                />
-                <Text style={styles.menuText}>Editar conjunto</Text>
+                <Ionicons name="pencil" size={18} color="#222" />
+                <Text style={styles.menuText}>Editar detalhes</Text>
               </View>
             </MenuOption>
 
@@ -60,75 +74,94 @@ export default function DeckOverview({
 
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="trash"
-                  size={18}
-                  color="#d11a2a"
-                  style={{ marginRight: 12 }}
-                />
+                <Ionicons name="trash" size={18} color="#d11a2a" />
                 <Text style={[styles.menuText, { color: "#d11a2a" }]}>
-                  Apagar conjunto
+                  Apagar
                 </Text>
               </View>
             </MenuOption>
           </MenuOptions>
         </Menu>
       </View>
-      <Text style={styles.author}>Autor: {author}</Text>
-      <Text style={styles.words}>Palavras: {totalWords}</Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    borderRadius: 8,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#fff",
+    borderRadius: 16,
     marginVertical: 8,
-    elevation: 2,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  header: {
+  content: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 20,
   },
-  menuButton: {
-    padding: 4,
+  iconContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    backgroundColor: "#e8f0fe",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  textContainer: {
+    flex: 1,
   },
   title: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "bold",
-    marginBottom: 4,
-    flex: 1,
+    color: "#22223b",
   },
   author: {
     fontSize: 14,
-    color: "#555",
-    marginBottom: 2,
+    color: "#6c757d",
+    marginTop: 2,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#f1f1f1",
+    paddingTop: 16,
   },
   words: {
     fontSize: 14,
-    color: "#333",
+    color: "#495057",
+    fontWeight: "500",
+  },
+  menuTrigger: {
+    padding: 8,
   },
   menu: {
     borderRadius: 8,
     elevation: 4,
-    minWidth: 180,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
   menuText: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#222",
+    marginLeft: 12,
   },
   separator: {
     height: 1,
     backgroundColor: "#e0e0e0",
-    marginHorizontal: 8,
   },
 });

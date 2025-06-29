@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Platform,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -23,6 +26,9 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
   const [author, setAuthor] = useState("");
 
   const [isSaving, setIsSaving] = useState(false);
+
+  const titleInputRef = useRef<TextInput>(null);
+  const authorInputRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (isEdit && deckId) {
@@ -42,13 +48,15 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
 
   useEffect(() => {
     navigation.setOptions({
-      title: isEdit ? "Editar conjunto" : "Novo conjunto",
+      title: "", // O título agora está no corpo do ecrã
+      headerBackTitleVisible: false,
       headerStyle: {
         backgroundColor: "#f8fafc",
         elevation: 0,
         shadowOpacity: 0,
+        borderBottomWidth: 0,
       },
-      headerTitleStyle: { fontWeight: "bold", fontSize: 22, color: "#22223b" },
+      headerTintColor: "#22223b",
     });
   }, [navigation, isEdit]);
 
@@ -79,40 +87,76 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.iconCircle}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.headerSection}>
           <Ionicons
             name={isEdit ? "create-outline" : "add-circle-outline"}
-            size={38}
+            size={48}
             color="#4F8EF7"
           />
+          <Text style={styles.headerTitle}>
+            {isEdit ? "Editar Conjunto" : "Criar Novo Conjunto"}
+          </Text>
+          <Text style={styles.headerSubtitle}>
+            {isEdit
+              ? "Altere os detalhes do seu conjunto."
+              : "Dê um nome e um autor ao seu novo conjunto de palavras."}
+          </Text>
         </View>
-        <Text style={styles.subheading}>
-          {isEdit
-            ? "Altere os campos para editar o conjunto."
-            : "Preencha os campos para criar um novo conjunto."}
-        </Text>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Título</Text>
-          <TextInput
-            style={styles.input}
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Nome do conjunto"
-            placeholderTextColor="#aaa"
-          />
+
+        <View style={styles.form}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>TÍTULO DO CONJUNTO</Text>
+            <Pressable
+              style={styles.inputContainer}
+              onPress={() => titleInputRef.current?.focus()}
+            >
+              <Ionicons
+                name="bookmark-outline"
+                style={styles.inputIcon}
+                size={22}
+              />
+              <TextInput
+                ref={titleInputRef}
+                style={styles.input}
+                value={title}
+                onChangeText={setTitle}
+                placeholder="Ex: Vocabulário de Inglês"
+                placeholderTextColor="#999"
+              />
+            </Pressable>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>AUTOR</Text>
+            <Pressable
+              style={styles.inputContainer}
+              onPress={() => authorInputRef.current?.focus()}
+            >
+              <Ionicons
+                name="person-outline"
+                style={styles.inputIcon}
+                size={22}
+              />
+              <TextInput
+                ref={authorInputRef}
+                style={styles.input}
+                value={author}
+                onChangeText={setAuthor}
+                placeholder="Ex: John Doe"
+                placeholderTextColor="#999"
+              />
+            </Pressable>
+          </View>
         </View>
-        <View style={styles.formGroup}>
-          <Text style={styles.label}>Autor</Text>
-          <TextInput
-            style={styles.input}
-            value={author}
-            onChangeText={setAuthor}
-            placeholder="Nome do autor"
-            placeholderTextColor="#aaa"
-          />
-        </View>
+
         <TouchableOpacity
           style={[styles.button, isSaving && styles.buttonDisabled]}
           onPress={handleSave}
@@ -122,12 +166,12 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.buttonText}>
-              {isEdit ? "Guardar alterações" : "Criar conjunto"}
+              {isEdit ? "Guardar Alterações" : "Criar Conjunto"}
             </Text>
           )}
         </TouchableOpacity>
-      </View>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -135,64 +179,63 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    paddingTop: Platform.OS === "android" ? 24 : 0,
-    alignItems: "center",
   },
-  card: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 28,
-    marginTop: 32,
-    marginBottom: 24,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 6,
-    alignItems: "center",
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "space-between",
+    padding: 24,
+    paddingTop: 0,
   },
-  iconCircle: {
-    backgroundColor: "#e8f0fe",
-    borderRadius: 32,
-    width: 64,
-    height: 64,
+  headerSection: {
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 18,
-    marginTop: 0,
-    shadowColor: "#4F8EF7",
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    marginBottom: 40,
+    marginTop: 20,
   },
-  subheading: {
-    fontSize: 15,
-    color: "#4F4F4F",
-    marginBottom: 18,
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#22223b",
+    marginTop: 16,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "#6c757d",
     textAlign: "center",
+    marginTop: 8,
+    maxWidth: "90%",
   },
-  formGroup: {
-    width: "100%",
-    marginBottom: 10,
+  form: {
+    flex: 1,
+  },
+  inputGroup: {
+    marginBottom: 24,
   },
   label: {
+    fontSize: 12,
     fontWeight: "bold",
-    marginBottom: 4,
-    color: "#4F8EF7",
-    fontSize: 15,
-    marginLeft: 2,
+    color: "#adb5bd",
+    marginBottom: 8,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#e9ecef",
+    paddingHorizontal: 16,
+  },
+  inputIcon: {
+    color: "#adb5bd",
+    marginRight: 12,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-    borderRadius: 8,
-    padding: 10,
+    flex: 1,
     fontSize: 16,
-    backgroundColor: "#f3f6fa",
     color: "#222",
+    paddingVertical: 14, // Aumenta a área de toque vertical
   },
   button: {
     backgroundColor: "#4F8EF7",

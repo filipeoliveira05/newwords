@@ -3,7 +3,12 @@ import { NavigatorScreenParams } from "@react-navigation/native";
 
 export type HomeStackParamList = {
   HomeDecksList: undefined;
-  DeckDetail: { deckId: number; title: string; author: string };
+  DeckDetail: {
+    deckId: number;
+    title: string;
+    author: string;
+    openAddWordModal?: boolean;
+  };
   AddOrEditDeck: { deckId?: number };
 };
 

@@ -31,15 +31,18 @@ export default function HomeDecksScreen({ navigation }: any) {
 
   if (!decks || decks.length === 0) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <Text style={styles.title}>Ainda não tem conjuntos.</Text>
+      <View style={styles.emptyContainer}>
+        <Ionicons name="file-tray-stacked-outline" size={80} color="#ced4da" />
+        <Text style={styles.emptyTitle}>Nenhum conjunto encontrado</Text>
+        <Text style={styles.emptySubtitle}>
+          Comece por criar o seu primeiro conjunto de palavras.
+        </Text>
         <TouchableOpacity
-          style={styles.addButton}
+          style={styles.emptyButton}
           onPress={() => navigation.navigate("AddOrEditDeck")}
         >
-          <Text style={{ color: "#4F8EF7", marginTop: 16 }}>
-            Crie o seu primeiro!
-          </Text>
+          <Ionicons name="add" size={20} color="#fff" />
+          <Text style={styles.emptyButtonText}>Criar Primeiro Conjunto</Text>
         </TouchableOpacity>
       </View>
     );
@@ -48,13 +51,10 @@ export default function HomeDecksScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Os meus conjuntos</Text>
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate("AddOrEditDeck")}
-        >
-          <Ionicons name="add-circle" size={32} color="#4F8EF7" />
-        </TouchableOpacity>
+        <Text style={styles.title}>Meus Conjuntos</Text>
+        <Text style={styles.subtitle}>
+          Continue a sua jornada de aprendizagem.
+        </Text>
       </View>
       <ScrollView contentContainerStyle={styles.list}>
         {decks.map((deck) => (
@@ -72,6 +72,14 @@ export default function HomeDecksScreen({ navigation }: any) {
             }
             onEdit={() =>
               navigation.navigate("AddOrEditDeck", { deckId: deck.id })
+            }
+            onAddWord={() =>
+              navigation.navigate("DeckDetail", {
+                deckId: deck.id,
+                title: deck.title,
+                author: deck.author,
+                openAddWordModal: true,
+              })
             }
             onDelete={() => {
               Alert.alert(
@@ -100,6 +108,12 @@ export default function HomeDecksScreen({ navigation }: any) {
           />
         ))}
       </ScrollView>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate("AddOrEditDeck")}
+      >
+        <Ionicons name="add" size={32} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -108,28 +122,77 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
-    paddingTop: 40,
-    paddingHorizontal: 16,
   },
   centerContent: {
     justifyContent: "center",
     alignItems: "center",
   },
   header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    justifyContent: "space-between",
+    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f1f1",
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
     color: "#22223b",
   },
-  addButton: {
-    marginLeft: 12,
+  subtitle: {
+    fontSize: 16,
+    color: "#6c757d",
+    marginTop: 4,
   },
   list: {
-    paddingBottom: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 100, // Space for the FAB
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#f8fafc",
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#495057",
+    marginTop: 24,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: "#adb5bd",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  emptyButton: {
+    flexDirection: "row",
+    backgroundColor: "#4F8EF7",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  emptyButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#4F8EF7",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
   },
 });
