@@ -7,7 +7,14 @@ import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   useEffect(() => {
-    initializeDB();
+    async function setupDatabase() {
+      try {
+        await initializeDB();
+      } catch (e) {
+        console.error("Falha crítica ao configurar a base de dados:", e);
+      }
+    }
+    setupDatabase();
   }, []);
 
   return (

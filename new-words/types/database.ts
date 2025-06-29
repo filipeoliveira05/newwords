@@ -14,5 +14,7 @@ export interface Word {
   timesCorrect: number;
   timesIncorrect: number;
   lastTrained: string | null;
+  masteryLevel: "new" | "learning" | "mastered";
+  nextReviewDate: string;
   createdAt: string;
 }

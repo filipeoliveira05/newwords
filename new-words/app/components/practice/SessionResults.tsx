@@ -35,9 +35,6 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   const sessionMode = usePracticeStore((state) => state.sessionMode);
   const startSession = usePracticeStore((state) => state.startSession);
 
-  // Get the action from wordStore to save stats
-  const { updateStatsAfterSession } = useWordStore.getState();
-
   // Use an effect to save the stats to the database when results are shown
   useEffect(() => {
     const saveStats = async () => {
@@ -45,7 +42,6 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
       try {
         // Only save if there are results to save
         if (wordsTrainedCount > 0) {
-          await updateStatsAfterSession(correctAnswers, incorrectAnswers);
           // Também atualiza as métricas do utilizador com a maior streak da ronda
           await updateUserPracticeMetrics(
             highestStreakThisRound,
@@ -57,12 +53,7 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
       }
     };
     saveStats();
-  }, [
-    correctAnswers,
-    incorrectAnswers,
-    highestStreakThisRound,
-    updateStatsAfterSession,
-  ]);
+  }, [correctAnswers, incorrectAnswers, highestStreakThisRound]);
 
   // Calculate the statistics
   const totalWords = wordsForSession.length;

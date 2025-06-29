@@ -4,19 +4,20 @@ import { startOfDay, isYesterday, isToday, format } from "date-fns";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
-export const initializeDB = () => {
+export const initializeDB = async () => {
   try {
-    db.execSync(`
-        PRAGMA foreign_keys = ON;
-        PRAGMA journal_mode = WAL;
+    await db.withTransactionAsync(async () => {
+      await db.runAsync(`PRAGMA foreign_keys = ON;`);
 
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS decks (
             id INTEGER PRIMARY KEY NOT NULL,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         );
-
+      `);
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS words (
             id INTEGER PRIMARY KEY NOT NULL,
             deckId INTEGER NOT NULL,
@@ -26,30 +27,72 @@ export const initializeDB = () => {
             timesCorrect INTEGER NOT NULL DEFAULT 0,
             timesIncorrect INTEGER NOT NULL DEFAULT 0,
             lastTrained TEXT,
+            masteryLevel TEXT NOT NULL DEFAULT 'new',
+            nextReviewDate TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
             FOREIGN KEY (deckId) REFERENCES decks(id) ON DELETE CASCADE
         );
+      `);
 
+      // Schema Migration for existing users
+      const columns = await db.getAllAsync<{ name: string }>(
+        "PRAGMA table_info(words);"
+      );
+      const columnNames = columns.map((c) => c.name);
+
+      // Columns with constant defaults, which are safe to add directly.
+      const safeColumnsToAdd = [
+        { name: "timesTrained", type: "INTEGER NOT NULL DEFAULT 0" },
+        { name: "timesCorrect", type: "INTEGER NOT NULL DEFAULT 0" },
+        { name: "timesIncorrect", type: "INTEGER NOT NULL DEFAULT 0" },
+        { name: "lastTrained", type: "TEXT" },
+        { name: "masteryLevel", type: "TEXT NOT NULL DEFAULT 'new'" },
+      ];
+
+      for (const col of safeColumnsToAdd) {
+        if (!columnNames.includes(col.name)) {
+          await db.runAsync(
+            `ALTER TABLE words ADD COLUMN ${col.name} ${col.type};`
+          );
+        }
+      }
+
+      // Handle the column with a non-constant default separately.
+      // This is because older SQLite versions don't support non-constant defaults on ALTER TABLE.
+      if (!columnNames.includes("nextReviewDate")) {
+        // 1. Add the column allowing NULL values.
+        await db.runAsync("ALTER TABLE words ADD COLUMN nextReviewDate TEXT;");
+        // 2. Update existing rows to set a valid default value.
+        await db.runAsync(
+          "UPDATE words SET nextReviewDate = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE nextReviewDate IS NULL;"
+        );
+      }
+
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS user_metadata (
             key TEXT PRIMARY KEY NOT NULL,
             value TEXT NOT NULL
         );
-
+      `);
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS practice_history (
             date TEXT PRIMARY KEY NOT NULL,
             words_trained INTEGER NOT NULL DEFAULT 0
         );
-
+      `);
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS unlocked_achievements (
             achievement_id TEXT PRIMARY KEY NOT NULL,
             unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         );
-
+      `);
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS daily_active_goals (
             date TEXT PRIMARY KEY NOT NULL,
             goal_ids TEXT NOT NULL
         );
-    `);
+      `);
+    });
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
     throw e;
@@ -218,6 +261,57 @@ export async function deleteWord(id: number): Promise<void> {
   }
 }
 
+export async function getWordsForPractice(deckId?: number): Promise<Word[]> {
+  try {
+    // Seleciona palavras cuja data de revisão já passou
+    // e ordena por prioridade: novas > em aprendizagem > dominadas,
+    // e depois pela data de treino mais antiga.
+    const query = `
+      SELECT * FROM words
+      WHERE nextReviewDate <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      ${deckId ? "AND deckId = ?" : ""}
+      ORDER BY
+        CASE masteryLevel
+          WHEN 'new' THEN 1
+          WHEN 'learning' THEN 2
+          WHEN 'mastered' THEN 3
+        END,
+        lastTrained ASC;
+    `;
+    const params = deckId ? [deckId] : [];
+    return await db.getAllAsync<Word>(query, params);
+  } catch (e) {
+    console.error("Erro ao obter palavras para praticar:", e);
+    throw e;
+  }
+}
+
+export async function getLeastPracticedWords(
+  deckId?: number,
+  limit: number = 10
+): Promise<Word[]> {
+  try {
+    const query = `
+      SELECT * FROM words
+      ${deckId ? "WHERE deckId = ?" : ""}
+      ORDER BY lastTrained ASC, createdAt ASC
+      LIMIT ?;
+    `;
+    const params = deckId ? [deckId, limit] : [limit];
+    return await db.getAllAsync<Word>(query, params);
+  } catch (e) {
+    console.error("Erro ao obter palavras menos praticadas:", e);
+    throw e;
+  }
+}
+
+const getNextReviewDate = (level: Word["masteryLevel"]): string => {
+  const date = new Date();
+  if (level === "learning") date.setDate(date.getDate() + 1); // Review tomorrow
+  else if (level === "mastered") date.setDate(date.getDate() + 3); // Review in 3 days
+  return date.toISOString();
+};
+
 export async function getTotalWordCount(): Promise<number> {
   try {
     const result = await db.getFirstAsync<{ count: number }>(
@@ -231,47 +325,47 @@ export async function getTotalWordCount(): Promise<number> {
 }
 
 export async function updateWordStats(
-  correctWordIds: number[],
-  incorrectWordIds: number[]
+  wordId: number,
+  wasCorrect: boolean
 ): Promise<void> {
-  const allTrainedIds = [...new Set([...correctWordIds, ...incorrectWordIds])];
-  if (allTrainedIds.length === 0) {
-    return;
-  }
-
-  const now = new Date().toISOString();
-
   try {
     await db.withTransactionAsync(async () => {
-      // Update all trained words (increment timesTrained and set lastTrained)
-      if (allTrainedIds.length > 0) {
-        const placeholders = allTrainedIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesTrained = timesTrained + 1, lastTrained = ? WHERE id IN (${placeholders})`,
-          [now, ...allTrainedIds]
-        );
+      const word = await db.getFirstAsync<Word>(
+        "SELECT * FROM words WHERE id = ?",
+        [wordId]
+      );
+      if (!word) return;
+
+      let newMasteryLevel = word.masteryLevel;
+      if (wasCorrect) {
+        if (word.masteryLevel === "new") newMasteryLevel = "learning";
+        else if (word.masteryLevel === "learning") newMasteryLevel = "mastered";
+      } else {
+        newMasteryLevel = "learning";
       }
 
-      // Increment timesCorrect for correct words
-      if (correctWordIds.length > 0) {
-        const placeholders = correctWordIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesCorrect = timesCorrect + 1 WHERE id IN (${placeholders})`,
-          correctWordIds
-        );
-      }
+      const nextReviewDate = getNextReviewDate(newMasteryLevel);
 
-      // Increment timesIncorrect for incorrect words
-      if (incorrectWordIds.length > 0) {
-        const placeholders = incorrectWordIds.map(() => "?").join(",");
-        await db.runAsync(
-          `UPDATE words SET timesIncorrect = timesIncorrect + 1 WHERE id IN (${placeholders})`,
-          incorrectWordIds
-        );
-      }
+      await db.runAsync(
+        `UPDATE words SET
+          timesTrained = timesTrained + 1,
+          timesCorrect = timesCorrect + ?,
+          timesIncorrect = timesIncorrect + ?,
+          lastTrained = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+          masteryLevel = ?,
+          nextReviewDate = ?
+         WHERE id = ?;`,
+        [
+          wasCorrect ? 1 : 0,
+          wasCorrect ? 0 : 1,
+          newMasteryLevel,
+          nextReviewDate,
+          wordId,
+        ]
+      );
     });
   } catch (e) {
-    console.error("Erro ao atualizar estatísticas das palavras:", e);
+    console.error("Erro ao atualizar estatísticas da palavra:", e);
     throw e;
   }
 }
@@ -386,45 +480,43 @@ export async function updateUserPracticeMetrics(
   }
 
   try {
-    await db.withTransactionAsync(async () => {
-      const currentLongestStreak = parseInt(
-        await getMetaValue("longest_streak", "0"),
-        10
-      );
-      const currentConsecutiveDays = parseInt(
-        await getMetaValue("consecutive_days", "0"),
-        10
-      );
-      const lastPracticeDateStr = await getMetaValue("last_practice_date", "");
+    const currentLongestStreak = parseInt(
+      await getMetaValue("longest_streak", "0"),
+      10
+    );
+    const currentConsecutiveDays = parseInt(
+      await getMetaValue("consecutive_days", "0"),
+      10
+    );
+    const lastPracticeDateStr = await getMetaValue("last_practice_date", "");
 
-      const today = startOfDay(new Date());
-      const lastPracticeDate = lastPracticeDateStr
-        ? startOfDay(new Date(lastPracticeDateStr))
-        : null;
+    const today = startOfDay(new Date());
+    const lastPracticeDate = lastPracticeDateStr
+      ? startOfDay(new Date(lastPracticeDateStr))
+      : null;
 
-      let newConsecutiveDays = lastPracticeDate
-        ? isYesterday(lastPracticeDate)
-          ? currentConsecutiveDays + 1
-          : isToday(lastPracticeDate)
-          ? currentConsecutiveDays
-          : 1
-        : 1;
+    let newConsecutiveDays = lastPracticeDate
+      ? isYesterday(lastPracticeDate)
+        ? currentConsecutiveDays + 1
+        : isToday(lastPracticeDate)
+        ? currentConsecutiveDays
+        : 1
+      : 1;
 
-      const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
+    const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
 
-      // Atualiza o histórico de prática
-      const todayStr = format(today, "yyyy-MM-dd");
-      await db.runAsync(
-        "INSERT INTO practice_history (date, words_trained) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET words_trained = words_trained + excluded.words_trained",
-        [todayStr, wordsTrainedInSession]
-      );
+    // Atualiza o histórico de prática
+    const todayStr = format(today, "yyyy-MM-dd");
+    await db.runAsync(
+      "INSERT INTO practice_history (date, words_trained) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET words_trained = words_trained + excluded.words_trained",
+      [todayStr, wordsTrainedInSession]
+    );
 
-      await Promise.all([
-        setMetaValue("longest_streak", newLongestStreak.toString()),
-        setMetaValue("consecutive_days", newConsecutiveDays.toString()),
-        setMetaValue("last_practice_date", today.toISOString()),
-      ]);
-    });
+    await Promise.all([
+      setMetaValue("longest_streak", newLongestStreak.toString()),
+      setMetaValue("consecutive_days", newConsecutiveDays.toString()),
+      setMetaValue("last_practice_date", today.toISOString()),
+    ]);
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);
     throw e;

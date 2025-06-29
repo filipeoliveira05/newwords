@@ -11,6 +11,7 @@ import {
 type WordOverviewProps = {
   name: string;
   meaning: string;
+  masteryLevel: "new" | "learning" | "mastered";
   onEdit?: () => void;
   onDelete?: () => void;
 };
@@ -18,11 +19,21 @@ type WordOverviewProps = {
 export default function WordOverview({
   name,
   meaning,
+  masteryLevel,
   onEdit,
   onDelete,
 }: WordOverviewProps) {
+  const masteryColor = {
+    new: "#adb5bd", // cinzento para palavras novas
+    learning: "#f4a261", // laranja para palavras em aprendizagem
+    mastered: "#2a9d8f", // verde para palavras dominadas
+  }[masteryLevel];
+
   return (
     <View style={styles.container}>
+      <View
+        style={[styles.masteryIndicator, { backgroundColor: masteryColor }]}
+      />
       <View style={styles.textContainer}>
         <Text style={styles.word}>{name}</Text>
         <Text style={styles.meaning}>{meaning}</Text>
@@ -69,6 +80,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: "#e9ecef",
+  },
+  masteryIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 16,
   },
   textContainer: {
     flex: 1,

@@ -2,6 +2,8 @@ import { create } from "zustand";
 import {
   getWordsOfDeck as dbGetWordsOfDeck,
   getAllWords as dbGetAllWords,
+  getWordsForPractice as dbGetWordsForPractice,
+  getLeastPracticedWords as dbGetLeastPracticedWords,
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
@@ -15,14 +17,13 @@ interface WordState {
   loading: boolean;
   fetchWordsOfDeck: (deckId: number) => Promise<void>;
   fetchAllWords: () => Promise<void>;
+  fetchWordsForPractice: (deckId?: number) => Promise<Word[]>;
+  fetchLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
   clearWords: () => void;
-  updateStatsAfterSession: (
-    correctWordIds: number[],
-    incorrectWordIds: number[]
-  ) => Promise<void>;
+  updateStatsAfterAnswer: (wordId: number, isCorrect: boolean) => Promise<void>;
 }
 
 export const useWordStore = create<WordState>((set, get) => ({
@@ -69,6 +70,30 @@ export const useWordStore = create<WordState>((set, get) => ({
     } catch (error) {
       console.error("Erro ao obter todas as palavras no store", error);
       set({ loading: false });
+    }
+  },
+
+  fetchWordsForPractice: async (deckId?: number) => {
+    set({ loading: true });
+    try {
+      const practiceWords = await dbGetWordsForPractice(deckId);
+      set({ loading: false });
+      return practiceWords;
+    } catch (error) {
+      console.error("Erro ao obter palavras para praticar no store", error);
+      set({ loading: false });
+      return [];
+    }
+  },
+
+  fetchLeastPracticedWords: async (deckId?: number) => {
+    try {
+      const fallbackWords = await dbGetLeastPracticedWords(deckId);
+      return fallbackWords;
+    } catch (error) {
+      console.error("Erro ao obter palavras de fallback no store", error);
+      set({ loading: false });
+      return [];
     }
   },
 
@@ -156,26 +181,24 @@ export const useWordStore = create<WordState>((set, get) => ({
     set({ words: {}, loading: false });
   },
 
-  updateStatsAfterSession: async (correctWordIds, incorrectWordIds) => {
+  updateStatsAfterAnswer: async (wordId, isCorrect) => {
     try {
-      await dbUpdateWordStats(correctWordIds, incorrectWordIds);
+      await dbUpdateWordStats(wordId, isCorrect);
 
       // Also update the local state to keep the UI consistent
       set((state) => {
         const newWordsState = { ...state.words };
-        const allIds = [...correctWordIds, ...incorrectWordIds];
-        const now = new Date().toISOString();
 
         for (const deckId in newWordsState) {
           newWordsState[deckId] = newWordsState[deckId].map((word) => {
-            if (allIds.includes(word.id)) {
-              const isCorrect = correctWordIds.includes(word.id);
+            if (word.id === wordId) {
+              // A lógica exata de masteryLevel e nextReviewDate está na DB,
+              // aqui apenas atualizamos os contadores para consistência visual imediata.
+              // O estado completo será atualizado na próxima vez que os dados forem buscados.
               return {
                 ...word,
                 timesTrained: word.timesTrained + 1,
                 timesCorrect: word.timesCorrect + (isCorrect ? 1 : 0),
-                timesIncorrect: word.timesIncorrect + (!isCorrect ? 1 : 0),
-                lastTrained: now,
               };
             }
             return word;
@@ -184,7 +207,10 @@ export const useWordStore = create<WordState>((set, get) => ({
         return { words: newWordsState };
       });
     } catch (error) {
-      console.error("Erro ao atualizar estatísticas no store", error);
+      console.error(
+        "Erro ao atualizar estatísticas da palavra no store",
+        error
+      );
       throw error;
     }
   },

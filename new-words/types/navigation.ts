@@ -16,7 +16,8 @@ export type PracticeStackParamList = {
   PracticeHub: undefined;
   PracticeGame: {
     mode: "flashcard" | "multiple-choice" | "writing";
-    words: Word[];
+    deckId?: number;
+    words?: Word[]; // Passamos uma lista específica de palavras para praticar (ex: palavras difíceis)
   };
 };
 

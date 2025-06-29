@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { shuffle } from "../utils/arrayUtils";
+import { useWordStore } from "./wordStore";
 
 interface PracticeWord {
   id: number;
@@ -57,6 +58,9 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   recordAnswer: (wordId, isCorrect) => {
+    // Update the database immediately
+    useWordStore.getState().updateStatsAfterAnswer(wordId, isCorrect);
+
     set((state) => ({
       correctAnswers:
         isCorrect && !state.correctAnswers.includes(wordId)

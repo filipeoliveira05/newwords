@@ -150,26 +150,9 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   ) => {
     setPracticeModalVisible(false); // Fecha o modal imediatamente
 
-    const requiredWords = mode === "multiple-choice" ? 4 : 1; // Flashcard e Writing precisam de apenas 1
-    const friendlyModeName = {
-      "multiple-choice": "de escolha múltipla",
-      flashcard: "de revisão",
-      writing: "de escrita",
-    }[mode];
-
-    if (wordsForCurrentDeck.length < requiredWords) {
-      Alert.alert(
-        "Poucas Palavras",
-        `Precisa de ter pelo menos ${requiredWords} ${
-          requiredWords > 1 ? "palavras" : "palavra"
-        } neste conjunto para praticar no modo ${friendlyModeName}.`
-      );
-      return;
-    }
-
     navigation.navigate("Practice", {
       screen: "PracticeGame",
-      params: { mode, words: wordsForCurrentDeck },
+      params: { mode, deckId: deckId },
     });
   };
 
@@ -236,6 +219,28 @@ export default function DeckDetailScreen({ navigation, route }: any) {
             <Ionicons name="close-circle" size={20} color="#9e9e9e" />
           </TouchableOpacity>
         </View>
+        {wordsForCurrentDeck.length > 0 && (
+          <View style={styles.legendContainer}>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: "#adb5bd" }]}
+              />
+              <Text style={styles.legendLabel}>Nova</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: "#f4a261" }]}
+              />
+              <Text style={styles.legendLabel}>Em Aprendizagem</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: "#2a9d8f" }]}
+              />
+              <Text style={styles.legendLabel}>Dominada</Text>
+            </View>
+          </View>
+        )}
       </View>
       <FlatList
         data={filteredWords}
@@ -244,6 +249,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
           <WordOverview
             name={item.name}
             meaning={item.meaning}
+            masteryLevel={item.masteryLevel}
             onEdit={() => handleEditWord(item)}
             onDelete={() => handleDeleteWord(item.id)}
           />
@@ -462,6 +468,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#6c757d",
     marginTop: 4,
+  },
+  legendContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
+    marginTop: 20,
+    paddingBottom: 4,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  legendLabel: {
+    fontSize: 12,
+    color: "#6c757d",
   },
   searchBarContainer: {
     flexDirection: "row",

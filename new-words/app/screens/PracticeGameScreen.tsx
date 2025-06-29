@@ -4,6 +4,8 @@ import { RouteProp, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import { useWordStore } from "@/stores/wordStore";
+import { Word } from "@/types/database";
 import { PracticeStackParamList } from "../../types/navigation";
 
 import StreakCounter from "../components/practice/StreakCounter";
@@ -46,43 +48,64 @@ const GameHeader = ({
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const { mode, words: wordsFromRoute } = route.params;
+  const { mode, deckId, words: wordsFromRoute } = route.params;
   const navigation = useNavigation();
 
   const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
+  const { fetchWordsForPractice, fetchLeastPracticedWords } =
+    useWordStore.getState();
   const startSession = usePracticeStore((state) => state.startSession);
   const endSession = usePracticeStore((state) => state.endSession);
 
   const startNewRound = useCallback(() => {
-    // --- LÓGICA DE SELEÇÃO INTELIGENTE (SRS Nível 1) ---
-    const sortedWords = [...wordsFromRoute].sort((a, b) => {
-      // Critério 1: Palavras nunca treinadas vêm primeiro
-      if (a.timesTrained === 0 && b.timesTrained > 0) return -1;
-      if (b.timesTrained === 0 && a.timesTrained > 0) return 1;
+    const loadAndStart = async () => {
+      let wordsToPractice: Word[];
 
-      // Critério 2: Priorizar palavras com maior taxa de erro
-      const errorRateA =
-        a.timesTrained > 0 ? a.timesIncorrect / a.timesTrained : 0;
-      const errorRateB =
-        b.timesTrained > 0 ? b.timesIncorrect / b.timesTrained : 0;
-      if (errorRateA > errorRateB) return -1;
-      if (errorRateB > errorRateA) return 1;
+      if (wordsFromRoute && wordsFromRoute.length > 0) {
+        // Se uma lista de palavras for passada diretamente (ex: palavras difíceis), usa essa lista.
+        wordsToPractice = wordsFromRoute;
+      } else {
+        // 1. Tenta obter palavras com a lógica SRS.
+        wordsToPractice = await fetchWordsForPractice(deckId);
 
-      // Critério 3: Priorizar palavras não treinadas há mais tempo
-      const dateA = a.lastTrained ? new Date(a.lastTrained).getTime() : 0;
-      const dateB = b.lastTrained ? new Date(b.lastTrained).getTime() : 0;
-      if (dateA < dateB) return -1; // Mais antigo primeiro
-      if (dateB < dateA) return 1;
+        // 2. Se o SRS não retornar nada, busca as palavras menos praticadas como fallback.
+        if (wordsToPractice.length === 0) {
+          wordsToPractice = await fetchLeastPracticedWords(deckId);
+        }
+      }
 
-      return 0; // Manter a ordem se tudo for igual
-    });
+      // 3. Verificação final: se, mesmo após o fallback, não houver palavras,
+      //    alerta o utilizador e volta para trás.
+      if (wordsToPractice.length === 0) {
+        Alert.alert(
+          "Tudo em dia!",
+          "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
+          [
+            {
+              text: "OK",
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+        return; // Impede o início da sessão.
+      }
 
-    const roundWords = sortedWords.slice(0, 10);
-    startSession(roundWords, mode);
-    hasConfirmedExit.current = false;
-  }, [wordsFromRoute, mode, startSession]);
+      const roundWords = wordsToPractice.slice(0, 10); // Continuamos a usar rondas de 10
+      startSession(roundWords, mode);
+      hasConfirmedExit.current = false;
+    };
+    loadAndStart();
+  }, [
+    deckId,
+    mode,
+    wordsFromRoute,
+    startSession,
+    fetchWordsForPractice,
+    fetchLeastPracticedWords,
+    navigation,
+  ]);
 
   useEffect(() => {
     startNewRound();

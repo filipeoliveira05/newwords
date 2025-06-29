@@ -27,28 +27,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
   const handleStartGame = useCallback(
     (mode: "flashcard" | "multiple-choice" | "writing") => {
-      const allWords: Word[] = Object.values(allWordsCache).flat();
-      const requiredWords = mode === "multiple-choice" ? 4 : 1;
-      const friendlyModeName =
-        mode === "multiple-choice"
-          ? "de escolha múltipla"
-          : mode === "writing"
-          ? "de escrita"
-          : "de revisão";
-
-      if (allWords.length < requiredWords) {
-        Alert.alert(
-          "Poucas Palavras",
-          `Precisa de ter pelo menos ${requiredWords} ${
-            requiredWords > 1 ? "palavras" : "palavra"
-          } no total para jogar no modo ${friendlyModeName}.`
-        );
-        return;
-      }
-
       navigation.navigate("PracticeGame", {
-        mode: mode,
-        words: allWords,
+        mode: mode, // deckId é undefined, então praticará tudo
       });
     },
     [navigation, allWordsCache]
