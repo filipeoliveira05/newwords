@@ -44,6 +44,11 @@ export const initializeDB = () => {
             achievement_id TEXT PRIMARY KEY NOT NULL,
             unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         );
+
+        CREATE TABLE IF NOT EXISTS daily_active_goals (
+            date TEXT PRIMARY KEY NOT NULL,
+            goal_ids TEXT NOT NULL
+        );
     `);
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
@@ -425,6 +430,49 @@ export async function updateUserPracticeMetrics(
     });
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);
+    throw e;
+  }
+}
+
+export async function getTodaysPracticeStats(): Promise<PracticeHistory | null> {
+  try {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    return await db.getFirstAsync<PracticeHistory>(
+      "SELECT date, words_trained FROM practice_history WHERE date = ?",
+      [todayStr]
+    );
+  } catch (e) {
+    console.error("Erro ao obter estatísticas de prática de hoje:", e);
+    throw e;
+  }
+}
+
+// --- Daily Goal Functions ---
+
+export async function getTodaysActiveGoalIds(): Promise<string[] | null> {
+  try {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    const result = await db.getFirstAsync<{ goal_ids: string }>(
+      "SELECT goal_ids FROM daily_active_goals WHERE date = ?",
+      [todayStr]
+    );
+
+    return result ? JSON.parse(result.goal_ids) : null;
+  } catch (e) {
+    console.error("Erro ao obter IDs das metas diárias ativas:", e);
+    throw e;
+  }
+}
+
+export async function setTodaysActiveGoalIds(goalIds: string[]): Promise<void> {
+  try {
+    const todayStr = format(new Date(), "yyyy-MM-dd");
+    await db.runAsync(
+      "INSERT OR REPLACE INTO daily_active_goals (date, goal_ids) VALUES (?, ?)",
+      [todayStr, JSON.stringify(goalIds)]
+    );
+  } catch (e) {
+    console.error("Erro ao definir IDs das metas diárias ativas:", e);
     throw e;
   }
 }

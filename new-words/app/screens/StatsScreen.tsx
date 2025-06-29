@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
   Text,
   View,
@@ -17,12 +17,17 @@ import {
   getPracticeHistory,
   getUnlockedAchievementIds,
   getTotalWordCount,
+  getTodaysPracticeStats,
+  getTodaysActiveGoalIds,
+  setTodaysActiveGoalIds,
   unlockAchievements,
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../services/storage";
+import { allPossibleDailyGoals, DailyGoal } from "../config/dailyGoals";
+import DailyGoalProgress from "../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../config/achievements";
 import AchievementBadge from "../components/stats/AchievementBadge";
 
@@ -37,6 +42,23 @@ type MarkedDates = {
   };
 };
 
+// Helper function to shuffle an array
+const shuffle = <T,>(array: T[]): T[] => {
+  let currentIndex = array.length,
+    randomIndex;
+
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [
+      array[randomIndex],
+      array[currentIndex],
+    ];
+  }
+
+  return array;
+};
+
 export default function StatsScreen() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<GlobalStats | null>(null);
@@ -47,10 +69,38 @@ export default function StatsScreen() {
     []
   );
   const [practiceHistory, setPracticeHistory] = useState<PracticeHistory[]>([]);
+  const [todaysStats, setTodaysStats] = useState<PracticeHistory | null>(null);
+  const [activeDailyGoals, setActiveDailyGoals] = useState<DailyGoal[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState("");
 
   const [processedAchievements, setProcessedAchievements] = useState<
     (Achievement & { unlocked: boolean })[]
   >([]);
+
+  // Countdown timer effect
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      const now = new Date();
+      const endOfDay = new Date(now);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      const diff = endOfDay.getTime() - now.getTime();
+
+      const hours = Math.floor(diff / (1000 * 60 * 60))
+        .toString()
+        .padStart(2, "0");
+      const minutes = Math.floor((diff / 1000 / 60) % 60)
+        .toString()
+        .padStart(2, "0");
+      const seconds = Math.floor((diff / 1000) % 60)
+        .toString()
+        .padStart(2, "0");
+
+      setTimeRemaining(`${hours}:${minutes}:${seconds}`);
+    }, 1000);
+
+    return () => clearInterval(timerId);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -64,6 +114,8 @@ export default function StatsScreen() {
             history,
             unlockedIds,
             totalWords,
+            todaysPractice,
+            todaysActiveGoalIds,
           ] = await Promise.all([
             getGlobalStats(),
             getChallengingWords(),
@@ -71,11 +123,31 @@ export default function StatsScreen() {
             getPracticeHistory(),
             getUnlockedAchievementIds(),
             getTotalWordCount(),
+            getTodaysPracticeStats(),
+            getTodaysActiveGoalIds(),
           ]);
           setStats(globalStats);
           setChallengingWords(challenging);
           setUserMetrics(metrics);
           setPracticeHistory(history);
+          setTodaysStats(todaysPractice);
+
+          // --- Daily Goals Logic ---
+          let finalGoals: DailyGoal[] = [];
+          if (todaysActiveGoalIds) {
+            // Goals for today already exist, find them in the config
+            const goalMap = new Map(
+              allPossibleDailyGoals.map((g) => [g.id, g])
+            );
+            finalGoals = todaysActiveGoalIds
+              .map((id) => goalMap.get(id))
+              .filter((g): g is DailyGoal => !!g);
+          } else {
+            // First time today, shuffle and pick 3 new goals
+            finalGoals = shuffle([...allPossibleDailyGoals]).slice(0, 3);
+            await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
+          }
+          setActiveDailyGoals(finalGoals);
 
           // Lógica de verificação de conquistas otimizada
           if (globalStats && metrics && history && totalWords !== undefined) {
@@ -214,6 +286,23 @@ export default function StatsScreen() {
         />
       </View>
 
+      {/* Secção : Metas Diárias */}
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Metas Diárias</Text>
+          <Text style={styles.countdownText}>{timeRemaining}</Text>
+        </View>
+        {activeDailyGoals.map((goal) => (
+          <DailyGoalProgress
+            key={goal.id}
+            icon={goal.icon}
+            title={goal.title}
+            target={goal.target}
+            current={goal.getCurrentProgress(todaysStats)}
+          />
+        ))}
+      </View>
+
       {/* Secção 2: Mapa de Atividade (Placeholder) */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Mapa de Atividade</Text>
@@ -306,6 +395,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  countdownText: {
+    fontSize: 14,
+    color: "#e76f51",
+    fontWeight: "bold",
   },
   sectionTitle: {
     fontSize: 18,
