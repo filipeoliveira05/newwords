@@ -44,19 +44,40 @@ The application has a solid and scalable foundation, with the following features
   - **Sensory Feedback:** Haptic feedback (vibrations) is provided for correct and incorrect answers, enhancing the interactive experience.
 - **Persistent Stats Tracking:** Every answer in a practice session updates the word's statistics (`timesTrained`, `timesCorrect`, `lastTrained`, etc.) in the local database, laying the groundwork for advanced analytics.
 
+### 5. Comprehensive Statistics and Gamification
+
+- **Statistics Dashboard:** A dedicated screen (`StatsScreen`) provides users with key performance indicators, including global success rate, total words mastered, longest correct answer streak, and consecutive days of practice.
+- **Activity Heatmap:** A visual calendar highlights practice days, with color intensity representing the volume of words trained, allowing users to see their consistency at a glance.
+- **Dynamic Daily Goals:** To encourage daily engagement, the app presents three new, randomly selected goals each day (e.g., "Train 10 words," "Complete 1 session"). A countdown timer creates a sense of urgency.
+- **Rich Achievement System:** A comprehensive list of unlockable achievements (badges) rewards users for reaching milestones related to practice, consistency, and vocabulary size. Unlocked achievements are persisted in the database and trigger a notification toast.
+- **Actionable Insights:** The "Challenging Words" section automatically identifies the top 3 words with the lowest success rates. A dedicated button allows the user to instantly start a focused practice session with these words, creating a powerful and immediate improvement loop.
+
 ---
 
 ## 🗺️ Development Roadmap
 
-With a robust and engaging practice system now in place, the focus shifts to providing users with meaningful insights into their learning journey.
+With a robust foundation for practice and statistics, the focus now shifts to making the app more interactive, rewarding, and intelligent.
 
 ### 🎯 Current Priorities
 
-1.  **Implement the Statistics Screen (`StatsScreen`)**
-    - **Goal:** Allow users to visualize their learning progress.
+0.  **HomeDecks Screen Improvements**
+
     - **Tasks:**
-      - [ ] **Create SQL Queries:** Develop functions in `services/storage.ts` to fetch aggregate data (e.g., global success rate, most frequently missed words, practice activity over time).
-      - [ ] **Build the UI:** Design and implement the `StatsScreen` to display this data using charts and lists, providing actionable insights for the user.
+      - [ ] **Add features to Deck dropdown menu:** Add words, archive
+      - [ ] **Improve UI:** Self explanatory
+
+1.  **Enable Focused Learning**
+
+    - **Goal:** Allow users to target their practice sessions for maximum efficiency.
+    - **Tasks:**
+      - [ ] **Practice by Deck:** Add a "Practice this Deck" button to the `DeckDetailScreen` to allow users to study words from a single deck. This is a fundamental feature for focused learning.
+      - [ ] **Practice Mistakes:** On the session results screen, add a button to "Practice Mistakes" from the last round, creating a tight feedback loop for correcting errors.
+
+2.  **Enhance Learning Feedback**
+    - **Goal:** Provide instant, clear feedback to accelerate memorization.
+    - **Tasks:**
+      - [ ] **Immediate Correction:** In the multiple-choice game, when a user selects an incorrect answer, immediately highlight the correct answer to reinforce the correct association.
+      - [ ] **Achievement Unlock Animation:** Add a special animation to the `AchievementBadge` component the first time it is rendered as "unlocked," making the moment of discovery more rewarding.
 
 ### 🔮 Future Features (Next Levels)
 
