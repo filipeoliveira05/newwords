@@ -81,21 +81,39 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🔮 Future Features (Next Levels)
 
-#### Level 1: Core Improvements
+#### Level 1: Core Gameplay & Learning Loop (High-Impact)
 
-- [ ] **Alternative Training Modes:** Add a "Writing Game" (type the word based on its meaning).
-- [ ] **Internationalization (i18n):** Abstract all UI text into translation files.
+- [ ] 🧠 **Spaced Repetition System (SRS Core):** This is the most critical feature. Instead of simple statistics, each word should have a “mastery” level (e.g., New, Learning, Mastered). The practice algorithm should prioritize words with lower mastery and those that have not been seen in a long time. This transforms the app from a simple “game” into a powerful learning tool.
+- [ ] ✍️ **Game Mode: Writing the Answer:** The most requested and effective way to test recall. Instead of choosing an option, the user must type the answer.
+- [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
+- [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place, like the main screen's header, to constantly motivate the user.
+- [ ] 🌙 **Dark Mode**
 
-#### Level 2: AI Magic
+#### Level 2: The Habit Hook (Getting the User to Come Back)
 
-- [ ] **Definition and Example Sentence Generator:** Use an LLM API to assist in creating flashcards.
-- [ ] **Word "Discoverer":** Extract vocabulary from a photo or pasted text.
+- [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
+- [ ] 🎲 **New Game Modes:**
 
-#### Level 3: Polish and Growth
+  - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
+  - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
+  - [ ] **Matching Game:** A classic mode where users match words to their definitions from two columns.
 
-- [ ] **Authentication and Cloud Sync.**
-- [ ] **Push Notifications for Practice Reminders.**
-- [ ] **Dark Mode.**
+- [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.
+- [ ] ⬅️ ➡️ **Tinder-Style Review:** Implement a fast and fluid swipe-right/swipe-left interface for flashcard review, making practice sessions more engaging.
+
+#### Level 3: Content Depth & Community
+
+- [ ] 📖 **Detailed Word View & Categories:** Create a dedicated screen for each word, showing more context like example sentences, synonyms, and its category (noun, verb, etc.). This turns the app into a personal, enriched dictionary.
+- [ ] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
+
+#### Level 4: 🤖 AI Magic
+
+- [ ] **Definition and Example Sentence Generator:** Use an LLM API to assist in creating flashcards. The user writes the word, and an LLM API suggests the definition and an example sentence.
+- [ ] **Word "Discoverer":** Allow the user to paste text or take a photo, and the app extracts the most difficult words, suggesting the creation of cards for them.
+
+#### Level 5: Polish and Growth
+
+- [ ] ☁️ **Authentication and Cloud Sync.**
 
 ---
 
