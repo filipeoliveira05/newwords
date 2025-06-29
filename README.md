@@ -71,7 +71,7 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
     - **Goal:** Provide instant, clear feedback to accelerate memorization.
     - **Tasks:**
       - [x] **Immediate Correction:** In the multiple-choice game, when a user selects an incorrect answer, immediately highlight the correct answer to reinforce the correct association.
-      - [ ] **Achievement Unlock Animation:** Add a special animation to the `AchievementBadge` component the first time it is rendered as "unlocked," making the moment of discovery more rewarding.
+      - [x] **Achievement Unlock Animation:** Add a special animation to the `AchievementBadge` component the first time it is rendered as "unlocked," making the moment of discovery more rewarding.
 
 ### 🔮 Future Features (Next Levels)
 

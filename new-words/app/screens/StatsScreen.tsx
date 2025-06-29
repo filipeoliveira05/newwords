@@ -78,7 +78,7 @@ export default function StatsScreen() {
   const [timeRemaining, setTimeRemaining] = useState("");
 
   const [processedAchievements, setProcessedAchievements] = useState<
-    (Achievement & { unlocked: boolean })[]
+    (Achievement & { unlocked: boolean; isNew: boolean })[]
   >([]);
 
   const navigation =
@@ -164,7 +164,7 @@ export default function StatsScreen() {
             const checkedAchievements = achievements.map((ach) => {
               const isAlreadyUnlocked = unlockedIdsSet.has(ach.id);
               if (isAlreadyUnlocked) {
-                return { ...ach, unlocked: true };
+                return { ...ach, unlocked: true, isNew: false };
               }
 
               // Se não estiver desbloqueada, verifica agora
@@ -179,7 +179,7 @@ export default function StatsScreen() {
                 newlyUnlocked.push(ach);
               }
 
-              return { ...ach, unlocked: isNowUnlocked };
+              return { ...ach, unlocked: isNowUnlocked, isNew: isNowUnlocked };
             });
 
             // Se houver novas conquistas, guarda-as na DB
@@ -384,6 +384,7 @@ export default function StatsScreen() {
             description={ach.description}
             icon={ach.icon}
             unlocked={ach.unlocked}
+            isNew={ach.isNew}
           />
         ))}
       </View>
