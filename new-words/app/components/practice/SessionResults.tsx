@@ -164,7 +164,7 @@ export default function SessionResults({
       {/* Only show if user has incorrect words */}
       {wordsToReview.length > 0 && (
         <View style={styles.reviewSection}>
-          <Text style={styles.reviewTitle}>Palavras a Rever:</Text>
+          <Text style={styles.reviewTitle}>Palavras Erradas a Rever:</Text>
           <ScrollView style={styles.scrollView}>
             {wordsToReview.map((word) => (
               <View key={word.id} style={styles.wordItem}>
