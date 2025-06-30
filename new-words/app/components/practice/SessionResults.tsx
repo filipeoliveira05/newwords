@@ -9,19 +9,21 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import ConfettiCannon from "react-native-confetti-cannon";
+// import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { updateUserPracticeMetrics } from "../../../services/storage";
 import { RootTabParamList } from "../../../types/navigation";
 
 type SessionResultsProps = {
   onPlayAgain: () => void;
+  onExit: () => void;
   deckId?: number;
 };
 
 export default function SessionResults({
   onPlayAgain,
   deckId,
+  onExit,
 }: SessionResultsProps) {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -91,6 +93,8 @@ export default function SessionResults({
   const isUrgentSessionComplete = sessionType === "urgent" && isSessionComplete;
 
   const handleExit = () => {
+    onExit(); // Limpa o estado da sessão antes de navegar
+
     // Se todas as palavras urgentes foram feitas, força a atualização do PracticeHub
     if (isUrgentSessionComplete) {
       navigation.navigate("Practice", { screen: "PracticeHub" });
@@ -110,14 +114,14 @@ export default function SessionResults({
   return (
     <View style={styles.container}>
       {/* Confetti for perfect rounds! */}
-      {isPerfectRound && (
+      {/* {isPerfectRound && (
         <ConfettiCannon
           count={200}
           origin={{ x: -10, y: 0 }}
           autoStart={true}
           fadeOut={true}
         />
-      )}
+      )} */}
 
       <Text style={styles.title}>
         {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}

@@ -7,7 +7,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { RouteProp, useNavigation } from "@react-navigation/native";
+import {
+  RouteProp,
+  useNavigation,
+  useFocusEffect,
+} from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
@@ -70,53 +74,63 @@ export default function PracticeGameScreen({ route }: Props) {
   const endSession = usePracticeStore((state) => state.endSession);
   const startNextRound = usePracticeStore((state) => state.startNextRound);
 
-  useEffect(() => {
-    const loadSessionData = async () => {
-      try {
-        setIsLoading(true);
-        let fullWordPool: Word[];
+  // useFocusEffect é usado em vez de useEffect para garantir que a sessão
+  // é recarregada sempre que o ecrã entra em foco, resolvendo o bug de
+  // não iniciar uma nova sessão ao reentrar com os mesmos parâmetros.
+  useFocusEffect(
+    React.useCallback(() => {
+      let isActive = true; // Flag para evitar updates de estado se o componente for desmontado
 
-        if (wordsFromRoute && wordsFromRoute.length > 0) {
-          // Use a lista de palavras passada diretamente (ex: palavras desafiadoras).
-          fullWordPool = wordsFromRoute;
-        } else if (sessionType === "urgent") {
-          // Busca todas as palavras urgentes.
-          fullWordPool = await fetchWordsForPractice(deckId);
-        } else {
-          // Busca TODAS as palavras para uma sessão de prática livre.
-          fullWordPool = await fetchAllLeastPracticedWords(deckId);
+      const loadSessionData = async () => {
+        try {
+          setIsLoading(true);
+          let fullWordPool: Word[];
+
+          if (wordsFromRoute && wordsFromRoute.length > 0) {
+            // Use a lista de palavras passada diretamente (ex: palavras desafiadoras).
+            fullWordPool = wordsFromRoute;
+          } else if (sessionType === "urgent") {
+            // Busca todas as palavras urgentes.
+            fullWordPool = await fetchWordsForPractice(deckId);
+          } else {
+            // Busca TODAS as palavras para uma sessão de prática livre.
+            fullWordPool = await fetchAllLeastPracticedWords(deckId);
+          }
+
+          if (fullWordPool.length === 0) {
+            // Apenas mostra o alerta se o ecrã ainda estiver ativo
+            if (isActive) {
+              Alert.alert(
+                "Tudo em dia!",
+                "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
+                [{ text: "OK", onPress: () => navigation.goBack() }]
+              );
+            }
+            return; // Sai da função mais cedo
+          }
+
+          initializeSession(fullWordPool, mode, sessionType, deckId);
+          hasConfirmedExit.current = false;
+        } catch (error) {
+          console.error("Erro ao carregar a sessão de prática:", error);
+          Alert.alert("Erro", "Não foi possível iniciar a sessão.", [
+            { text: "OK", onPress: () => navigation.goBack() },
+          ]);
+        } finally {
+          setIsLoading(false);
         }
+      };
 
-        if (fullWordPool.length === 0) {
-          Alert.alert(
-            "Tudo em dia!",
-            "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
-            [{ text: "OK", onPress: () => navigation.goBack() }]
-          );
-          return;
-        }
+      loadSessionData();
 
-        initializeSession(fullWordPool, mode, sessionType, deckId);
-        hasConfirmedExit.current = false;
-      } catch (error) {
-        console.error("Erro ao carregar a sessão de prática:", error);
-        Alert.alert("Erro", "Não foi possível iniciar a sessão.", [
-          { text: "OK", onPress: () => navigation.goBack() },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadSessionData();
-  }, [deckId, mode, sessionType, wordsFromRoute]); // Dependências para recarregar se os parâmetros mudarem
-
-  useEffect(() => {
-    // Efeito de limpeza: garante que a sessão é terminada quando o ecrã é desmontado.
-    return () => {
-      endSession();
-    };
-  }, [endSession]);
+      // A função de limpeza do useFocusEffect é chamada quando o ecrã perde o foco.
+      // É o local perfeito para limpar o estado da sessão.
+      return () => {
+        isActive = false;
+        endSession();
+      };
+    }, [deckId, mode, sessionType, wordsFromRoute])
+  );
 
   useEffect(
     () =>
@@ -153,7 +167,13 @@ export default function PracticeGameScreen({ route }: Props) {
   }
 
   if (sessionState === "finished") {
-    return <SessionResults onPlayAgain={startNextRound} deckId={deckId} />;
+    return (
+      <SessionResults
+        onPlayAgain={startNextRound}
+        onExit={endSession}
+        deckId={deckId}
+      />
+    );
   }
 
   if (sessionState === "in-progress") {
