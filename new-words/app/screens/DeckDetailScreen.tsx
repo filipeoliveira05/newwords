@@ -207,6 +207,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
+            autoCapitalize="none"
             onChangeText={setSearchQuery}
             placeholder="Procurar por palavra ou significado..."
             placeholderTextColor="#9e9e9e"
@@ -318,6 +319,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                     ref={newWordInputRef}
                     style={styles.input}
                     value={newWord}
+                    autoCapitalize="none"
                     onChangeText={setNewWord}
                     placeholder="Ex: Apple"
                     placeholderTextColor="#999"
@@ -340,6 +342,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
                     ref={newMeaningInputRef}
                     style={styles.input}
                     value={newMeaning}
+                    autoCapitalize="none"
                     onChangeText={setNewMeaning}
                     placeholder="Ex: Maçã"
                     placeholderTextColor="#999"
