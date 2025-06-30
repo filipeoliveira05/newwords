@@ -27,6 +27,7 @@ export const initializeDB = async () => {
             timesCorrect INTEGER NOT NULL DEFAULT 0,
             timesIncorrect INTEGER NOT NULL DEFAULT 0,
             lastTrained TEXT,
+            lastAnswerCorrect INTEGER,
             masteryLevel TEXT NOT NULL DEFAULT 'new',
             nextReviewDate TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
@@ -46,6 +47,7 @@ export const initializeDB = async () => {
         { name: "timesCorrect", type: "INTEGER NOT NULL DEFAULT 0" },
         { name: "timesIncorrect", type: "INTEGER NOT NULL DEFAULT 0" },
         { name: "lastTrained", type: "TEXT" },
+        { name: "lastAnswerCorrect", type: "INTEGER" },
         { name: "masteryLevel", type: "TEXT NOT NULL DEFAULT 'new'" },
       ];
 
@@ -219,8 +221,10 @@ export async function addWord(
   }
   try {
     const result = await db.getFirstAsync<Word>(
-      "INSERT INTO words (deckId, name, meaning) VALUES (?, ?, ?) RETURNING *",
-      [deckId, name, meaning]
+      // Define explicitamente a nextReviewDate para 'agora' no momento da inserção.
+      // Isto garante que palavras novas são imediatamente elegíveis para prática.
+      "INSERT INTO words (deckId, name, meaning, nextReviewDate) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) RETURNING *",
+      [deckId, name, meaning] // O valor da data é definido diretamente no SQL.
     );
     if (!result) {
       throw new Error("Falha ao adicionar palavra e obter o resultado.");
@@ -286,21 +290,75 @@ export async function getWordsForPractice(deckId?: number): Promise<Word[]> {
   }
 }
 
-export async function getLeastPracticedWords(
-  deckId?: number,
-  limit: number = 10
-): Promise<Word[]> {
+export async function countWordsForPractice(deckId?: number): Promise<number> {
   try {
     const query = `
-      SELECT * FROM words
-      ${deckId ? "WHERE deckId = ?" : ""}
-      ORDER BY lastTrained ASC, createdAt ASC
-      LIMIT ?;
+      SELECT COUNT(*) as count FROM words
+      WHERE nextReviewDate <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+      ${deckId ? "AND deckId = ?" : ""}
     `;
-    const params = deckId ? [deckId, limit] : [limit];
+    const params = deckId ? [deckId] : [];
+    const result = await db.getFirstAsync<{ count: number }>(query, params);
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras para praticar:", e);
+    throw e;
+  }
+}
+
+export async function getLeastPracticedWords(
+  deckId?: number,
+  limit?: number,
+  excludeIds: number[] = []
+): Promise<Word[]> {
+  try {
+    let whereClause = deckId ? "WHERE deckId = ?" : "WHERE 1=1";
+    if (excludeIds.length > 0) {
+      const placeholders = excludeIds.map(() => "?").join(",");
+      whereClause += ` AND id NOT IN (${placeholders})`;
+    }
+
+    const query = `
+      SELECT * FROM words
+      ${whereClause}
+      ORDER BY lastTrained ASC, createdAt ASC
+      ${limit ? "LIMIT ?" : ""};
+    `;
+    const params: (string | number)[] = deckId ? [deckId] : [];
+    params.push(...excludeIds);
+    if (limit) {
+      params.push(limit);
+    }
     return await db.getAllAsync<Word>(query, params);
   } catch (e) {
     console.error("Erro ao obter palavras menos praticadas:", e);
+    throw e;
+  }
+}
+
+export async function getWrongWords(): Promise<Word[]> {
+  try {
+    // Recolhe todas as palavras cuja última resposta foi incorreta (0).
+    const query = `
+      SELECT * FROM words
+      WHERE lastAnswerCorrect = 0
+      ORDER BY lastTrained ASC;
+    `;
+    return await db.getAllAsync<Word>(query);
+  } catch (e) {
+    console.error("Erro ao obter palavras erradas:", e);
+    throw e;
+  }
+}
+
+export async function countWrongWords(): Promise<number> {
+  try {
+    const query =
+      "SELECT COUNT(*) as count FROM words WHERE lastAnswerCorrect = 0";
+    const result = await db.getFirstAsync<{ count: number }>(query);
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras erradas:", e);
     throw e;
   }
 }
@@ -327,14 +385,17 @@ export async function getTotalWordCount(): Promise<number> {
 export async function updateWordStats(
   wordId: number,
   wasCorrect: boolean
-): Promise<void> {
+): Promise<Word | null> {
   try {
     await db.withTransactionAsync(async () => {
       const word = await db.getFirstAsync<Word>(
         "SELECT * FROM words WHERE id = ?",
         [wordId]
       );
-      if (!word) return;
+      // Se a palavra não for encontrada, a transação simplesmente termina sem fazer nada.
+      if (!word) {
+        return;
+      }
 
       let newMasteryLevel = word.masteryLevel;
       if (wasCorrect) {
@@ -346,24 +407,33 @@ export async function updateWordStats(
 
       const nextReviewDate = getNextReviewDate(newMasteryLevel);
 
+      // A transação apenas executa a atualização.
       await db.runAsync(
         `UPDATE words SET
           timesTrained = timesTrained + 1,
           timesCorrect = timesCorrect + ?,
           timesIncorrect = timesIncorrect + ?,
           lastTrained = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
+          lastAnswerCorrect = ?,
           masteryLevel = ?,
           nextReviewDate = ?
          WHERE id = ?;`,
         [
           wasCorrect ? 1 : 0,
           wasCorrect ? 0 : 1,
+          wasCorrect ? 1 : 0,
           newMasteryLevel,
           nextReviewDate,
           wordId,
         ]
       );
     });
+    // Após a transação ser bem-sucedida, buscamos a palavra atualizada para a retornar.
+    const updatedWord = await db.getFirstAsync<Word>(
+      "SELECT * FROM words WHERE id = ?",
+      [wordId]
+    );
+    return updatedWord;
   } catch (e) {
     console.error("Erro ao atualizar estatísticas da palavra:", e);
     throw e;
@@ -382,7 +452,7 @@ export async function getGlobalStats(): Promise<GlobalStats> {
     const result = await db.getFirstAsync<GlobalStats>(`
       SELECT
         COALESCE(SUM(timesCorrect) * 100.0 / SUM(timesTrained), 0) as successRate,
-        (SELECT COUNT(*) FROM words WHERE timesTrained >= 3 AND (CAST(timesCorrect AS REAL) / timesTrained) >= 0.9) as wordsMastered
+        (SELECT COUNT(*) FROM words WHERE masteryLevel = 'mastered') as wordsMastered
       FROM words
     `);
     return result || { successRate: 0, wordsMastered: 0 };

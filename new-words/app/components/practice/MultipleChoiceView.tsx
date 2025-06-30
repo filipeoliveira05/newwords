@@ -12,7 +12,9 @@ type QuizOption = {
 export default function MultipleChoiceView() {
   // --- Store State and Actions ---
   const currentWord = usePracticeStore((state) => state.getCurrentWord());
-  const wordsForSession = usePracticeStore((state) => state.wordsForSession);
+  const fullSessionWordPool = usePracticeStore(
+    (state) => state.fullSessionWordPool
+  );
   const { recordAnswer, nextWord } = usePracticeStore.getState();
 
   // --- Component State ---
@@ -28,8 +30,8 @@ export default function MultipleChoiceView() {
     setHasAnswered(false);
     setSelectedOptionId(null);
 
-    // Find 3 incorrect options. The session words are already shuffled.
-    const distractors = wordsForSession
+    // Find 3 incorrect options from the entire session pool.
+    const distractors = fullSessionWordPool
       .filter((word) => word.id !== currentWord.id)
       .slice(0, 3);
 
@@ -41,7 +43,7 @@ export default function MultipleChoiceView() {
 
     // Shuffle and set the options
     setOptions(shuffle(newOptions));
-  }, [currentWord, wordsForSession]);
+  }, [currentWord, fullSessionWordPool]);
 
   // --- Handlers ---
   const handleSelectOption = (selectedId: number) => {

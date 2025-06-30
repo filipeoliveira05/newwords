@@ -17,6 +17,7 @@ export type PracticeStackParamList = {
   PracticeGame: {
     mode: "flashcard" | "multiple-choice" | "writing";
     deckId?: number;
+    sessionType: "urgent" | "free";
     words?: Word[]; // Passamos uma lista específica de palavras para praticar (ex: palavras difíceis)
   };
 };
@@ -26,7 +27,7 @@ export type StatsStackParamList = {
 };
 
 export type RootTabParamList = {
-  HomeDecks: NavigatorScreenParams<HomeStackParamList>;
-  Practice: NavigatorScreenParams<PracticeStackParamList>;
+  HomeDecks: NavigatorScreenParams<HomeStackParamList> | undefined;
+  Practice: NavigatorScreenParams<PracticeStackParamList> | undefined;
   Stats: undefined;
 };

@@ -4,6 +4,10 @@ import {
   getAllWords as dbGetAllWords,
   getWordsForPractice as dbGetWordsForPractice,
   getLeastPracticedWords as dbGetLeastPracticedWords,
+  countWordsForPractice as dbCountWordsForPractice,
+  getTotalWordCount as dbGetTotalWordCount,
+  getWrongWords as dbGetWrongWords,
+  countWrongWords as dbCountWrongWords,
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
@@ -17,8 +21,20 @@ interface WordState {
   loading: boolean;
   fetchWordsOfDeck: (deckId: number) => Promise<void>;
   fetchAllWords: () => Promise<void>;
+  wrongWordsCount: number;
+  fetchWrongWordsCount: () => Promise<void>;
+  urgentWordsCount: number;
+  fetchUrgentWordCount: () => Promise<void>;
   fetchWordsForPractice: (deckId?: number) => Promise<Word[]>;
-  fetchLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
+  fetchLeastPracticedWords: (
+    deckId?: number,
+    limit?: number,
+    excludeIds?: number[]
+  ) => Promise<Word[]>;
+  fetchWrongWords: (deckId?: number) => Promise<Word[]>;
+  fetchAllLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
+  countWordsForPractice: (deckId?: number) => Promise<number>;
+  getTotalWordCount: () => Promise<number>;
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
@@ -28,6 +44,8 @@ interface WordState {
 
 export const useWordStore = create<WordState>((set, get) => ({
   words: {},
+  wrongWordsCount: 0,
+  urgentWordsCount: 0,
   loading: false,
 
   fetchWordsOfDeck: async (deckId) => {
@@ -73,6 +91,28 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
+  fetchWrongWordsCount: async () => {
+    // Não precisa de setar loading aqui para não piscar a tela inteira
+    try {
+      const count = await dbCountWrongWords();
+      set({ wrongWordsCount: count });
+    } catch (error) {
+      console.error("Erro ao contar palavras erradas no store", error);
+      set({ wrongWordsCount: 0 });
+    }
+  },
+
+  fetchUrgentWordCount: async () => {
+    set({ loading: true });
+    try {
+      const count = await dbCountWordsForPractice();
+      set({ urgentWordsCount: count, loading: false });
+    } catch (error) {
+      console.error("Erro ao contar palavras urgentes no store", error);
+      set({ loading: false });
+    }
+  },
+
   fetchWordsForPractice: async (deckId?: number) => {
     set({ loading: true });
     try {
@@ -86,14 +126,67 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  fetchLeastPracticedWords: async (deckId?: number) => {
+  countWordsForPractice: async (deckId?: number) => {
     try {
-      const fallbackWords = await dbGetLeastPracticedWords(deckId);
+      const count = await dbCountWordsForPractice(deckId);
+      return count;
+    } catch (error) {
+      console.error("Erro ao contar palavras para praticar no store", error);
+      return 0;
+    }
+  },
+
+  fetchLeastPracticedWords: async (
+    deckId?: number,
+    limit?: number,
+    excludeIds?: number[]
+  ) => {
+    try {
+      const fallbackWords = await dbGetLeastPracticedWords(
+        deckId,
+        limit,
+        excludeIds
+      );
       return fallbackWords;
     } catch (error) {
       console.error("Erro ao obter palavras de fallback no store", error);
       set({ loading: false });
       return [];
+    }
+  },
+
+  fetchWrongWords: async (deckId?: number) => {
+    try {
+      // No futuro, podemos filtrar por deckId se necessário
+      const words = await dbGetWrongWords();
+      return words;
+    } catch (error) {
+      console.error("Erro ao obter palavras erradas no store", error);
+      return [];
+    }
+  },
+
+  fetchAllLeastPracticedWords: async (deckId?: number) => {
+    try {
+      // Chama a função da DB sem limite para obter todas as palavras, ordenadas.
+      const allWords = await dbGetLeastPracticedWords(deckId, undefined, []);
+      return allWords;
+    } catch (error) {
+      console.error(
+        "Erro ao obter todas as palavras menos praticadas no store",
+        error
+      );
+      return [];
+    }
+  },
+
+  getTotalWordCount: async () => {
+    try {
+      const count = await dbGetTotalWordCount();
+      return count;
+    } catch (error) {
+      console.error("Erro ao obter contagem total de palavras no store", error);
+      return 0;
     }
   },
 
@@ -183,28 +276,24 @@ export const useWordStore = create<WordState>((set, get) => ({
 
   updateStatsAfterAnswer: async (wordId, isCorrect) => {
     try {
-      await dbUpdateWordStats(wordId, isCorrect);
+      const updatedWord = await dbUpdateWordStats(wordId, isCorrect);
+
+      if (!updatedWord) return;
 
       // Also update the local state to keep the UI consistent
       set((state) => {
-        const newWordsState = { ...state.words };
-
-        for (const deckId in newWordsState) {
-          newWordsState[deckId] = newWordsState[deckId].map((word) => {
-            if (word.id === wordId) {
-              // A lógica exata de masteryLevel e nextReviewDate está na DB,
-              // aqui apenas atualizamos os contadores para consistência visual imediata.
-              // O estado completo será atualizado na próxima vez que os dados forem buscados.
-              return {
-                ...word,
-                timesTrained: word.timesTrained + 1,
-                timesCorrect: word.timesCorrect + (isCorrect ? 1 : 0),
-              };
-            }
-            return word;
-          });
+        const { deckId } = updatedWord;
+        if (!state.words[deckId]) {
+          return state; // Safety check, should not happen
         }
-        return { words: newWordsState };
+
+        const updatedWordsForDeck = state.words[deckId].map((word) =>
+          word.id === updatedWord.id ? updatedWord : word
+        );
+
+        return {
+          words: { ...state.words, [deckId]: updatedWordsForDeck },
+        };
       });
     } catch (error) {
       console.error(

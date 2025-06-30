@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, useCallback } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -48,103 +55,105 @@ const GameHeader = ({
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const { mode, deckId, words: wordsFromRoute } = route.params;
+  const { mode, deckId, words: wordsFromRoute, sessionType } = route.params;
   const navigation = useNavigation();
 
+  const [isLoading, setIsLoading] = useState(true);
   const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
-  const { fetchWordsForPractice, fetchLeastPracticedWords } =
+  const { fetchWordsForPractice, fetchAllLeastPracticedWords } =
     useWordStore.getState();
-  const startSession = usePracticeStore((state) => state.startSession);
+  const initializeSession = usePracticeStore(
+    (state) => state.initializeSession
+  );
   const endSession = usePracticeStore((state) => state.endSession);
-
-  const startNewRound = useCallback(() => {
-    const loadAndStart = async () => {
-      let wordsToPractice: Word[];
-
-      if (wordsFromRoute && wordsFromRoute.length > 0) {
-        // Se uma lista de palavras for passada diretamente (ex: palavras difíceis), usa essa lista.
-        wordsToPractice = wordsFromRoute;
-      } else {
-        // 1. Tenta obter palavras com a lógica SRS.
-        wordsToPractice = await fetchWordsForPractice(deckId);
-
-        // 2. Se o SRS não retornar nada, busca as palavras menos praticadas como fallback.
-        if (wordsToPractice.length === 0) {
-          wordsToPractice = await fetchLeastPracticedWords(deckId);
-        }
-      }
-
-      // 3. Verificação final: se, mesmo após o fallback, não houver palavras,
-      //    alerta o utilizador e volta para trás.
-      if (wordsToPractice.length === 0) {
-        Alert.alert(
-          "Tudo em dia!",
-          "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
-          [
-            {
-              text: "OK",
-              onPress: () => navigation.goBack(),
-            },
-          ]
-        );
-        return; // Impede o início da sessão.
-      }
-
-      const roundWords = wordsToPractice.slice(0, 10); // Continuamos a usar rondas de 10
-      startSession(roundWords, mode);
-      hasConfirmedExit.current = false;
-    };
-    loadAndStart();
-  }, [
-    deckId,
-    mode,
-    wordsFromRoute,
-    startSession,
-    fetchWordsForPractice,
-    fetchLeastPracticedWords,
-    navigation,
-  ]);
+  const startNextRound = usePracticeStore((state) => state.startNextRound);
 
   useEffect(() => {
-    startNewRound();
+    const loadSessionData = async () => {
+      try {
+        setIsLoading(true);
+        let fullWordPool: Word[];
 
+        if (wordsFromRoute && wordsFromRoute.length > 0) {
+          // Use a lista de palavras passada diretamente (ex: palavras desafiadoras).
+          fullWordPool = wordsFromRoute;
+        } else if (sessionType === "urgent") {
+          // Busca todas as palavras urgentes.
+          fullWordPool = await fetchWordsForPractice(deckId);
+        } else {
+          // Busca TODAS as palavras para uma sessão de prática livre.
+          fullWordPool = await fetchAllLeastPracticedWords(deckId);
+        }
+
+        if (fullWordPool.length === 0) {
+          Alert.alert(
+            "Tudo em dia!",
+            "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
+            [{ text: "OK", onPress: () => navigation.goBack() }]
+          );
+          return;
+        }
+
+        initializeSession(fullWordPool, mode, sessionType);
+        hasConfirmedExit.current = false;
+      } catch (error) {
+        console.error("Erro ao carregar a sessão de prática:", error);
+        Alert.alert("Erro", "Não foi possível iniciar a sessão.", [
+          { text: "OK", onPress: () => navigation.goBack() },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSessionData();
+  }, [deckId, mode, sessionType, wordsFromRoute]); // Dependências para recarregar se os parâmetros mudarem
+
+  useEffect(() => {
+    // Efeito de limpeza: garante que a sessão é terminada quando o ecrã é desmontado.
     return () => {
       endSession();
     };
-  }, [startNewRound, endSession]);
+  }, [endSession]);
 
   useEffect(
     () =>
       navigation.addListener("beforeRemove", (e) => {
+        // Previne o utilizador de sair a meio de uma ronda sem querer.
         if (hasConfirmedExit.current || sessionState !== "in-progress") {
           return;
         }
 
         e.preventDefault();
 
-        Alert.alert(
-          "Sair da Prática?",
-          "O seu progresso nesta sessão será perdido. Tem a certeza que quer sair?",
-          [
-            { text: "Ficar", style: "cancel", onPress: () => {} },
-            {
-              text: "Sair",
-              style: "destructive",
-              onPress: () => {
-                hasConfirmedExit.current = true;
-                navigation.dispatch(e.data.action);
-              },
+        Alert.alert("Sair da Prática?", "Tem a certeza que quer sair?", [
+          { text: "Ficar", style: "cancel", onPress: () => {} },
+          {
+            text: "Sair",
+            style: "destructive",
+            onPress: () => {
+              hasConfirmedExit.current = true;
+              navigation.dispatch(e.data.action);
             },
-          ]
-        );
+          },
+        ]);
       }),
     [navigation, sessionState]
   );
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4F8EF7" />
+        <Text style={styles.loadingText}>A preparar a sua sessão...</Text>
+      </View>
+    );
+  }
+
   if (sessionState === "finished") {
-    return <SessionResults onPlayAgain={startNewRound} />;
+    return <SessionResults onPlayAgain={startNextRound} deckId={deckId} />;
   }
 
   if (sessionState === "in-progress") {
@@ -160,9 +169,7 @@ export default function PracticeGameScreen({ route }: Props) {
   }
 
   return (
-    <View style={styles.container}>
-      <Text>A preparar a sua sessão de prática...</Text>
-    </View>
+    <View style={styles.loadingContainer} /> // Ecrã vazio enquanto a lógica decide o que fazer
   );
 }
 
@@ -172,6 +179,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f0f4f8",
     paddingTop: 100, // Increased padding to create more space for the absolute header
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f4f8",
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#4a4e69",
+  },
+  loadingSubText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: "#6c757d",
   },
   headerContainer: {
     width: "100%",

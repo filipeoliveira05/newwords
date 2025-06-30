@@ -152,7 +152,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
 
     navigation.navigate("Practice", {
       screen: "PracticeGame",
-      params: { mode, deckId: deckId },
+      params: { mode, deckId: deckId, sessionType: "free" },
     });
   };
 

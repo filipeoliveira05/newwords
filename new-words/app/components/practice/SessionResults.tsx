@@ -6,39 +6,50 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "@/stores/usePracticeStore";
-import { useWordStore } from "@/stores/wordStore";
 import { updateUserPracticeMetrics } from "../../../services/storage";
-
-import { Word } from "@/types/database";
-
-const EMPTY_WORDS_ARRAY: Word[] = [];
+import { RootTabParamList } from "../../../types/navigation";
 
 type SessionResultsProps = {
   onPlayAgain: () => void;
+  deckId?: number;
 };
 
-export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
-  const navigation = useNavigation();
+export default function SessionResults({
+  onPlayAgain,
+  deckId,
+}: SessionResultsProps) {
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   // Select state and actions from the store individually to prevent re-renders
   const correctAnswers = usePracticeStore((state) => state.correctAnswers);
   const incorrectAnswers = usePracticeStore((state) => state.incorrectAnswers);
-  const wordsForSession = usePracticeStore(
-    (state) => state.wordsForSession || EMPTY_WORDS_ARRAY
+  const currentRoundWords = usePracticeStore(
+    (state) => state.currentRoundWords
+  );
+  const fullSessionWordPool = usePracticeStore(
+    (state) => state.fullSessionWordPool
+  );
+  const currentPoolIndex = usePracticeStore((state) => state.currentPoolIndex);
+  const sessionType = usePracticeStore((state) => state.sessionType);
+  const wordsPracticedInSession = usePracticeStore(
+    (state) => state.wordsPracticedInSession
   );
   const highestStreakThisRound = usePracticeStore(
     (state) => state.highestStreakThisRound
   );
-  const sessionMode = usePracticeStore((state) => state.sessionMode);
-  const startSession = usePracticeStore((state) => state.startSession);
 
   // Use an effect to save the stats to the database when results are shown
   useEffect(() => {
     const saveStats = async () => {
-      const wordsTrainedCount = correctAnswers.length + incorrectAnswers.length;
+      const wordsTrainedCount = new Set([
+        ...correctAnswers,
+        ...incorrectAnswers,
+      ]).size;
       try {
         // Only save if there are results to save
         if (wordsTrainedCount > 0) {
@@ -56,24 +67,43 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
   }, [correctAnswers, incorrectAnswers, highestStreakThisRound]);
 
   // Calculate the statistics
-  const totalWords = wordsForSession.length;
+  const totalWordsInRound = currentRoundWords.length;
   const numCorrect = correctAnswers.length;
   const scorePercentage =
-    totalWords > 0 ? Math.round((numCorrect / totalWords) * 100) : 0;
+    totalWordsInRound > 0
+      ? Math.round((numCorrect / totalWordsInRound) * 100)
+      : 0;
 
-  const isPerfectRound = totalWords > 0 && incorrectAnswers.length === 0;
+  const sessionProgressPercentage =
+    fullSessionWordPool.length > 0
+      ? (wordsPracticedInSession.size / fullSessionWordPool.length) * 100
+      : 0;
+
+  const isPerfectRound = totalWordsInRound > 0 && incorrectAnswers.length === 0;
 
   // Find incorrect words
   const incorrectWordIds = new Set(incorrectAnswers);
-  const wordsToReview = wordsForSession.filter((word) =>
+  const wordsToReview = currentRoundWords.filter((word) =>
     incorrectWordIds.has(word.id)
   );
 
-  const handlePracticeMistakes = () => {
-    if (wordsToReview.length > 0 && sessionMode) {
-      // Inicia uma nova sessão apenas com as palavras erradas,
-      // no mesmo modo de jogo.
-      startSession(wordsToReview, sessionMode);
+  const isSessionComplete = currentPoolIndex >= fullSessionWordPool.length;
+  const isUrgentSessionComplete = sessionType === "urgent" && isSessionComplete;
+
+  const handleExit = () => {
+    // Se todas as palavras urgentes foram feitas, força a atualização do PracticeHub
+    if (isUrgentSessionComplete) {
+      navigation.navigate("Practice", { screen: "PracticeHub" });
+      return;
+    }
+
+    // Se um deckId estiver presente, a prática foi para um conjunto específico.
+    // Navega de volta para o separador Home, que mostrará o DeckDetailScreen.
+    if (deckId) {
+      navigation.navigate("HomeDecks");
+    } else {
+      // Caso contrário, foi uma prática geral, então basta voltar para o PracticeHub.
+      navigation.goBack();
     }
   };
 
@@ -93,12 +123,43 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
         {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
       </Text>
 
-      <View style={styles.summaryCard}>
-        <Text style={styles.scoreText}>
-          Você acertou {numCorrect} de {totalWords} palavras!
-        </Text>
-        <Text style={styles.percentageText}>{scorePercentage}%</Text>
-      </View>
+      {isUrgentSessionComplete ? (
+        <View style={styles.summaryCard}>
+          <Ionicons name="checkmark-done-circle" size={48} color="#2a9d8f" />
+          <Text style={styles.congratsTitle}>Revisão Concluída!</Text>
+          <Text style={styles.congratsSubtitle}>
+            Todas as palavras urgentes foram revistas. Pode agora praticar
+            livremente.
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.summaryCard}>
+          <Text style={styles.scoreText}>
+            Você acertou {numCorrect} de {totalWordsInRound} palavras!
+          </Text>
+          <Text style={styles.percentageText}>{scorePercentage}%</Text>
+          <View style={styles.progressContainer}>
+            <Text style={styles.progressTitle}>
+              {sessionType === "urgent"
+                ? "Progresso da Revisão"
+                : "Progresso da Prática"}
+            </Text>
+            <View style={styles.progressBarBackground}>
+              <View
+                style={[
+                  styles.progressBarFill,
+                  {
+                    width: `${sessionProgressPercentage}%`,
+                  },
+                ]}
+              />
+            </View>
+            <Text
+              style={styles.progressLabel}
+            >{`${wordsPracticedInSession.size} / ${fullSessionWordPool.length}`}</Text>
+          </View>
+        </View>
+      )}
 
       {/* Only show if user has incorrect words */}
       {wordsToReview.length > 0 && (
@@ -117,29 +178,21 @@ export default function SessionResults({ onPlayAgain }: SessionResultsProps) {
 
       {/* Main button section to conclude or keep going */}
       <View style={styles.actionsContainer}>
-        {wordsToReview.length > 0 && (
-          <TouchableOpacity
-            style={[styles.button, styles.practiceMistakesButton]}
-            onPress={handlePracticeMistakes}
-          >
-            <Text style={styles.primaryButtonText}>
-              Praticar Erros ({wordsToReview.length})
-            </Text>
-          </TouchableOpacity>
-        )}
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton, styles.halfButton]}
-            onPress={() => navigation.goBack()}
+            onPress={handleExit}
           >
             <Text style={styles.secondaryButtonText}>Sair</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, styles.primaryButton, styles.halfButton]}
-            onPress={onPlayAgain}
-          >
-            <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
-          </TouchableOpacity>
+          {!isSessionComplete && (
+            <TouchableOpacity
+              style={[styles.button, styles.primaryButton, styles.halfButton]}
+              onPress={onPlayAgain}
+            >
+              <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -182,6 +235,18 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: "bold",
     color: "#4F8EF7",
+  },
+  congratsTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#2a9d8f",
+    marginTop: 16,
+  },
+  congratsSubtitle: {
+    fontSize: 16,
+    color: "#6c757d",
+    textAlign: "center",
+    marginTop: 8,
   },
   reviewSection: {
     width: "100%",
@@ -256,5 +321,36 @@ const styles = StyleSheet.create({
     color: "#495057",
     fontWeight: "bold",
     fontSize: 16,
+  },
+  progressContainer: {
+    width: "100%",
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  progressTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#4a4e69",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  progressBarBackground: {
+    height: 12,
+    backgroundColor: "#e9ecef",
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  progressBarFill: {
+    height: "100%",
+    backgroundColor: "#4F8EF7",
+    borderRadius: 6,
+  },
+  progressLabel: {
+    fontSize: 12,
+    color: "#6c757d",
+    textAlign: "center",
+    marginTop: 6,
   },
 });

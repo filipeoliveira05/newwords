@@ -3,23 +3,33 @@ import { View, Text, StyleSheet } from "react-native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 
 export default function ProgressBar() {
-  const currentWordIndex = usePracticeStore((state) => state.currentWordIndex);
-  const wordsForSession = usePracticeStore((state) => state.wordsForSession);
+  const wordsPracticedInSession = usePracticeStore(
+    (state) => state.wordsPracticedInSession
+  );
+  const fullSessionWordPool = usePracticeStore(
+    (state) => state.fullSessionWordPool
+  );
+  const sessionType = usePracticeStore((state) => state.sessionType);
 
-  const totalWords = wordsForSession.length;
-  const currentStep = currentWordIndex + 1;
+  const totalWordsInPool = fullSessionWordPool.length;
+  const wordsPracticedCount = wordsPracticedInSession.size;
 
-  if (totalWords === 0) {
+  if (totalWordsInPool === 0) {
     return null;
   }
 
-  const progressPercentage = (currentStep / totalWords) * 100;
+  const progressPercentage = (wordsPracticedCount / totalWordsInPool) * 100;
+  const progressTitle =
+    sessionType === "urgent" ? "Progresso da Revisão" : "Progresso da Prática";
 
   return (
     <View style={styles.container}>
-      <Text style={styles.progressText}>
-        {currentStep} / {totalWords}
-      </Text>
+      <View style={styles.textContainer}>
+        <Text style={styles.progressTitle}>{progressTitle}</Text>
+        <Text style={styles.progressText}>
+          {wordsPracticedCount} / {totalWordsInPool}
+        </Text>
+      </View>
       <View style={styles.barBackground}>
         <View style={[styles.barFill, { width: `${progressPercentage}%` }]} />
       </View>
@@ -32,13 +42,22 @@ const styles = StyleSheet.create({
     width: "90%",
     maxWidth: 400,
     marginBottom: 40,
-    alignItems: "center",
+  },
+  textContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 8,
+  },
+  progressTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#6c757d",
   },
   progressText: {
     fontSize: 14,
     fontWeight: "600",
     color: "#4a4e69",
-    marginBottom: 8,
   },
   barBackground: {
     width: "100%",

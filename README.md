@@ -77,8 +77,8 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 1: Core Gameplay & Learning Loop (High-Impact)
 
-- [ ] 🧠 **Spaced Repetition System (SRS Core):** This is the most critical feature. Instead of simple statistics, each word should have a “mastery” level (e.g., New, Learning, Mastered). The practice algorithm should prioritize words with lower mastery and those that have not been seen in a long time. This transforms the app from a simple “game” into a powerful learning tool.
-- [ ] ✍️ **Game Mode: Writing the Answer:** The most requested and effective way to test recall. Instead of choosing an option, the user must type the answer.
+- [x] 🧠 **Spaced Repetition System (SRS Core):** This is the most critical feature. Instead of simple statistics, each word should have a “mastery” level (e.g., New, Learning, Mastered). The practice algorithm should prioritize words with lower mastery and those that have not been seen in a long time. This transforms the app from a simple “game” into a powerful learning tool.
+- [x] ✍️ **Game Mode: Writing the Answer:** The most requested and effective way to test recall. Instead of choosing an option, the user must type the answer.
 - [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
 - [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place, like the main screen's header, to constantly motivate the user.
 - [ ] 🌙 **Dark Mode**
@@ -89,7 +89,7 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 - [ ] 🎲 **New Game Modes:**
 
   - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
-  - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
+  - [x] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
   - [ ] **Matching Game:** A classic mode where users match words to their definitions from two columns.
 
 - [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.

@@ -240,6 +240,7 @@ export default function StatsScreen() {
       screen: "PracticeGame",
       params: {
         mode: "multiple-choice",
+        sessionType: "free", // Prática de palavras específicas é sempre 'free'
         words: challengingWords,
       },
     });
