@@ -60,25 +60,15 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-1.  **Enable Focused Learning**
-
-    - **Goal:** Allow users to target their practice sessions for maximum efficiency.
-    - **Tasks:**
-      - [x] **Practice by Deck:** Add a "Practice this Deck" button to the `DeckDetailScreen` to allow users to study words from a single deck. This is a fundamental feature for focused learning.
-      - [x] **Practice Mistakes:** On the session results screen, add a button to "Practice Mistakes" from the last round, creating a tight feedback loop for correcting errors.
-
-2.  **Enhance Learning Feedback**
-    - **Goal:** Provide instant, clear feedback to accelerate memorization.
-    - **Tasks:**
-      - [x] **Immediate Correction:** In the multiple-choice game, when a user selects an incorrect answer, immediately highlight the correct answer to reinforce the correct association.
-      - [x] **Achievement Unlock Animation:** Add a special animation to the `AchievementBadge` component the first time it is rendered as "unlocked," making the moment of discovery more rewarding.
+- [ ] **Word Custom Screen:** Add a `WordDetailsScreen` showing detailed information about the word: name, meaning, grammar category (noun, verb, etc.), synonyms, sentences with that word, AI operations.
+- [ ] **Alerts Design:** Improve looks of alert messages to keep the design consistent throughout the app and avoid generic android/IOS design. (Observação: Alertas nativos são inconsistentes com o design. Para uma experiência polida e consistente, criar um componente de modal de alerta personalizado, o que dá controlo total sobre o estilo e o comportamento, alinhando-o com a identidade visual da aplicação.)
+- [ ] **Delay and Lag:** Search for every aspect of the app that could be optimized (Observação: Lentidão/delay, especialmente no ecrã de resultados com os confetis. Confetis: A animação de confetis pode ser pesada e bloquear o thread de UI, o que explicaria o atraso em poder clicar nos botões. Uma solução é reduzir a quantidade de partículas (count) ou usar InteractionManager.runAfterInteractions para disparar a animação apenas depois de outras interações (como a renderização dos botões) terem terminado ou então remover por completo a animação de confetis e procurar outros meios menos custosos para "animar" a aplicação. Database Writes: No SessionResults, a função updateUserPracticeMetrics é assíncrona. Embora não deva bloquear a UI, qualquer lógica complexa que dependa dela pode parecer lenta.)
 
 ### 🔮 Future Features (Next Levels)
 
 #### Level 1: Core Gameplay & Learning Loop (High-Impact)
 
-- [x] 🧠 **Spaced Repetition System (SRS Core):** This is the most critical feature. Instead of simple statistics, each word should have a “mastery” level (e.g., New, Learning, Mastered). The practice algorithm should prioritize words with lower mastery and those that have not been seen in a long time. This transforms the app from a simple “game” into a powerful learning tool.
-- [x] ✍️ **Game Mode: Writing the Answer:** The most requested and effective way to test recall. Instead of choosing an option, the user must type the answer.
+- [ ] 🧠 **Spaced Repetition System (SRS Core):** Review current algorithm and compare to open source or other known methods.
 - [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
 - [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place, like the main screen's header, to constantly motivate the user.
 - [ ] 🌙 **Dark Mode**
@@ -89,7 +79,7 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 - [ ] 🎲 **New Game Modes:**
 
   - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
-  - [x] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
+  - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
   - [ ] **Matching Game:** A classic mode where users match words to their definitions from two columns.
 
 - [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.
@@ -97,7 +87,6 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 3: Content Depth & Community
 
-- [ ] 📖 **Detailed Word View & Categories:** Create a dedicated screen for each word, showing more context like example sentences, synonyms, and its category (noun, verb, etc.). This turns the app into a personal, enriched dictionary.
 - [ ] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
 
 #### Level 4: 🤖 AI Magic
