@@ -1,0 +1,50 @@
+.
+├── README.md
+├── app
+│   ├── _layout.tsx
+│   ├── components
+│   │   ├── DeckOverview.tsx
+│   │   ├── WordOverview.tsx
+│   │   ├── practice
+│   │   │   ├── FlashcardView.tsx
+│   │   │   ├── MultipleChoiceView.tsx
+│   │   │   ├── ProgressBar.tsx
+│   │   │   ├── SessionResults.tsx
+│   │   │   ├── StreakCounter.tsx
+│   │   │   └── WritingView.tsx
+│   │   └── stats
+│   │       ├── AchievementBadge.tsx
+│   │       ├── DailyGoalProgress.tsx
+│   │       └── StatCard.tsx
+│   ├── navigation
+│   │   └── AppNavigator.tsx
+│   └── screens
+│       ├── AddOrEditDeckScreen.tsx
+│       ├── DeckDetailScreen.tsx
+│       ├── HomeDecksScreen.tsx
+│       ├── PracticeGameScreen.tsx
+│       ├── PracticeHubScreen.tsx
+│       └── StatsScreen.tsx
+├── app.json
+├── config
+│   ├── achievements.ts
+│   └── dailyGoals.ts
+├── eslint.config.js
+├── expo-env.d.ts
+├── package-lock.json
+├── package.json
+├── projectStructure.txt
+├── services
+│   └── storage.ts
+├── stores
+│   ├── deckStore.ts
+│   ├── usePracticeStore.ts
+│   └── wordStore.ts
+├── tsconfig.json
+├── types
+│   ├── database.ts
+│   └── navigation.ts
+└── utils
+    └── arrayUtils.ts
+
+11 directories, 36 files
