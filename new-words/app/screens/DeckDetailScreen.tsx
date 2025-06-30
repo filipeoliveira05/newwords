@@ -269,13 +269,15 @@ export default function DeckDetailScreen({ navigation, route }: any) {
             <Ionicons name="flash" size={28} color="#fff" />
           </TouchableOpacity>
         )}
-        <TouchableOpacity
-          style={[styles.fab, styles.addFab]}
-          onPress={() => setAddModalVisible(true)}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="add" size={32} color="#fff" />
-        </TouchableOpacity>
+        {wordsForCurrentDeck.length > 0 && (
+          <TouchableOpacity
+            style={[styles.fab, styles.addFab]}
+            onPress={() => setAddModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="add" size={32} color="#fff" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <Modal
