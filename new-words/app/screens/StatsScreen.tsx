@@ -242,6 +242,7 @@ export default function StatsScreen() {
         mode: "multiple-choice",
         sessionType: "free", // Prática de palavras específicas é sempre 'free'
         words: challengingWords,
+        origin: "Stats",
       },
     });
   };

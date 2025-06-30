@@ -19,6 +19,7 @@ export type PracticeStackParamList = {
     deckId?: number;
     sessionType: "urgent" | "free";
     words?: Word[]; // Passamos uma lista específica de palavras para praticar (ex: palavras difíceis)
+    origin?: "DeckDetail" | "Stats"; // De onde a prática foi iniciada
   };
 };
 

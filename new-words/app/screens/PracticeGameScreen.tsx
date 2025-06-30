@@ -12,12 +12,16 @@ import {
   useNavigation,
   useFocusEffect,
 } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
 import { Word } from "@/types/database";
-import { PracticeStackParamList } from "../../types/navigation";
+import {
+  PracticeStackParamList,
+  RootTabParamList,
+} from "../../types/navigation";
 
 import StreakCounter from "../components/practice/StreakCounter";
 import ProgressBar from "../components/practice/ProgressBar";
@@ -59,8 +63,14 @@ const GameHeader = ({
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const { mode, deckId, words: wordsFromRoute, sessionType } = route.params;
-  const navigation = useNavigation();
+  const {
+    mode,
+    deckId,
+    words: wordsFromRoute,
+    sessionType,
+    origin,
+  } = route.params;
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   const [isLoading, setIsLoading] = useState(true);
   const hasConfirmedExit = useRef(false);
@@ -149,7 +159,16 @@ export default function PracticeGameScreen({ route }: Props) {
             style: "destructive",
             onPress: () => {
               hasConfirmedExit.current = true;
-              navigation.dispatch(e.data.action);
+              // Navegação inteligente baseada na origem
+              if (origin === "DeckDetail") {
+                navigation.navigate("HomeDecks");
+              } else if (origin === "Stats") {
+                navigation.navigate("Stats");
+              } else {
+                // Comportamento padrão: voltar para o hub de prática
+                // ou simplesmente executar a ação de "voltar" padrão.
+                navigation.dispatch(e.data.action);
+              }
             },
           },
         ]);
@@ -172,6 +191,7 @@ export default function PracticeGameScreen({ route }: Props) {
         onPlayAgain={startNextRound}
         onExit={endSession}
         deckId={deckId}
+        origin={origin}
       />
     );
   }

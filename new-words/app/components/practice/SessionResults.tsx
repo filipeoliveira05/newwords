@@ -18,12 +18,14 @@ type SessionResultsProps = {
   onPlayAgain: () => void;
   onExit: () => void;
   deckId?: number;
+  origin?: "DeckDetail" | "Stats";
 };
 
 export default function SessionResults({
   onPlayAgain,
   deckId,
   onExit,
+  origin,
 }: SessionResultsProps) {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -101,12 +103,14 @@ export default function SessionResults({
       return;
     }
 
-    // Se um deckId estiver presente, a prática foi para um conjunto específico.
-    // Navega de volta para o separador Home, que mostrará o DeckDetailScreen.
-    if (deckId) {
+    // Navegação inteligente baseada na origem
+    if (origin === "DeckDetail") {
       navigation.navigate("HomeDecks");
+    } else if (origin === "Stats") {
+      navigation.navigate("Stats");
     } else {
-      // Caso contrário, foi uma prática geral, então basta voltar para o PracticeHub.
+      // Comportamento padrão: voltar para o hub de prática.
+      // goBack() é seguro aqui porque o hub é a tela anterior na stack de prática.
       navigation.goBack();
     }
   };
