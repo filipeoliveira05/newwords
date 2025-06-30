@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -7,6 +7,7 @@ import {
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
+import { Swipeable } from "react-native-gesture-handler";
 
 type WordOverviewProps = {
   name: string;
@@ -23,6 +24,34 @@ export default function WordOverview({
   onEdit,
   onDelete,
 }: WordOverviewProps) {
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const handleEditPress = () => {
+    if (onEdit) {
+      onEdit();
+    }
+    swipeableRef.current?.close();
+  };
+
+  const renderRightActions = () => {
+    return (
+      <View style={styles.rightActionContainer}>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.editButton]}
+          onPress={handleEditPress}
+        >
+          <Ionicons name="pencil-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.deleteButton]}
+          onPress={onDelete}
+        >
+          <Ionicons name="trash-outline" size={22} color="#fff" />
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const masteryColor = {
     new: "#adb5bd", // cinzento para palavras novas
     learning: "#f4a261", // laranja para palavras em aprendizagem
@@ -30,42 +59,56 @@ export default function WordOverview({
   }[masteryLevel];
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[styles.masteryIndicator, { backgroundColor: masteryColor }]}
-      />
-      <View style={styles.textContainer}>
-        <Text style={styles.word}>{name}</Text>
-        <Text style={styles.meaning}>{meaning}</Text>
+    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions}>
+      <View style={styles.container}>
+        <View
+          style={[styles.masteryIndicator, { backgroundColor: masteryColor }]}
+        />
+        <View style={styles.textContainer}>
+          <Text style={styles.word}>{name}</Text>
+          <Text style={styles.meaning}>{meaning}</Text>
+        </View>
+        <Menu>
+          <MenuTrigger
+            customStyles={{
+              TriggerTouchableComponent: TouchableOpacity,
+              triggerWrapper: styles.menuTrigger,
+            }}
+          >
+            <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
+          </MenuTrigger>
+          <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
+            <MenuOption onSelect={() => {}} disabled>
+              <View style={styles.menuItem}>
+                <Ionicons name="eye-outline" size={18} color="#495057" />
+                <Text style={styles.menuText}>Ver Detalhes</Text>
+              </View>
+            </MenuOption>
+            <MenuOption onSelect={() => {}} disabled>
+              <View style={styles.menuItem}>
+                <Ionicons name="star-outline" size={18} color="#495057" />
+                <Text style={styles.menuText}>Favoritar</Text>
+              </View>
+            </MenuOption>
+            <MenuOption onSelect={onEdit}>
+              <View style={styles.menuItem}>
+                <Ionicons name="pencil-outline" size={18} color="#495057" />
+                <Text style={styles.menuText}>Editar</Text>
+              </View>
+            </MenuOption>
+            <View style={styles.separator} />
+            <MenuOption onSelect={onDelete}>
+              <View style={styles.menuItem}>
+                <Ionicons name="trash-outline" size={18} color="#d11a2a" />
+                <Text style={[styles.menuText, { color: "#d11a2a" }]}>
+                  Apagar
+                </Text>
+              </View>
+            </MenuOption>
+          </MenuOptions>
+        </Menu>
       </View>
-      <Menu>
-        <MenuTrigger
-          customStyles={{
-            TriggerTouchableComponent: TouchableOpacity,
-            triggerWrapper: styles.menuTrigger,
-          }}
-        >
-          <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
-        </MenuTrigger>
-        <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
-          <MenuOption onSelect={onEdit}>
-            <View style={styles.menuItem}>
-              <Ionicons name="pencil-outline" size={18} color="#222" />
-              <Text style={styles.menuText}>Editar</Text>
-            </View>
-          </MenuOption>
-          <View style={styles.separator} />
-          <MenuOption onSelect={onDelete}>
-            <View style={styles.menuItem}>
-              <Ionicons name="trash-outline" size={18} color="#d11a2a" />
-              <Text style={[styles.menuText, { color: "#d11a2a" }]}>
-                Apagar
-              </Text>
-            </View>
-          </MenuOption>
-        </MenuOptions>
-      </Menu>
-    </View>
+    </Swipeable>
   );
 }
 
@@ -126,5 +169,25 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: "#e0e0e0",
     marginHorizontal: 8,
+  },
+  rightActionContainer: {
+    flexDirection: "row",
+    width: 120, // Largura total para os dois botões
+    marginBottom: 12, // Para alinhar com o margin do container principal
+  },
+  actionButton: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  editButton: {
+    backgroundColor: "#adb5bd", // Um cinza mais claro e neutro
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+  },
+  deleteButton: {
+    backgroundColor: "#e76f51",
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
   },
 });
