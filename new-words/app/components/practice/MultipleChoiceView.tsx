@@ -1,63 +1,65 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
-import { shuffle } from "../../../utils/arrayUtils";
-
-type QuizOption = {
-  id: number;
-  meaning: string;
-};
+import { useWordStore } from "@/stores/wordStore";
+import { shuffle } from "@/utils/arrayUtils";
+import { Word } from "@/types/database";
 
 export default function MultipleChoiceView() {
-  // --- Store State and Actions ---
   const currentWord = usePracticeStore((state) => state.getCurrentWord());
-  const fullSessionWordPool = usePracticeStore(
-    (state) => state.fullSessionWordPool
-  );
-  const { recordAnswer, nextWord } = usePracticeStore.getState();
+  const deckId = usePracticeStore((state) => state.deckId);
+  const recordAnswer = usePracticeStore((state) => state.recordAnswer);
+  const nextWord = usePracticeStore((state) => state.nextWord);
+  const { fetchDistractorWords } = useWordStore.getState();
 
-  // --- Component State ---
-  const [options, setOptions] = useState<QuizOption[]>([]);
+  const [options, setOptions] = useState<Word[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
-  const [hasAnswered, setHasAnswered] = useState(false);
+  const [isAnswered, setIsAnswered] = useState(false);
 
-  // --- Logic to generate options ---
   useEffect(() => {
-    if (!currentWord) return;
+    const generateOptions = async () => {
+      if (!currentWord) return;
 
-    // Reset state for the new word
-    setHasAnswered(false);
-    setSelectedOptionId(null);
+      setIsLoading(true);
+      setIsAnswered(false);
+      setSelectedOptionId(null);
 
-    // Find 3 incorrect options from the entire session pool.
-    const distractors = fullSessionWordPool
-      .filter((word) => word.id !== currentWord.id)
-      .slice(0, 3);
+      try {
+        const distractors = await fetchDistractorWords(currentWord.id, deckId);
+        const allOptions = shuffle([currentWord, ...distractors]);
+        setOptions(allOptions);
+      } catch (error) {
+        console.error("Failed to generate multiple choice options:", error);
+        setOptions([]); // Limpa as opções em caso de erro
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    // Create the full list of 4 options
-    const newOptions = [
-      { id: currentWord.id, meaning: currentWord.meaning },
-      ...distractors.map((d) => ({ id: d.id, meaning: d.meaning })),
-    ];
+    generateOptions();
+  }, [currentWord, deckId, fetchDistractorWords]);
 
-    // Shuffle and set the options
-    setOptions(shuffle(newOptions));
-  }, [currentWord, fullSessionWordPool]);
+  const handleAnswer = (option: Word) => {
+    if (isAnswered || !currentWord) return;
 
-  // --- Handlers ---
-  const handleSelectOption = (selectedId: number) => {
-    if (hasAnswered || !currentWord) return;
+    const isCorrect = option.id === currentWord.id;
+    setIsAnswered(true);
+    setSelectedOptionId(option.id);
+    recordAnswer(currentWord.id, isCorrect);
 
-    const isCorrect = selectedId === currentWord.id;
     if (isCorrect) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-    setHasAnswered(true);
-    setSelectedOptionId(selectedId);
-    recordAnswer(currentWord.id, isCorrect);
 
     // Wait for a moment to show feedback, then move to the next word
     setTimeout(() => {
@@ -65,34 +67,40 @@ export default function MultipleChoiceView() {
     }, 1200); // 1.2 seconds for feedback
   };
 
-  // --- Render ---
-  if (!currentWord) {
-    return null;
+  const getButtonStyle = (optionId: number) => {
+    if (!isAnswered) {
+      return styles.optionButton;
+    }
+    if (optionId === currentWord?.id) {
+      return [styles.optionButton, styles.correctOption];
+    }
+    if (optionId === selectedOptionId) {
+      return [styles.optionButton, styles.incorrectOption];
+    }
+    return [styles.optionButton, styles.disabledOption];
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#4F8EF7" />
+      </View>
+    );
   }
 
-  const getButtonStyle = (optionId: number) => {
-    if (!hasAnswered) {
-      return styles.optionButton; // Default style
-    }
-
-    const isCorrectAnswer = optionId === currentWord.id;
-    const isSelectedAnswer = optionId === selectedOptionId;
-
-    if (isCorrectAnswer) {
-      return [styles.optionButton, styles.correctButton]; // Always highlight correct green
-    }
-    if (isSelectedAnswer && !isCorrectAnswer) {
-      return [styles.optionButton, styles.incorrectButton]; // Highlight selected incorrect red
-    }
-
-    return [styles.optionButton, styles.disabledButton]; // Other non-selected, incorrect options
-  };
+  if (!currentWord) {
+    return (
+      <View style={styles.container}>
+        <Text>Fim da ronda!</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.questionContainer}>
-        <Text style={styles.questionText}>{currentWord.name}</Text>
-        <Text style={styles.questionHint}>Qual o significado correto?</Text>
+        <Text style={styles.questionLabel}>Qual o significado de:</Text>
+        <Text style={styles.wordText}>{currentWord.name}</Text>
       </View>
 
       <View style={styles.optionsContainer}>
@@ -100,8 +108,8 @@ export default function MultipleChoiceView() {
           <TouchableOpacity
             key={option.id}
             style={getButtonStyle(option.id)}
-            onPress={() => handleSelectOption(option.id)}
-            disabled={hasAnswered}
+            onPress={() => handleAnswer(option)}
+            disabled={isAnswered}
           >
             <Text style={styles.optionText}>{option.meaning}</Text>
           </TouchableOpacity>
@@ -112,44 +120,71 @@ export default function MultipleChoiceView() {
 }
 
 const styles = StyleSheet.create({
-  container: { width: "90%", alignItems: "center", maxWidth: 400 },
-  questionContainer: {
-    backgroundColor: "white",
-    width: "100%",
-    padding: 25,
-    borderRadius: 20,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
-    marginBottom: 40,
+  },
+  container: {
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "flex-start", // Alinha os itens ao topo
+    padding: 20,
+  },
+  questionContainer: {
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 30,
+    width: "100%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  questionText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#212529",
-    textAlign: "center",
-  },
-  questionHint: { fontSize: 16, color: "#adb5bd", marginTop: 8 },
-  optionsContainer: { width: "100%" },
-  optionButton: {
-    backgroundColor: "white",
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 2,
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 1,
     borderColor: "#e9ecef",
   },
-  optionText: {
+  questionLabel: {
     fontSize: 16,
+    color: "#6c757d",
+    marginBottom: 8,
+  },
+  wordText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#22223b",
+    textAlign: "center",
+  },
+  optionsContainer: {
+    width: "100%",
+    marginTop: 32, // Reduz a margem para aproximar as opções
+  },
+  optionButton: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: "#e9ecef",
+    alignItems: "center",
+  },
+  optionText: {
+    fontSize: 18,
     fontWeight: "500",
     color: "#495057",
     textAlign: "center",
   },
-  correctButton: { backgroundColor: "#d1fae5", borderColor: "#10b981" },
-  incorrectButton: { backgroundColor: "#fee2e2", borderColor: "#ef4444" },
-  disabledButton: { opacity: 0.6 },
+  correctOption: {
+    backgroundColor: "#d1fae5",
+    borderColor: "#10b981",
+  },
+  incorrectOption: {
+    backgroundColor: "#fee2e2",
+    borderColor: "#ef4444",
+  },
+  disabledOption: {
+    opacity: 0.5,
+  },
 });

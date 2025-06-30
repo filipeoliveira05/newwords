@@ -336,6 +336,33 @@ export async function getLeastPracticedWords(
   }
 }
 
+export async function getRandomWords(
+  limit: number,
+  deckId?: number,
+  excludeIds: number[] = []
+): Promise<Word[]> {
+  try {
+    let whereClause = deckId ? "WHERE deckId = ?" : "WHERE 1=1";
+    if (excludeIds.length > 0) {
+      const placeholders = excludeIds.map(() => "?").join(",");
+      whereClause += ` AND id NOT IN (${placeholders})`;
+    }
+
+    const query = `
+      SELECT * FROM words
+      ${whereClause}
+      ORDER BY RANDOM()
+      LIMIT ?;
+    `;
+    const params: (string | number)[] = deckId ? [deckId] : [];
+    params.push(...excludeIds, limit);
+    return await db.getAllAsync<Word>(query, params);
+  } catch (e) {
+    console.error("Erro ao obter palavras aleatórias:", e);
+    throw e;
+  }
+}
+
 export async function getWrongWords(): Promise<Word[]> {
   try {
     // Recolhe todas as palavras cuja última resposta foi incorreta (0).

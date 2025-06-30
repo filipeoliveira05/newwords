@@ -6,6 +6,7 @@ import {
   getLeastPracticedWords as dbGetLeastPracticedWords,
   countWordsForPractice as dbCountWordsForPractice,
   getTotalWordCount as dbGetTotalWordCount,
+  getRandomWords as dbGetRandomWords,
   getWrongWords as dbGetWrongWords,
   countWrongWords as dbCountWrongWords,
   addWord as dbAddWord,
@@ -30,6 +31,10 @@ interface WordState {
     deckId?: number,
     limit?: number,
     excludeIds?: number[]
+  ) => Promise<Word[]>;
+  fetchDistractorWords: (
+    correctWordId: number,
+    sessionDeckId?: number
   ) => Promise<Word[]>;
   fetchWrongWords: (deckId?: number) => Promise<Word[]>;
   fetchAllLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
@@ -151,6 +156,36 @@ export const useWordStore = create<WordState>((set, get) => ({
     } catch (error) {
       console.error("Erro ao obter palavras de fallback no store", error);
       set({ loading: false });
+      return [];
+    }
+  },
+
+  fetchDistractorWords: async (correctWordId, sessionDeckId) => {
+    const numDistractors = 3;
+    let distractors: Word[] = [];
+
+    try {
+      // 1. Tenta obter distratores do deck da sessão, se houver um.
+      if (sessionDeckId) {
+        distractors = await dbGetRandomWords(numDistractors, sessionDeckId, [
+          correctWordId,
+        ]);
+      }
+
+      // 2. Se não for suficiente, preenche com palavras aleatórias de toda a BD.
+      const needed = numDistractors - distractors.length;
+      if (needed > 0) {
+        const excludeIds = [correctWordId, ...distractors.map((d) => d.id)];
+        const globalDistractors = await dbGetRandomWords(
+          needed,
+          undefined, // Sem deckId, procura em todas as palavras
+          excludeIds
+        );
+        distractors.push(...globalDistractors);
+      }
+      return distractors;
+    } catch (error) {
+      console.error("Erro ao obter palavras distratoras no store", error);
       return [];
     }
   },

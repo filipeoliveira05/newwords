@@ -21,13 +21,15 @@ interface PracticeState {
   incorrectAnswers: number[]; // Incorrect IDs in the current round
   gameMode: GameMode | null;
   sessionType: SessionType | null;
+  deckId?: number; // The deckId for the current session, if applicable
   wordsPracticedInSession: Set<number>; // Unique IDs practiced in the whole session
   streak: number;
   highestStreakThisRound: number;
   initializeSession: (
     fullWordPool: PracticeWord[],
     gameMode: GameMode,
-    sessionType: SessionType
+    sessionType: SessionType,
+    deckId?: number
   ) => void;
   startNextRound: () => void;
   startMistakesRound: (mistakeWords: PracticeWord[]) => void;
@@ -49,12 +51,13 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   incorrectAnswers: [],
   gameMode: null,
   sessionType: null,
+  deckId: undefined,
   wordsPracticedInSession: new Set(),
   streak: 0,
   highestStreakThisRound: 0,
 
   // --- ACTIONS ---
-  initializeSession: (fullWordPool, gameMode, sessionType) => {
+  initializeSession: (fullWordPool, gameMode, sessionType, deckId) => {
     if (!fullWordPool || fullWordPool.length === 0) {
       console.warn("Attempted to initialize a session with no words.");
       set({ sessionState: "finished" });
@@ -65,6 +68,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       fullSessionWordPool: shuffle([...fullWordPool]),
       gameMode: gameMode,
       sessionType: sessionType,
+      deckId: deckId,
       currentPoolIndex: 0,
       wordsPracticedInSession: new Set(),
       streak: 0, // Reset streak for a new session
@@ -158,6 +162,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       incorrectAnswers: [],
       gameMode: null,
       sessionType: null,
+      deckId: undefined,
       wordsPracticedInSession: new Set(),
       streak: 0, // A streak é totalmente reiniciada ao sair do ecrã de prática
       highestStreakThisRound: 0,

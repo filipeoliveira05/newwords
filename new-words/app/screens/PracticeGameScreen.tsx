@@ -96,7 +96,7 @@ export default function PracticeGameScreen({ route }: Props) {
           return;
         }
 
-        initializeSession(fullWordPool, mode, sessionType);
+        initializeSession(fullWordPool, mode, sessionType, deckId);
         hasConfirmedExit.current = false;
       } catch (error) {
         console.error("Erro ao carregar a sessão de prática:", error);

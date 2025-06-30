@@ -148,7 +148,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
             <View style={styles.statusTextContainer}>
               <Text style={styles.statusTitle}>
                 {wrongWordsCount} {wrongWordsCount > 1 ? "palavras" : "palavra"}{" "}
-                a rever
+                a corrigir
               </Text>
               <Text style={styles.statusDescription}>
                 Pratique as palavras que errou da última vez.
