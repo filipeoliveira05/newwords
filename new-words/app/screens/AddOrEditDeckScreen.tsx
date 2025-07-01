@@ -12,11 +12,15 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
+import { HomeStackParamList } from "../../types/navigation";
 
-export default function AddOrEditDeckScreen({ navigation, route }: any) {
+type Props = NativeStackScreenProps<HomeStackParamList, "AddOrEditDeck">;
+
+export default function AddOrEditDeckScreen({ navigation, route }: Props) {
   const deckId = route?.params?.deckId;
   const isEdit = !!deckId;
 
@@ -51,13 +55,11 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
   useEffect(() => {
     navigation.setOptions({
       title: "", // O título agora está no corpo do ecrã
-      headerBackTitleVisible: false,
+      headerBackButtonDisplayMode: "minimal",
       headerStyle: {
         backgroundColor: "#f8fafc",
-        elevation: 0,
-        shadowOpacity: 0,
-        borderBottomWidth: 0,
       },
+      headerShadowVisible: false,
       headerTintColor: "#22223b",
     });
   }, [navigation, isEdit]);
