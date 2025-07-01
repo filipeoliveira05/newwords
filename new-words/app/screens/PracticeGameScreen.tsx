@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  Alert,
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
@@ -17,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import { Word } from "@/types/database";
 import {
   PracticeStackParamList,
@@ -71,6 +71,7 @@ export default function PracticeGameScreen({ route }: Props) {
     origin,
   } = route.params;
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
+  const { showAlert } = useAlertStore.getState();
 
   const [isLoading, setIsLoading] = useState(true);
   const hasConfirmedExit = useRef(false);
@@ -110,11 +111,12 @@ export default function PracticeGameScreen({ route }: Props) {
           if (fullWordPool.length === 0) {
             // Apenas mostra o alerta se o ecrã ainda estiver ativo
             if (isActive) {
-              Alert.alert(
-                "Tudo em dia!",
-                "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
-                [{ text: "OK", onPress: () => navigation.goBack() }]
-              );
+              showAlert({
+                title: "Tudo em dia!",
+                message:
+                  "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
+                buttons: [{ text: "OK", onPress: () => navigation.goBack() }],
+              });
             }
             return; // Sai da função mais cedo
           }
@@ -123,9 +125,11 @@ export default function PracticeGameScreen({ route }: Props) {
           hasConfirmedExit.current = false;
         } catch (error) {
           console.error("Erro ao carregar a sessão de prática:", error);
-          Alert.alert("Erro", "Não foi possível iniciar a sessão.", [
-            { text: "OK", onPress: () => navigation.goBack() },
-          ]);
+          showAlert({
+            title: "Erro",
+            message: "Não foi possível iniciar a sessão.",
+            buttons: [{ text: "OK", onPress: () => navigation.goBack() }],
+          });
         } finally {
           setIsLoading(false);
         }
@@ -152,26 +156,30 @@ export default function PracticeGameScreen({ route }: Props) {
 
         e.preventDefault();
 
-        Alert.alert("Sair da Prática?", "Tem a certeza que quer sair?", [
-          { text: "Ficar", style: "cancel", onPress: () => {} },
-          {
-            text: "Sair",
-            style: "destructive",
-            onPress: () => {
-              hasConfirmedExit.current = true;
-              // Navegação inteligente baseada na origem
-              if (origin === "DeckDetail") {
-                navigation.navigate("HomeDecks");
-              } else if (origin === "Stats") {
-                navigation.navigate("Stats");
-              } else {
-                // Comportamento padrão: voltar para o hub de prática
-                // ou simplesmente executar a ação de "voltar" padrão.
-                navigation.dispatch(e.data.action);
-              }
+        // Com o CustomAlert baseado em View, já não é necessário o InteractionManager.
+        showAlert({
+          title: "Sair da Prática?",
+          message: "Tem a certeza que quer sair?",
+          buttons: [
+            { text: "Ficar", style: "cancel", onPress: () => {} },
+            {
+              text: "Sair",
+              style: "destructive",
+              onPress: () => {
+                hasConfirmedExit.current = true;
+                // Navegação inteligente baseada na origem
+                if (origin === "DeckDetail") {
+                  navigation.navigate("HomeDecks");
+                } else if (origin === "Stats") {
+                  navigation.navigate("Stats");
+                } else {
+                  // Comportamento padrão: voltar para o hub de prática
+                  navigation.dispatch(e.data.action);
+                }
+              },
             },
-          },
-        ]);
+          ],
+        });
       }),
     [navigation, sessionState]
   );

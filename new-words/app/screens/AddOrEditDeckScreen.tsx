@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +14,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 
 import { useDeckStore } from "@/stores/deckStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 
 export default function AddOrEditDeckScreen({ navigation, route }: any) {
   const deckId = route?.params?.deckId;
@@ -22,6 +22,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
 
   const { addDeck, updateDeck, decks } = useDeckStore();
 
+  const { showAlert } = useAlertStore.getState();
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
 
@@ -37,11 +38,12 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
         setTitle(deck.title);
         setAuthor(deck.author);
       } else {
-        Alert.alert(
-          "Erro",
-          "O conjunto que está a tentar editar não foi encontrado. A voltar para o ecrã anterior.",
-          [{ text: "OK", onPress: () => navigation.goBack() }]
-        );
+        showAlert({
+          title: "Erro",
+          message:
+            "O conjunto que está a tentar editar não foi encontrado. A voltar para o ecrã anterior.",
+          buttons: [{ text: "OK", onPress: () => navigation.goBack() }],
+        });
       }
     }
   }, [deckId, isEdit, decks, navigation]);
@@ -62,7 +64,11 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
 
   const handleSave = async () => {
     if (!title.trim() || !author.trim()) {
-      Alert.alert("Erro", "Preenche o título e o autor.");
+      showAlert({
+        title: "Erro",
+        message: "Preenche o título e o autor.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
       return;
     }
 
@@ -77,10 +83,11 @@ export default function AddOrEditDeckScreen({ navigation, route }: any) {
       navigation.goBack();
     } catch (error) {
       console.error("Falha ao guardar o conjunto:", error);
-      Alert.alert(
-        "Erro",
-        "Não foi possível guardar o conjunto. Tente novamente."
-      );
+      showAlert({
+        title: "Erro",
+        message: "Não foi possível guardar o conjunto. Tente novamente.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
     } finally {
       setIsSaving(false);
     }

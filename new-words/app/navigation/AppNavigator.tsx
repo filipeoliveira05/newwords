@@ -1,4 +1,5 @@
 import React from "react";
+import { View } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -18,6 +19,8 @@ import PracticeHubScreen from "../screens/PracticeHubScreen";
 import PracticeGameScreen from "../screens/PracticeGameScreen";
 
 import StatsScreen from "../screens/StatsScreen";
+
+import CustomAlert from "../components/CustomAlert";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -72,53 +75,58 @@ const iconMapping = {
 
 export default function AppNavigator() {
   return (
-    <Tab.Navigator
-      screenOptions={({ route }) => ({
-        headerShown: false,
-        tabBarIcon: ({ focused, color, size }) => {
-          const [iconFocused, iconInactive] = iconMapping[route.name];
-          const iconName = focused ? iconFocused : iconInactive;
+    <View style={{ flex: 1 }}>
+      <Tab.Navigator
+        screenOptions={({ route }) => ({
+          headerShown: false,
+          tabBarIcon: ({ focused, color, size }) => {
+            const [iconFocused, iconInactive] = iconMapping[route.name];
+            const iconName = focused ? iconFocused : iconInactive;
 
-          return <Ionicons name={iconName as any} size={size} color={color} />;
-        },
-      })}
-    >
-      <Tab.Screen
-        name="HomeDecks"
-        component={HomeStack}
-        options={{ tabBarLabel: "Conjuntos" }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate("HomeDecks", { screen: "HomeDecksList" });
+            return (
+              <Ionicons name={iconName as any} size={size} color={color} />
+            );
           },
         })}
-      />
-      <Tab.Screen
-        name="Practice"
-        component={PracticeStack}
-        options={({ route }) => ({
-          tabBarStyle: ((route) => {
-            const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-            if (routeName === "PracticeGame") {
-              return { display: "none" };
-            }
-            return {};
-          })(route),
-          tabBarLabel: "Praticar",
-        })}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            e.preventDefault();
-            navigation.navigate("Practice", { screen: "PracticeHub" });
-          },
-        })}
-      />
-      <Tab.Screen
-        name="Stats"
-        component={StatsScreen}
-        options={{ tabBarLabel: "Estatísticas" }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen
+          name="HomeDecks"
+          component={HomeStack}
+          options={{ tabBarLabel: "Conjuntos" }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate("HomeDecks", { screen: "HomeDecksList" });
+            },
+          })}
+        />
+        <Tab.Screen
+          name="Practice"
+          component={PracticeStack}
+          options={({ route }) => ({
+            tabBarStyle: ((route) => {
+              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
+              if (routeName === "PracticeGame") {
+                return { display: "none" };
+              }
+              return {};
+            })(route),
+            tabBarLabel: "Praticar",
+          })}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate("Practice", { screen: "PracticeHub" });
+            },
+          })}
+        />
+        <Tab.Screen
+          name="Stats"
+          component={StatsScreen}
+          options={{ tabBarLabel: "Estatísticas" }}
+        />
+      </Tab.Navigator>
+      <CustomAlert />
+    </View>
   );
 }

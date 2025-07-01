@@ -6,7 +6,6 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Alert,
   Modal,
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -15,6 +14,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import { Word } from "../../types/database";
 import WordOverview from "../components/WordOverview";
 
@@ -29,6 +29,7 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   const loading = useWordStore((state) => state.loading);
   const { fetchWordsOfDeck, addWord, updateWord, deleteWord } =
     useWordStore.getState();
+  const { showAlert } = useAlertStore.getState();
 
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [newWord, setNewWord] = useState("");
@@ -98,11 +99,11 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   };
 
   const handleDeleteWord = (wordId: number) => {
-    Alert.alert(
-      "Apagar palavra",
-      "Tens a certeza que queres apagar esta palavra?",
-      [
-        { text: "Cancelar", style: "cancel" },
+    showAlert({
+      title: "Apagar palavra",
+      message: "Tens a certeza que queres apagar esta palavra?",
+      buttons: [
+        { text: "Cancelar", style: "cancel", onPress: () => {} },
         {
           text: "Apagar",
           style: "destructive",
@@ -111,19 +112,26 @@ export default function DeckDetailScreen({ navigation, route }: any) {
               await deleteWord(wordId);
             } catch (error) {
               console.error("Falha ao apagar a palavra:", error);
-              Alert.alert("Erro", "Não foi possível apagar a palavra.");
+              showAlert({
+                title: "Erro",
+                message: "Não foi possível apagar a palavra.",
+                buttons: [{ text: "OK", onPress: () => {} }],
+              });
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const handleSaveWord = async () => {
-    if (!newWord.trim() || !newMeaning.trim()) {
-      Alert.alert("Erro", "Preenche a palavra e o significado.");
-      return;
-    }
+    if (!newWord.trim() || !newMeaning.trim())
+      return showAlert({
+        title: "Erro",
+        message: "Preenche a palavra e o significado.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+
     setIsSaving(true);
     try {
       if (editMode && editingWordId !== null) {
@@ -134,12 +142,13 @@ export default function DeckDetailScreen({ navigation, route }: any) {
       resetModal();
     } catch (error) {
       console.error("Falha ao guardar a palavra:", error);
-      Alert.alert(
-        "Erro",
-        editMode
+      showAlert({
+        title: "Erro",
+        message: editMode
           ? "Não foi possível editar a palavra."
-          : "Não foi possível adicionar a palavra."
-      );
+          : "Não foi possível adicionar a palavra.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
     } finally {
       setIsSaving(false);
     }

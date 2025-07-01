@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 import { useDeckStore } from "@/stores/deckStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import DeckOverview from "../components/DeckOverview";
 
 export default function HomeDecksScreen({ navigation }: any) {
@@ -19,6 +19,7 @@ export default function HomeDecksScreen({ navigation }: any) {
   useEffect(() => {
     fetchDecks();
   }, [fetchDecks]);
+  const { showAlert } = useAlertStore.getState();
 
   if (loading) {
     return (
@@ -82,11 +83,11 @@ export default function HomeDecksScreen({ navigation }: any) {
               })
             }
             onDelete={() => {
-              Alert.alert(
-                "Apagar conjunto",
-                "Tens a certeza que queres apagar este conjunto?",
-                [
-                  { text: "Cancelar", style: "cancel" },
+              showAlert({
+                title: "Apagar conjunto",
+                message: "Tens a certeza que queres apagar este conjunto?",
+                buttons: [
+                  { text: "Cancelar", style: "cancel", onPress: () => {} },
                   {
                     text: "Apagar",
                     style: "destructive",
@@ -95,15 +96,17 @@ export default function HomeDecksScreen({ navigation }: any) {
                         await deleteDeck(deck.id);
                       } catch (error) {
                         console.error("Falha ao apagar o conjunto:", error);
-                        Alert.alert(
-                          "Erro",
-                          "Não foi possível apagar o conjunto. Tente novamente."
-                        );
+                        showAlert({
+                          title: "Erro",
+                          message:
+                            "Não foi possível apagar o conjunto. Tente novamente.",
+                          buttons: [{ text: "OK", onPress: () => {} }],
+                        });
                       }
                     },
                   },
-                ]
-              );
+                ],
+              });
             }}
           />
         ))}

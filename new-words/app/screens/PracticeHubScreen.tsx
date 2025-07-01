@@ -5,12 +5,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
 
+import { useAlertStore } from "@/stores/useAlertStore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PracticeStackParamList } from "../../types/navigation";
 
@@ -22,6 +22,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
   const urgentWordsCount = useWordStore((state) => state.urgentWordsCount);
   const wrongWordsCount = useWordStore((state) => state.wrongWordsCount);
   const loading = useWordStore((state) => state.loading);
+  const { showAlert } = useAlertStore.getState();
 
   useFocusEffect(
     useCallback(() => {
@@ -53,7 +54,11 @@ export default function PracticeHubScreen({ navigation }: Props) {
         words: wordsToPractice,
       });
     } else {
-      Alert.alert("Tudo certo!", "Não há palavras erradas para rever.");
+      showAlert({
+        title: "Tudo certo!",
+        message: "Não há palavras erradas para rever.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
       // Atualiza a contagem caso tenha sido corrigido noutro local
       fetchWrongWordsCount();
     }
