@@ -14,7 +14,7 @@ import {
   deleteWord as dbDeleteWord,
   updateWordStats as dbUpdateWordStats,
 } from "../services/storage";
-import { useDeckStore } from "./deckStore";
+import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
 
 interface WordState {
@@ -43,6 +43,7 @@ interface WordState {
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
+  clearWordsForDeck: (deckId: number) => void;
   clearWords: () => void;
   updateStatsAfterAnswer: (wordId: number, isCorrect: boolean) => Promise<void>;
 }
@@ -238,7 +239,8 @@ export const useWordStore = create<WordState>((set, get) => ({
         };
       });
 
-      useDeckStore.getState().incrementWordCount(deckId);
+      // Publica um evento para que o deckStore possa atualizar a contagem.
+      eventStore.getState().publish("wordAdded", { deckId });
     } catch (error) {
       console.error("Erro ao adicionar palavra no store", error);
       throw error;
@@ -298,11 +300,21 @@ export const useWordStore = create<WordState>((set, get) => ({
           },
         };
       });
-      useDeckStore.getState().decrementWordCount(deckId);
+      // Publica um evento para que o deckStore possa atualizar a contagem.
+      eventStore.getState().publish("wordDeleted", { deckId });
     } catch (error) {
       console.error("Erro ao apagar palavra no store", error);
       throw error;
     }
+  },
+
+  clearWordsForDeck: (deckId) => {
+    set((state) => {
+      const newWords = { ...state.words };
+      // Remove a entrada para o deckId do objeto de palavras.
+      delete newWords[deckId];
+      return { words: newWords };
+    });
   },
 
   clearWords: () => {
@@ -339,3 +351,9 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 }));
+
+// --- Subscrições de Eventos ---
+// O wordStore "ouve" eventos de outros stores para se manter atualizado.
+eventStore.getState().subscribe("deckDeleted", ({ deckId }) => {
+  useWordStore.getState().clearWordsForDeck(deckId);
+});

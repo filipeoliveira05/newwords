@@ -179,7 +179,11 @@ export async function updateDeck(
 
 export async function deleteDeck(id: number): Promise<void> {
   try {
-    await db.runAsync("DELETE FROM decks WHERE id = ?", [id]);
+    // Usa uma transação para garantir que tanto as palavras como o deck são apagados.
+    await db.withTransactionAsync(async () => {
+      await db.runAsync("DELETE FROM words WHERE deckId = ?", [id]); // 1. Apaga as palavras associadas
+      await db.runAsync("DELETE FROM decks WHERE id = ?", [id]); // 2. Apaga o deck
+    });
   } catch (e) {
     console.error("Erro ao apagar deck:", e);
     throw e;
