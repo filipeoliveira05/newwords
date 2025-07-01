@@ -13,6 +13,8 @@ import {
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
   updateWordStats as dbUpdateWordStats,
+  updateWordDetails as dbUpdateWordDetails,
+  toggleWordFavoriteStatus as dbToggleWordFavoriteStatus,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
@@ -43,6 +45,14 @@ interface WordState {
   addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
   updateWord: (id: number, name: string, meaning: string) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
+  updateWordDetails: (
+    id: number,
+    category: string | null,
+    synonyms: string[],
+    antonyms: string[],
+    sentences: string[]
+  ) => Promise<void>;
+  toggleFavoriteStatus: (id: number) => Promise<Word | null>;
   clearWordsForDeck: (deckId: number) => void;
   clearWords: () => void;
   updateStatsAfterAnswer: (wordId: number, isCorrect: boolean) => Promise<void>;
@@ -276,6 +286,43 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
+  updateWordDetails: async (id, category, synonyms, antonyms, sentences) => {
+    try {
+      await dbUpdateWordDetails(id, category, synonyms, antonyms, sentences);
+      set((state) => {
+        const wordToUpdate = Object.values(state.words)
+          .flat()
+          .find((w) => w.id === id);
+
+        if (!wordToUpdate) return state;
+
+        const { deckId } = wordToUpdate;
+
+        const updatedWordsForDeck = state.words[deckId].map((word) =>
+          word.id === id
+            ? {
+                ...word,
+                category,
+                synonyms: JSON.stringify(synonyms),
+                antonyms: JSON.stringify(antonyms),
+                sentences: JSON.stringify(sentences),
+              }
+            : word
+        );
+
+        return {
+          words: {
+            ...state.words,
+            [deckId]: updatedWordsForDeck,
+          },
+        };
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar detalhes da palavra no store", error);
+      throw error;
+    }
+  },
+
   deleteWord: async (id) => {
     try {
       const wordToDelete = Object.values(get().words)
@@ -304,6 +351,35 @@ export const useWordStore = create<WordState>((set, get) => ({
       eventStore.getState().publish("wordDeleted", { deckId });
     } catch (error) {
       console.error("Erro ao apagar palavra no store", error);
+      throw error;
+    }
+  },
+
+  toggleFavoriteStatus: async (id) => {
+    try {
+      const updatedWord = await dbToggleWordFavoriteStatus(id);
+      if (updatedWord) {
+        set((state) => {
+          const { deckId } = updatedWord;
+          if (!state.words[deckId]) {
+            return state; // Safety check, should not happen
+          }
+
+          const updatedWordsForDeck = state.words[deckId].map((word) =>
+            word.id === updatedWord.id ? updatedWord : word
+          );
+
+          return {
+            words: { ...state.words, [deckId]: updatedWordsForDeck },
+          };
+        });
+      }
+      return updatedWord;
+    } catch (error) {
+      console.error(
+        "Erro ao alternar estado de favorito da palavra no store",
+        error
+      );
       throw error;
     }
   },

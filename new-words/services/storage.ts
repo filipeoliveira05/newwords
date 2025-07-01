@@ -49,6 +49,11 @@ export const initializeDB = async () => {
         { name: "lastTrained", type: "TEXT" },
         { name: "lastAnswerCorrect", type: "INTEGER" },
         { name: "masteryLevel", type: "TEXT NOT NULL DEFAULT 'new'" },
+        { name: "category", type: "TEXT" },
+        { name: "synonyms", type: "TEXT" }, // JSON array as string
+        { name: "antonyms", type: "TEXT" }, // JSON array as string
+        { name: "sentences", type: "TEXT" }, // JSON array as string
+        { name: "isFavorite", type: "INTEGER NOT NULL DEFAULT 0" },
       ];
 
       for (const col of safeColumnsToAdd) {
@@ -215,6 +220,17 @@ export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   }
 }
 
+export async function getWordById(id: number): Promise<Word | null> {
+  try {
+    return await db.getFirstAsync<Word>("SELECT * FROM words WHERE id = ?", [
+      id,
+    ]);
+  } catch (e) {
+    console.error("Erro ao obter palavra por id:", e);
+    throw e;
+  }
+}
+
 export async function addWord(
   deckId: number,
   name: string,
@@ -256,6 +272,52 @@ export async function updateWord(
     ]);
   } catch (e) {
     console.error("Erro ao atualizar palavra:", e);
+    throw e;
+  }
+}
+
+export async function toggleWordFavoriteStatus(
+  id: number
+): Promise<Word | null> {
+  try {
+    // 1. Obter o estado atual do favorito
+    const currentWord = await getWordById(id);
+    if (!currentWord) return null;
+
+    const newFavoriteStatus = currentWord.isFavorite === 1 ? 0 : 1;
+    // 2. Inverter o estado
+    await db.runAsync("UPDATE words SET isFavorite = ? WHERE id = ?", [
+      newFavoriteStatus,
+      id,
+    ]);
+    // 3. Retornar a palavra atualizada
+    return await getWordById(id);
+  } catch (e) {
+    console.error("Erro ao alterar estado de favorito da palavra:", e);
+    throw e;
+  }
+}
+
+export async function updateWordDetails(
+  id: number,
+  category: string | null,
+  synonyms: string[],
+  antonyms: string[],
+  sentences: string[]
+): Promise<void> {
+  try {
+    await db.runAsync(
+      "UPDATE words SET category = ?, synonyms = ?, antonyms = ?, sentences = ? WHERE id = ?",
+      [
+        category,
+        JSON.stringify(synonyms),
+        JSON.stringify(antonyms),
+        JSON.stringify(sentences),
+        id,
+      ]
+    );
+  } catch (e) {
+    console.error("Erro ao atualizar detalhes da palavra:", e);
     throw e;
   }
 }

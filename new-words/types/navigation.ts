@@ -9,6 +9,7 @@ export type HomeStackParamList = {
     author: string;
     openAddWordModal?: boolean;
   };
+  WordDetails: { wordId: number };
   AddOrEditDeck: { deckId?: number };
 };
 

@@ -14,7 +14,13 @@ export interface Word {
   timesCorrect: number;
   timesIncorrect: number;
   lastTrained: string | null;
+  lastAnswerCorrect: number | null;
   masteryLevel: "new" | "learning" | "mastered";
   nextReviewDate: string;
   createdAt: string;
+  category: string | null;
+  synonyms: string | null; // Stored as JSON string
+  antonyms: string | null; // Stored as JSON string
+  sentences: string | null; // Stored as JSON string
+  isFavorite: number;
 }

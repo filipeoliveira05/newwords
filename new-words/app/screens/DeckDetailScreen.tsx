@@ -13,22 +13,32 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { Word } from "../../types/database";
+import { HomeStackParamList, RootTabParamList } from "../../types/navigation";
 import WordOverview from "../components/WordOverview";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
-export default function DeckDetailScreen({ navigation, route }: any) {
+type Props = NativeStackScreenProps<HomeStackParamList, "DeckDetail">;
+
+export default function DeckDetailScreen({ navigation, route }: Props) {
   const { deckId, title, author, openAddWordModal } = route.params;
 
   const wordsForCurrentDeck = useWordStore(
     (state) => state.words[deckId] || EMPTY_WORDS_ARRAY
   );
   const loading = useWordStore((state) => state.loading);
-  const { fetchWordsOfDeck, addWord, updateWord, deleteWord } =
-    useWordStore.getState();
+  const {
+    fetchWordsOfDeck,
+    addWord,
+    updateWord,
+    deleteWord,
+    toggleFavoriteStatus,
+  } = useWordStore.getState();
   const { showAlert } = useAlertStore.getState();
 
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -79,13 +89,11 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   useEffect(() => {
     navigation.setOptions({
       title: "", // Title is now in the custom header
-      headerBackTitleVisible: false,
+      headerBackButtonDisplayMode: "minimal",
       headerStyle: {
         backgroundColor: "#f8fafc",
-        elevation: 0,
-        shadowOpacity: 0,
-        borderBottomWidth: 0,
       },
+      headerShadowVisible: false,
       headerTintColor: "#22223b",
     });
   }, [navigation]);
@@ -124,6 +132,20 @@ export default function DeckDetailScreen({ navigation, route }: any) {
     });
   };
 
+  const handleToggleFavorite = async (wordId: number) => {
+    try {
+      // Chama a ação do store, que atualiza a DB e o estado global
+      await toggleFavoriteStatus(wordId);
+    } catch (error) {
+      console.error("Falha ao alterar o estado de favorito:", error);
+      showAlert({
+        title: "Erro",
+        message: "Não foi possível alterar o estado de favorito da palavra.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+    }
+  };
+
   const handleSaveWord = async () => {
     if (!newWord.trim() || !newMeaning.trim())
       return showAlert({
@@ -159,15 +181,18 @@ export default function DeckDetailScreen({ navigation, route }: any) {
   ) => {
     setPracticeModalVisible(false); // Fecha o modal imediatamente
 
-    navigation.navigate("Practice", {
-      screen: "PracticeGame",
-      params: {
-        mode,
-        deckId: deckId,
-        sessionType: "free",
-        origin: "DeckDetail",
-      },
-    });
+    // Use getParent() to access the parent Tab Navigator
+    navigation
+      .getParent<BottomTabNavigationProp<RootTabParamList>>()
+      ?.navigate("Practice", {
+        screen: "PracticeGame",
+        params: {
+          mode,
+          deckId: deckId,
+          sessionType: "free",
+          origin: "DeckDetail",
+        },
+      });
   };
 
   const renderEmptyComponent = () => {
@@ -265,7 +290,12 @@ export default function DeckDetailScreen({ navigation, route }: any) {
             name={item.name}
             meaning={item.meaning}
             masteryLevel={item.masteryLevel}
+            onViewDetails={() =>
+              navigation.navigate("WordDetails", { wordId: item.id })
+            }
             onEdit={() => handleEditWord(item)}
+            isFavorite={item.isFavorite}
+            onToggleFavorite={() => handleToggleFavorite(item.id)}
             onDelete={() => handleDeleteWord(item.id)}
           />
         )}

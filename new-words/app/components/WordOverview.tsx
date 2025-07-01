@@ -15,6 +15,9 @@ type WordOverviewProps = {
   masteryLevel: "new" | "learning" | "mastered";
   onEdit?: () => void;
   onDelete?: () => void;
+  onViewDetails?: () => void;
+  onToggleFavorite?: () => void;
+  isFavorite?: number; // 1 for favorite, 0 for not favorite
 };
 
 export default function WordOverview({
@@ -23,6 +26,9 @@ export default function WordOverview({
   masteryLevel,
   onEdit,
   onDelete,
+  onViewDetails,
+  onToggleFavorite,
+  isFavorite,
 }: WordOverviewProps) {
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -68,6 +74,14 @@ export default function WordOverview({
           <Text style={styles.word}>{name}</Text>
           <Text style={styles.meaning}>{meaning}</Text>
         </View>
+        {isFavorite === 1 && (
+          <Ionicons
+            name="star"
+            size={18}
+            color="#FFD700"
+            style={styles.favoriteIcon}
+          />
+        )}
         <Menu>
           <MenuTrigger
             customStyles={{
@@ -78,16 +92,22 @@ export default function WordOverview({
             <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
-            <MenuOption onSelect={() => {}} disabled>
+            <MenuOption onSelect={onViewDetails}>
               <View style={styles.menuItem}>
                 <Ionicons name="eye-outline" size={18} color="#495057" />
                 <Text style={styles.menuText}>Ver Detalhes</Text>
               </View>
             </MenuOption>
-            <MenuOption onSelect={() => {}} disabled>
+            <MenuOption onSelect={onToggleFavorite}>
               <View style={styles.menuItem}>
-                <Ionicons name="star-outline" size={18} color="#495057" />
-                <Text style={styles.menuText}>Favoritar</Text>
+                <Ionicons
+                  name={isFavorite ? "star" : "star-outline"}
+                  size={18}
+                  color={isFavorite ? "#FFD700" : "#495057"}
+                />
+                <Text style={styles.menuText}>
+                  {isFavorite ? "Desfavoritar" : "Favoritar"}
+                </Text>
               </View>
             </MenuOption>
             <MenuOption onSelect={onEdit}>
@@ -144,8 +164,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6c757d",
   },
+  favoriteIcon: {
+    marginRight: 8,
+  },
   menuTrigger: {
     padding: 8,
+    marginRight: -12,
   },
   menu: {
     borderRadius: 8,
