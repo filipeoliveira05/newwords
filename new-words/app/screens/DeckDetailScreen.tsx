@@ -8,11 +8,14 @@ import {
   TextInput,
   Modal,
   ActivityIndicator,
+  ScrollView,
   KeyboardAvoidingView,
   Platform,
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { format, parseISO } from "date-fns";
+import { pt } from "date-fns/locale";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useWordStore } from "@/stores/wordStore";
@@ -23,6 +26,23 @@ import WordOverview from "../components/WordOverview";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
+type SortCriterion =
+  | "createdAt"
+  | "isFavorite"
+  | "masteryLevel"
+  | "timesTrained"
+  | "timesCorrect"
+  | "timesIncorrect"
+  | "lastAnswerCorrect"
+  | "lastTrained"
+  | "name";
+
+type SortDirection = "asc" | "desc";
+
+interface SortConfig {
+  criterion: SortCriterion;
+  direction: SortDirection;
+}
 type Props = NativeStackScreenProps<HomeStackParamList, "DeckDetail">;
 
 export default function DeckDetailScreen({ navigation, route }: Props) {
@@ -52,21 +72,71 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [practiceModalVisible, setPracticeModalVisible] = useState(false);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    criterion: "createdAt",
+    direction: "desc",
+  });
 
   const newWordInputRef = useRef<TextInput>(null);
   const newMeaningInputRef = useRef<TextInput>(null);
 
-  const filteredWords = useMemo(() => {
-    if (!searchQuery) {
-      return wordsForCurrentDeck;
+  const displayWords = useMemo(() => {
+    // 1. Filter based on search query
+    let wordsToDisplay = [...wordsForCurrentDeck];
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      wordsToDisplay = wordsToDisplay.filter(
+        (word: Word) =>
+          word.name.toLowerCase().includes(query) ||
+          word.meaning.toLowerCase().includes(query)
+      );
     }
-    const query = searchQuery.toLowerCase();
-    return wordsForCurrentDeck.filter(
-      (word: Word) =>
-        word.name.toLowerCase().includes(query) ||
-        word.meaning.toLowerCase().includes(query)
-    );
-  }, [wordsForCurrentDeck, searchQuery]);
+
+    // 2. Sort the filtered list
+    const { criterion, direction } = sortConfig;
+    const dir = direction === "asc" ? 1 : -1;
+    const masteryMap = { new: 1, learning: 2, mastered: 3 };
+
+    wordsToDisplay.sort((a, b) => {
+      switch (criterion) {
+        case "isFavorite":
+          // This sort is always descending (favorites first)
+          return b.isFavorite - a.isFavorite;
+        case "name":
+          return a.name.localeCompare(b.name) * dir;
+        case "masteryLevel":
+          return (
+            (masteryMap[a.masteryLevel] - masteryMap[b.masteryLevel]) * dir
+          );
+        case "createdAt":
+          // Assumes createdAt is never null
+          return (
+            (new Date(a.createdAt).getTime() -
+              new Date(b.createdAt).getTime()) *
+            dir
+          );
+        case "lastTrained":
+          // Treat null as the oldest date (comes first in asc)
+          const dateA = a.lastTrained ? new Date(a.lastTrained).getTime() : 0;
+          const dateB = b.lastTrained ? new Date(b.lastTrained).getTime() : 0;
+          return (dateA - dateB) * dir;
+        case "lastAnswerCorrect":
+          // Treat null as a third category (-1)
+          const answerA = a.lastAnswerCorrect ?? -1;
+          const answerB = b.lastAnswerCorrect ?? -1;
+          return (answerA - answerB) * dir;
+        case "timesTrained":
+        case "timesCorrect":
+        case "timesIncorrect":
+          return (a[criterion] - b[criterion]) * dir;
+        default:
+          return 0;
+      }
+    });
+
+    return wordsToDisplay;
+  }, [wordsForCurrentDeck, searchQuery, sortConfig]);
 
   const resetModal = () => {
     setAddModalVisible(false);
@@ -95,6 +165,17 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       },
       headerShadowVisible: false,
       headerTintColor: "#22223b",
+      headerRight: () => (
+        <View style={styles.headerRightContainer}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setSortModalVisible(true)}
+          >
+            <Ionicons name="swap-vertical-outline" size={24} color="#495057" />
+          </TouchableOpacity>
+          {/* Futuramente, outros ícones (filtrar, editar, etc.) podem ser adicionados aqui */}
+        </View>
+      ),
     });
   }, [navigation]);
 
@@ -195,6 +276,123 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       });
   };
 
+  const getDisplayDataForWord = (
+    word: Word,
+    criterion: SortCriterion
+  ): { value?: string | number; label?: string } => {
+    const formatNullableDate = (dateString: string | null) => {
+      if (!dateString) return "Nunca";
+      try {
+        return format(parseISO(dateString), "dd MMM", { locale: pt });
+      } catch (e) {
+        console.error("Data com formato nulo.", e);
+        return "Inválida";
+      }
+    };
+
+    switch (criterion) {
+      case "timesTrained":
+        return { value: word.timesTrained, label: "vezes" };
+      case "timesCorrect":
+        return { value: word.timesCorrect, label: "certas" };
+      case "timesIncorrect":
+        return { value: word.timesIncorrect, label: "erradas" };
+      case "masteryLevel":
+        return {};
+      case "lastTrained":
+        return {
+          value: formatNullableDate(word.lastTrained),
+          label: "últ. prática",
+        };
+      case "createdAt":
+        return { value: formatNullableDate(word.createdAt), label: "criação" };
+      case "lastAnswerCorrect":
+        if (word.lastAnswerCorrect === null)
+          return { value: "N/A", label: "últ. resp." };
+        return {
+          value: word.lastAnswerCorrect === 1 ? "Certa" : "Errada",
+          label: "últ. resp.",
+        };
+      default:
+        return {};
+    }
+  };
+
+  const sortOptions: {
+    label: string;
+    criterion: SortCriterion;
+    direction: SortDirection;
+  }[] = [
+    { label: "Favoritos Primeiro", criterion: "isFavorite", direction: "desc" },
+    {
+      label: "Data de Criação (Mais Recentes)",
+      criterion: "createdAt",
+      direction: "desc",
+    },
+    {
+      label: "Data de Criação (Mais Antigas)",
+      criterion: "createdAt",
+      direction: "asc",
+    },
+    { label: "Ordem Alfabética (A-Z)", criterion: "name", direction: "asc" },
+    { label: "Ordem Alfabética (Z-A)", criterion: "name", direction: "desc" },
+    {
+      label: "Nível (Ascendente)",
+      criterion: "masteryLevel",
+      direction: "asc",
+    },
+    {
+      label: "Nível (Descendente)",
+      criterion: "masteryLevel",
+      direction: "desc",
+    },
+    {
+      label: "Vezes Praticadas (Menos)",
+      criterion: "timesTrained",
+      direction: "asc",
+    },
+    {
+      label: "Vezes Praticadas (Mais)",
+      criterion: "timesTrained",
+      direction: "desc",
+    },
+    {
+      label: "Respostas Corretas (Mais)",
+      criterion: "timesCorrect",
+      direction: "desc",
+    },
+    {
+      label: "Respostas Incorretas (Mais)",
+      criterion: "timesIncorrect",
+      direction: "desc",
+    },
+    {
+      label: "Última Resposta (Erradas primeiro)",
+      criterion: "lastAnswerCorrect",
+      direction: "asc",
+    },
+    {
+      label: "Última Resposta (Certas primeiro)",
+      criterion: "lastAnswerCorrect",
+      direction: "desc",
+    },
+    {
+      label: "Última Prática (Mais Recente)",
+      criterion: "lastTrained",
+      direction: "desc",
+    },
+    {
+      label: "Última Prática (Mais Antiga)",
+      criterion: "lastTrained",
+      direction: "asc",
+    },
+  ];
+
+  const handleSortSelect = (config: SortConfig) => {
+    setSortConfig(config);
+    setSortModalVisible(false);
+  };
+
   const renderEmptyComponent = () => {
     if (loading) {
       return (
@@ -251,13 +449,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             placeholder="Procurar por palavra ou significado..."
             placeholderTextColor="#9e9e9e"
           />
-          <TouchableOpacity
-            onPress={() => setSearchQuery("")}
-            disabled={!searchQuery}
-            style={{ opacity: searchQuery ? 1 : 0 }}
-          >
-            <Ionicons name="close-circle" size={20} color="#9e9e9e" />
-          </TouchableOpacity>
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery("")}>
+              <Ionicons name="close-circle" size={20} color="#9e9e9e" />
+            </TouchableOpacity>
+          )}
         </View>
         {wordsForCurrentDeck.length > 0 && (
           <View style={styles.legendContainer}>
@@ -283,22 +479,30 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         )}
       </View>
       <FlatList
-        data={filteredWords}
+        data={displayWords}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <WordOverview
-            name={item.name}
-            meaning={item.meaning}
-            masteryLevel={item.masteryLevel}
-            onViewDetails={() =>
-              navigation.navigate("WordDetails", { wordId: item.id })
-            }
-            onEdit={() => handleEditWord(item)}
-            isFavorite={item.isFavorite}
-            onToggleFavorite={() => handleToggleFavorite(item.id)}
-            onDelete={() => handleDeleteWord(item.id)}
-          />
-        )}
+        renderItem={({ item }) => {
+          const { value, label } = getDisplayDataForWord(
+            item,
+            sortConfig.criterion
+          );
+          return (
+            <WordOverview
+              name={item.name}
+              meaning={item.meaning}
+              masteryLevel={item.masteryLevel}
+              onViewDetails={() =>
+                navigation.navigate("WordDetails", { wordId: item.id })
+              }
+              onEdit={() => handleEditWord(item)}
+              isFavorite={item.isFavorite}
+              onToggleFavorite={() => handleToggleFavorite(item.id)}
+              onDelete={() => handleDeleteWord(item.id)}
+              displayValue={value}
+              displayLabel={label}
+            />
+          );
+        }}
         ListEmptyComponent={renderEmptyComponent}
         contentContainerStyle={styles.listContentContainer}
         showsVerticalScrollIndicator={false}
@@ -485,6 +689,56 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Sort Options Modal */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={styles.modalOverlay}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setSortModalVisible(false)}
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Ordenar Por</Text>
+              <TouchableOpacity
+                onPress={() => setSortModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color="#6c757d" />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 400 }}>
+              {sortOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.sortOptionButton}
+                  onPress={() => handleSortSelect(option)}
+                >
+                  <Text
+                    style={[
+                      styles.sortOptionText,
+                      sortConfig.criterion === option.criterion &&
+                        sortConfig.direction === option.direction &&
+                        styles.sortOptionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
@@ -734,5 +988,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6c757d",
     marginTop: 2,
+  },
+  sortOptionButton: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f1f1f1",
+  },
+  sortOptionText: {
+    fontSize: 16,
+    color: "#495057",
+    textAlign: "center",
+  },
+  sortOptionTextActive: {
+    color: "#4F8EF7",
+    fontWeight: "bold",
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  headerButton: {
+    padding: 8,
+    marginLeft: 8,
   },
 });

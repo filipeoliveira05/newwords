@@ -18,6 +18,8 @@ type WordOverviewProps = {
   onViewDetails?: () => void;
   onToggleFavorite?: () => void;
   isFavorite?: number; // 1 for favorite, 0 for not favorite
+  displayValue?: string | number;
+  displayLabel?: string;
 };
 
 export default function WordOverview({
@@ -29,6 +31,8 @@ export default function WordOverview({
   onViewDetails,
   onToggleFavorite,
   isFavorite,
+  displayValue,
+  displayLabel,
 }: WordOverviewProps) {
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -74,6 +78,15 @@ export default function WordOverview({
           <Text style={styles.word}>{name}</Text>
           <Text style={styles.meaning}>{meaning}</Text>
         </View>
+        {/* Mostra o valor da ordenação, se existir */}
+        {displayValue !== undefined && (
+          <View style={styles.displayValueContainer}>
+            <Text style={styles.displayValue}>{displayValue}</Text>
+            {displayLabel && (
+              <Text style={styles.displayLabel}>{displayLabel}</Text>
+            )}
+          </View>
+        )}
         {isFavorite === 1 && (
           <Ionicons
             name="star"
@@ -163,6 +176,22 @@ const styles = StyleSheet.create({
   meaning: {
     fontSize: 14,
     color: "#6c757d",
+  },
+  displayValueContainer: {
+    alignItems: "flex-end",
+    justifyContent: "center",
+    marginRight: 12,
+    minWidth: 50,
+  },
+  displayValue: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#495057",
+  },
+  displayLabel: {
+    fontSize: 10,
+    color: "#adb5bd",
+    textTransform: "uppercase",
   },
   favoriteIcon: {
     marginRight: 8,
