@@ -91,8 +91,19 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 4: 🤖 AI Magic
 
-- [ ] **Definition and Example Sentence Generator:** Use an LLM API to assist in creating flashcards. The user writes the word, and an LLM API suggests the definition and an example sentence.
-- [ ] **Word "Discoverer":** Allow the user to paste text or take a photo, and the app extracts the most difficult words, suggesting the creation of cards for them.
+- [ ] **Automatic Flashcard Creation:** Use an LLM API to assist in creating flashcards (`WordOverview` and `WordDetailsScreen`). The user writes the word, and an LLM API suggests the definition, identifies if it's an adjective, noun, verb, etc., generates 3 sentences with increasing difficulties showing how to use the word, generates synonyms and antonyms.
+
+- [ ] **Synonyms Finder:** In `WordDetailsScreen`, a button that makes the AI to find and display synonyms of that word, adding them to the word database if the user wants.
+
+- [ ] **Smart Scanner (OCR + NLP):** The user takes a photo of a text and the AI (using OCR to read the text and NLP to understand it) identifies and highlights the less common or more complex words. The user simply taps on the words they want to learn, and the app automatically creates flashcards.
+
+- [ ] **Conversational Tutor:** Option to open a chat with an AI tutor that plays out like this:
+
+  - _AI Tutor:_ “Hello! Today's word is ‘resilience.’ Can you use this word in a sentence about sports?”
+  - _User:_ “The athlete showed great resilience by finishing the race.”
+  - _AI Tutor:_ “Perfect! Your sentence is grammatically correct and the context is ideal. Now, how about one about a personal challenge?”
+
+- [] **Contextual Story Generator:** The user selects 3 to 5 words and the AI creates a micro-story or paragraph that uses those words in a cohesive and memorable way.
 
 #### Level 5: Polish and Growth
 
