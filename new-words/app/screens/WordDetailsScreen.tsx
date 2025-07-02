@@ -3,7 +3,6 @@ import React, {
   useLayoutEffect,
   useCallback,
   useEffect,
-  useRef,
 } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import {
@@ -16,8 +15,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Modal,
-  Pressable,
-  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -31,6 +28,7 @@ import { HomeStackParamList } from "../../types/navigation";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import ChipInput from "../components/ChipInput";
+import WordEditModal from "../components/WordEditModal";
 
 const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
 
@@ -70,9 +68,11 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
 
   // State for the new edit modal
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [editedName, setEditedName] = useState("");
-  const [editedMeaning, setEditedMeaning] = useState("");
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editingWordDetails, setEditingWordDetails] = useState<{
+    name: string;
+    meaning: string;
+  } | null>(null);
 
   // State to track if there are unsaved changes
   const [isDirty, setIsDirty] = useState(false);
@@ -87,10 +87,6 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   const [synonyms, setSynonyms] = useState<string[]>([]);
   const [antonyms, setAntonyms] = useState<string[]>([]);
   const [sentences, setSentences] = useState<string[]>([]);
-
-  // Refs for inputs in the new modal
-  const editedNameInputRef = useRef<TextInput>(null);
-  const editedMeaningInputRef = useRef<TextInput>(null);
 
   const parseJsonField = (field: string | null): string[] => {
     if (!field) return [];
@@ -204,65 +200,64 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     });
   }, [wordDetails, showAlert, deleteWord, navigation]);
 
-  const resetEditModal = () => {
+  const closeEditModal = () => {
     setIsEditModalVisible(false);
-    setEditedName("");
-    setEditedMeaning("");
-    setIsSavingEdit(false);
+    setEditingWordDetails(null);
   };
 
   const handleEditWord = useCallback(() => {
     if (!wordDetails) return;
-    // Pre-enche o estado do modal com os detalhes atuais da palavra
-    setEditedName(wordDetails.name);
-    setEditedMeaning(wordDetails.meaning);
-    // Abre o modal de edição
+    setEditingWordDetails({
+      name: wordDetails.name,
+      meaning: wordDetails.meaning,
+    });
     setIsEditModalVisible(true);
   }, [wordDetails]);
 
-  const handleSaveWordEdit = useCallback(async () => {
-    if (!editedName.trim() || !editedMeaning.trim()) {
-      showAlert({
-        title: "Erro",
-        message: "Preenche a palavra e o significado.",
-        buttons: [{ text: "OK", onPress: () => {} }],
-      });
-      return;
-    }
+  const handleSaveWordEdit = useCallback(
+    async (name: string, meaning: string) => {
+      if (!name.trim() || !meaning.trim()) {
+        showAlert({
+          title: "Erro",
+          message: "Preenche a palavra e o significado.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+        return;
+      }
+      if (!wordDetails) return;
 
-    if (!wordDetails) return;
+      setIsSavingEdit(true);
+      try {
+        await updateWord(wordDetails.id, name.trim(), meaning.trim());
 
-    setIsSavingEdit(true);
-    try {
-      await updateWord(wordDetails.id, editedName.trim(), editedMeaning.trim());
+        setWordDetails((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            name: name.trim(),
+            meaning: meaning.trim(),
+          };
+        });
 
-      // Atualiza o estado local imediatamente para um feedback visual instantâneo
-      setWordDetails((prev) => {
-        if (!prev) return null;
-        return {
-          ...prev,
-          name: editedName.trim(),
-          meaning: editedMeaning.trim(),
-        };
-      });
+        Toast.show({
+          type: "success",
+          text1: "Palavra atualizada!",
+        });
 
-      Toast.show({
-        type: "success",
-        text1: "Palavra atualizada!",
-      });
-
-      resetEditModal();
-    } catch (error) {
-      console.error("Falha ao editar a palavra:", error);
-      showAlert({
-        title: "Erro",
-        message: "Não foi possível editar a palavra.",
-        buttons: [{ text: "OK", onPress: () => {} }],
-      });
-    } finally {
-      setIsSavingEdit(false);
-    }
-  }, [wordDetails, editedName, editedMeaning, updateWord, showAlert]);
+        closeEditModal();
+      } catch (error) {
+        console.error("Falha ao editar a palavra:", error);
+        showAlert({
+          title: "Erro",
+          message: "Não foi possível editar a palavra.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+      } finally {
+        setIsSavingEdit(false);
+      }
+    },
+    [wordDetails, updateWord, showAlert]
+  );
   const handleSave = useCallback(async () => {
     if (!wordDetails) return;
 
@@ -545,97 +540,14 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           </View>
         </TouchableOpacity>
       </Modal>
-      {/* Edit Word Modal */}
-      <Modal
-        visible={isEditModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={resetEditModal}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.editModalOverlay}
-        >
-          <Pressable style={StyleSheet.absoluteFill} onPress={resetEditModal} />
-          <View style={styles.editModalContainer}>
-            <View style={styles.editModalHandle} />
-            <View style={styles.editModalHeader}>
-              <Text style={styles.editModalTitle}>Editar Palavra</Text>
-              <TouchableOpacity
-                onPress={resetEditModal}
-                style={styles.editCloseButton}
-              >
-                <Ionicons name="close" size={24} color="#6c757d" />
-              </TouchableOpacity>
-            </View>
 
-            <View style={styles.editForm}>
-              <View style={styles.editInputGroup}>
-                <Text style={styles.editLabel}>PALAVRA</Text>
-                <Pressable
-                  style={styles.editInputContainer}
-                  onPress={() => editedNameInputRef.current?.focus()}
-                >
-                  <Ionicons
-                    name="text-outline"
-                    style={styles.editInputIcon}
-                    size={22}
-                  />
-                  <TextInput
-                    ref={editedNameInputRef}
-                    style={styles.input}
-                    value={editedName}
-                    onChangeText={setEditedName}
-                    placeholder="Ex: Apple"
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
-                  />
-                </Pressable>
-              </View>
-
-              <View style={styles.editInputGroup}>
-                <Text style={styles.editLabel}>SIGNIFICADO</Text>
-                <Pressable
-                  style={styles.editInputContainer}
-                  onPress={() => editedMeaningInputRef.current?.focus()}
-                >
-                  <Ionicons
-                    name="chatbox-ellipses-outline"
-                    style={styles.editInputIcon}
-                    size={22}
-                  />
-                  <TextInput
-                    ref={editedMeaningInputRef}
-                    style={styles.input}
-                    value={editedMeaning}
-                    onChangeText={setEditedMeaning}
-                    placeholder="Ex: Maçã"
-                    placeholderTextColor="#999"
-                    autoCapitalize="none"
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.editSaveButton,
-                isSavingEdit && styles.editButtonDisabled,
-              ]}
-              onPress={handleSaveWordEdit}
-              disabled={isSavingEdit}
-            >
-              {isSavingEdit ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.editSaveButtonText}>
-                  Guardar Alterações
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <WordEditModal
+        isVisible={isEditModalVisible}
+        onClose={closeEditModal}
+        onSave={handleSaveWordEdit}
+        initialData={editingWordDetails}
+        isSaving={isSavingEdit}
+      />
       {/* A barra só aparece se houver alterações não guardadas */}
       {isDirty && (
         <View style={styles.saveBarContainer}>
@@ -826,91 +738,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 17,
     fontWeight: "bold",
-  },
-  // --- Styles for Edit Modal (copied and adapted from DeckDetailScreen) ---
-  editModalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
-  },
-  editModalContainer: {
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingTop: 12,
-  },
-  editModalHandle: {
-    width: 40,
-    height: 5,
-    backgroundColor: "#e0e0e0",
-    borderRadius: 2.5,
-    alignSelf: "center",
-    marginBottom: 16,
-  },
-  editModalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  editModalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#22223b",
-  },
-  editCloseButton: { padding: 8 },
-  editForm: {
-    marginBottom: 24,
-  },
-  editInputGroup: {
-    marginBottom: 24,
-  },
-  editLabel: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#adb5bd",
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  editInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e9ecef",
-    paddingHorizontal: 16,
-  },
-  editInputIcon: {
-    color: "#adb5bd",
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: "#222",
-    paddingVertical: 14,
-  },
-  editSaveButton: {
-    backgroundColor: "#4F8EF7",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    shadowColor: "#4F8EF7", // Adiciona sombra para o botão
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  editButtonDisabled: {
-    backgroundColor: "#a9c7f5",
-  },
-  editSaveButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 17,
   },
 });
 

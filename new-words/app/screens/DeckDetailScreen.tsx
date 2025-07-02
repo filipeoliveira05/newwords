@@ -1,17 +1,15 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  TextInput,
   Modal,
   ActivityIndicator,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
+  TextInput,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
@@ -23,6 +21,7 @@ import { useAlertStore } from "@/stores/useAlertStore";
 import { Word } from "../../types/database";
 import { HomeStackParamList, RootTabParamList } from "../../types/navigation";
 import WordOverview from "../components/WordOverview";
+import WordEditModal from "../components/WordEditModal";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
@@ -61,13 +60,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   } = useWordStore.getState();
   const { showAlert } = useAlertStore.getState();
 
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [newWord, setNewWord] = useState("");
-  const [newMeaning, setNewMeaning] = useState("");
-
-  const [editMode, setEditMode] = useState(false);
-  const [editingWordId, setEditingWordId] = useState<number | null>(null);
-
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingWord, setEditingWord] = useState<Word | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,9 +71,6 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     criterion: "createdAt",
     direction: "desc",
   });
-
-  const newWordInputRef = useRef<TextInput>(null);
-  const newMeaningInputRef = useRef<TextInput>(null);
 
   const displayWords = useMemo(() => {
     // 1. Filter based on search query
@@ -138,21 +129,18 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     return wordsToDisplay;
   }, [wordsForCurrentDeck, searchQuery, sortConfig]);
 
-  const resetModal = () => {
-    setAddModalVisible(false);
-    setEditMode(false);
-    setEditingWordId(null);
-    setNewWord("");
-    setNewMeaning("");
+  const closeModal = () => {
+    setIsModalVisible(false);
+    setEditingWord(null); // Garante que o modo de edição é resetado
   };
 
   useEffect(() => {
     if (deckId) {
       fetchWordsOfDeck(deckId);
     }
-
     if (openAddWordModal) {
-      setAddModalVisible(true);
+      setEditingWord(null); // Garante que está em modo de adição
+      setIsModalVisible(true);
     }
   }, [deckId, openAddWordModal]);
 
@@ -180,11 +168,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   }, [navigation]);
 
   const handleEditWord = (word: Word) => {
-    setEditMode(true);
-    setEditingWordId(word.id);
-    setNewWord(word.name);
-    setNewMeaning(word.meaning);
-    setAddModalVisible(true);
+    setEditingWord(word);
+    setIsModalVisible(true);
   };
 
   const handleDeleteWord = (wordId: number) => {
@@ -227,27 +212,29 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleSaveWord = async () => {
-    if (!newWord.trim() || !newMeaning.trim())
-      return showAlert({
+  const handleSaveWord = async (name: string, meaning: string) => {
+    if (!name.trim() || !meaning.trim()) {
+      showAlert({
         title: "Erro",
         message: "Preenche a palavra e o significado.",
         buttons: [{ text: "OK", onPress: () => {} }],
       });
+      return;
+    }
 
     setIsSaving(true);
     try {
-      if (editMode && editingWordId !== null) {
-        await updateWord(editingWordId, newWord.trim(), newMeaning.trim());
+      if (editingWord) {
+        await updateWord(editingWord.id, name.trim(), meaning.trim());
       } else {
-        await addWord(deckId, newWord.trim(), newMeaning.trim());
+        await addWord(deckId, name.trim(), meaning.trim());
       }
-      resetModal();
+      closeModal();
     } catch (error) {
       console.error("Falha ao guardar a palavra:", error);
       showAlert({
         title: "Erro",
-        message: editMode
+        message: editingWord
           ? "Não foi possível editar a palavra."
           : "Não foi possível adicionar a palavra.",
         buttons: [{ text: "OK", onPress: () => {} }],
@@ -425,7 +412,10 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         </Text>
         <TouchableOpacity
           style={styles.emptyButton}
-          onPress={() => setAddModalVisible(true)}
+          onPress={() => {
+            setEditingWord(null);
+            setIsModalVisible(true);
+          }}
         >
           <Ionicons name="add" size={20} color="#fff" />
           <Text style={styles.emptyButtonText}>Adicionar Palavra</Text>
@@ -521,7 +511,10 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         {wordsForCurrentDeck.length > 0 && (
           <TouchableOpacity
             style={[styles.fab, styles.addFab]}
-            onPress={() => setAddModalVisible(true)}
+            onPress={() => {
+              setEditingWord(null);
+              setIsModalVisible(true);
+            }}
             activeOpacity={0.8}
           >
             <Ionicons name="add" size={32} color="#fff" />
@@ -529,92 +522,13 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         )}
       </View>
 
-      <Modal
-        visible={addModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={resetModal}
-      >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
-          <Pressable style={StyleSheet.absoluteFill} onPress={resetModal} />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {editMode ? "Editar Palavra" : "Nova Palavra"}
-              </Text>
-              <TouchableOpacity onPress={resetModal} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color="#6c757d" />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.form}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>PALAVRA</Text>
-                <Pressable
-                  style={styles.inputContainer}
-                  onPress={() => newWordInputRef.current?.focus()}
-                >
-                  <Ionicons
-                    name="text-outline"
-                    style={styles.inputIcon}
-                    size={22}
-                  />
-                  <TextInput
-                    ref={newWordInputRef}
-                    style={styles.input}
-                    value={newWord}
-                    autoCapitalize="none"
-                    onChangeText={setNewWord}
-                    placeholder="Ex: Apple"
-                    placeholderTextColor="#999"
-                  />
-                </Pressable>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>SIGNIFICADO</Text>
-                <Pressable
-                  style={styles.inputContainer}
-                  onPress={() => newMeaningInputRef.current?.focus()}
-                >
-                  <Ionicons
-                    name="chatbox-ellipses-outline"
-                    style={styles.inputIcon}
-                    size={22}
-                  />
-                  <TextInput
-                    ref={newMeaningInputRef}
-                    style={styles.input}
-                    value={newMeaning}
-                    autoCapitalize="none"
-                    onChangeText={setNewMeaning}
-                    placeholder="Ex: Maçã"
-                    placeholderTextColor="#999"
-                  />
-                </Pressable>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={[styles.saveButton, isSaving && styles.buttonDisabled]}
-              onPress={handleSaveWord}
-              disabled={isSaving}
-            >
-              {isSaving ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.saveButtonText}>
-                  {editMode ? "Guardar Alterações" : "Adicionar Palavra"}
-                </Text>
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </Modal>
+      <WordEditModal
+        isVisible={isModalVisible}
+        onClose={closeModal}
+        onSave={handleSaveWord}
+        initialData={editingWord}
+        isSaving={isSaving}
+      />
 
       {/* Practice Mode Selection Modal */}
       <Modal
@@ -623,10 +537,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         animationType="fade"
         onRequestClose={() => setPracticeModalVisible(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
+        <View style={styles.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setPracticeModalVisible(false)}
@@ -690,7 +601,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               </View>
             </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
 
       {/* Sort Options Modal */}
@@ -700,10 +611,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         animationType="fade"
         onRequestClose={() => setSortModalVisible(false)}
       >
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.modalOverlay}
-        >
+        <View style={styles.modalOverlay}>
           <Pressable
             style={StyleSheet.absoluteFill}
             onPress={() => setSortModalVisible(false)}
@@ -740,7 +648,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               ))}
             </ScrollView>
           </View>
-        </KeyboardAvoidingView>
+        </View>
       </Modal>
     </View>
   );
@@ -881,7 +789,7 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "flex-end",
+    justifyContent: "flex-end", // Alinha o modal na parte inferior
   },
   modalContainer: {
     backgroundColor: "#fff",
@@ -911,59 +819,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 8,
-  },
-  form: {
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#adb5bd",
-    marginBottom: 8,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8fafc",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#e9ecef",
-    paddingHorizontal: 16,
-  },
-  inputIcon: {
-    color: "#adb5bd",
-    marginRight: 12,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: "#222",
-    paddingVertical: 14,
-  },
-  saveButton: {
-    backgroundColor: "#4F8EF7",
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    shadowColor: "#4F8EF7",
-    shadowOpacity: 0.18,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  buttonDisabled: {
-    backgroundColor: "#a9c7f5",
-  },
-  saveButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 17,
-    letterSpacing: 0.5,
   },
   modeButton: {
     flexDirection: "row",
