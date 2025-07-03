@@ -293,10 +293,10 @@ export default function StatsScreen() {
           color={theme.colors.success}
         />
         <StatCard
-          icon="star-outline"
+          icon="school-outline"
           value={stats?.wordsMastered ?? 0}
           label="Palavras Dominadas"
-          color={theme.colors.warning}
+          color={theme.colors.dark}
         />
         <StatCard
           icon="flame-outline"

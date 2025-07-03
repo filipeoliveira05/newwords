@@ -19,12 +19,14 @@ const palette = {
   successMedium: "#00796b",
   successDark: "#004d40",
   successBorder: "#b2dfdb",
-  warning: "#e9c46a",
+  favorite: "#FFD700",
+  gold: "#d9aa29",
   challenge: "#f4a261",
   danger: "#e76f51",
   dangerLight: "#ffe8e1",
   dangerDark: "#d11a2a",
 
+  dark: "#22223B",
   grey: "#ced4da",
   placeholder: "#9e9e9e",
 };
@@ -47,7 +49,8 @@ export const colors = {
   successMedium: palette.successMedium,
   successDark: palette.successDark,
   successBorder: palette.successBorder,
-  warning: palette.warning,
+  favorite: palette.favorite,
+  gold: palette.gold,
   challenge: palette.challenge,
   danger: palette.danger,
   dangerLight: palette.dangerLight,
@@ -58,6 +61,8 @@ export const colors = {
 
   icon: palette.textLight,
   iconMuted: palette.grey,
+
+  dark: palette.dark,
 
   disabled: palette.blueLight,
 

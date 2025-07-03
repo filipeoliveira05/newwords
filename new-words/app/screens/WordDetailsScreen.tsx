@@ -371,7 +371,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
                 name={wordDetails.isFavorite ? "star" : "star-outline"}
                 size={24}
                 color={
-                  wordDetails.isFavorite ? "#FFD700" : theme.colors.iconMuted
+                  wordDetails.isFavorite
+                    ? theme.colors.favorite
+                    : theme.colors.iconMuted
                 }
               />
             </TouchableOpacity>

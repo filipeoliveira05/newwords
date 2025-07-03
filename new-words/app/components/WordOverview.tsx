@@ -101,7 +101,9 @@ export default function WordOverview({
           <Ionicons
             name={isFavorite === 1 ? "star" : "star-outline"}
             size={18}
-            color={isFavorite === 1 ? "#FFD700" : theme.colors.iconMuted}
+            color={
+              isFavorite === 1 ? theme.colors.favorite : theme.colors.iconMuted
+            }
           />
         </TouchableOpacity>
         <Menu>
@@ -133,7 +135,9 @@ export default function WordOverview({
                 <Ionicons
                   name={isFavorite ? "star" : "star-outline"}
                   size={18}
-                  color={isFavorite ? "#FFD700" : theme.colors.iconMuted}
+                  color={
+                    isFavorite ? theme.colors.favorite : theme.colors.iconMuted
+                  }
                 />
                 <AppText style={styles.menuText}>
                   {isFavorite ? "Desfavoritar" : "Favoritar"}

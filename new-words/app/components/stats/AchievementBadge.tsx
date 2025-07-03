@@ -47,7 +47,7 @@ const AchievementBadge = ({
     }
   }, [isNew, scale, opacity]);
 
-  const iconColor = unlocked ? theme.colors.warning : theme.colors.iconMuted;
+  const iconColor = unlocked ? theme.colors.gold : theme.colors.iconMuted;
   const containerStyle = unlocked
     ? styles.container
     : [styles.container, styles.lockedContainer];
