@@ -60,9 +60,9 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-- [ ] **Word Custom Screen:** Add a `WordDetailsScreen` showing detailed information about the word: name, meaning, grammar category (noun, verb, etc.), synonyms, sentences with that word, AI operations.
+- [x] **Word Custom Screen:** Add a `WordDetailsScreen` showing detailed information about the word: name, meaning, grammar category (noun, verb, etc.), synonyms, sentences with that word, AI operations.
 - [x] **Alerts Design:** Improve looks of alert messages to keep the design consistent throughout the app and avoid generic android/IOS design.
-- [ ] **Delay and Lag:** Search for every aspect of the app that could be optimized (Observação: Lentidão/delay, especialmente no ecrã de resultados com os confetis. Confetis: A animação de confetis pode ser pesada e bloquear o thread de UI, o que explicaria o atraso em poder clicar nos botões. Uma solução é reduzir a quantidade de partículas (count) ou usar InteractionManager.runAfterInteractions para disparar a animação apenas depois de outras interações (como a renderização dos botões) terem terminado ou então remover por completo a animação de confetis e procurar outros meios menos custosos para "animar" a aplicação. Database Writes: No SessionResults, a função updateUserPracticeMetrics é assíncrona. Embora não deva bloquear a UI, qualquer lógica complexa que dependa dela pode parecer lenta.)
+- [ ] **Delay and Lag:** Search for every aspect of the app that could be optimized. Search for ways to animate the app without compromising performance. Database Writes: No SessionResults, a função updateUserPracticeMetrics é assíncrona. Embora não deva bloquear a UI, qualquer lógica complexa que dependa dela pode parecer lenta.
 
 ### 🔮 Future Features (Next Levels)
 
