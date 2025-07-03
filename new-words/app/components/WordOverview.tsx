@@ -93,14 +93,17 @@ export default function WordOverview({
             )}
           </View>
         )}
-        {isFavorite === 1 && (
+        <TouchableOpacity
+          onPress={onToggleFavorite}
+          style={styles.favoriteIcon}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Ionicons
-            name="star"
+            name={isFavorite === 1 ? "star" : "star-outline"}
             size={18}
-            color="#FFD700"
-            style={styles.favoriteIcon}
+            color={isFavorite === 1 ? "#FFD700" : theme.colors.iconMuted}
           />
-        )}
+        </TouchableOpacity>
         <Menu>
           <MenuTrigger
             customStyles={{
@@ -130,7 +133,7 @@ export default function WordOverview({
                 <Ionicons
                   name={isFavorite ? "star" : "star-outline"}
                   size={18}
-                  color={isFavorite ? "#FFD700" : theme.colors.textMedium}
+                  color={isFavorite ? "#FFD700" : theme.colors.iconMuted}
                 />
                 <AppText style={styles.menuText}>
                   {isFavorite ? "Desfavoritar" : "Favoritar"}
@@ -217,6 +220,7 @@ const styles = StyleSheet.create({
   },
   favoriteIcon: {
     marginRight: 8,
+    padding: 4, // Adiciona um pequeno padding para o hitSlop funcionar melhor
   },
   menuTrigger: {
     padding: 8,
