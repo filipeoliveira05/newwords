@@ -24,12 +24,14 @@ export type PracticeStackParamList = {
   };
 };
 
-export type StatsStackParamList = {
-  StatsMain: undefined;
+export type ProfileStackParamList = {
+  ProfileMain: undefined;
+  Settings: undefined;
 };
 
 export type RootTabParamList = {
   HomeDecks: NavigatorScreenParams<HomeStackParamList> | undefined;
   Practice: NavigatorScreenParams<PracticeStackParamList> | undefined;
   Stats: undefined;
+  Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };

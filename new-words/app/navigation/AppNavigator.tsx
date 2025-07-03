@@ -10,10 +10,12 @@ import Toast, {
 } from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
+import { theme } from "../theme";
 
 import {
   HomeStackParamList,
   PracticeStackParamList,
+  ProfileStackParamList,
   RootTabParamList,
 } from "../../types/navigation";
 
@@ -26,6 +28,8 @@ import PracticeHubScreen from "../screens/PracticeHubScreen";
 import PracticeGameScreen from "../screens/PracticeGameScreen";
 
 import StatsScreen from "../screens/StatsScreen";
+import ProfileScreen from "../screens/ProfileScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
 import CustomAlert from "../components/CustomAlert";
 
@@ -79,10 +83,26 @@ function PracticeStack() {
   );
 }
 
+const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
+
+function ProfileStack() {
+  return (
+    <ProfileStackNav.Navigator>
+      <ProfileStackNav.Screen
+        name="ProfileMain"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
+      />
+      <ProfileStackNav.Screen name="Settings" component={SettingsScreen} />
+    </ProfileStackNav.Navigator>
+  );
+}
+
 const iconMapping = {
   HomeDecks: ["home", "home-outline"],
   Practice: ["flash", "flash-outline"],
   Stats: ["stats-chart", "stats-chart-outline"],
+  Profile: ["person-circle", "person-circle-outline"],
 };
 
 const toastConfig = {
@@ -142,6 +162,16 @@ export default function AppNavigator() {
               <Ionicons name={iconName as any} size={size} color={color} />
             );
           },
+          tabBarActiveTintColor: theme.colors.primary,
+          tabBarInactiveTintColor: theme.colors.textSecondary,
+          tabBarStyle: {
+            backgroundColor: theme.colors.surface,
+            borderTopColor: theme.colors.border,
+          },
+          tabBarLabelStyle: {
+            fontFamily: theme.fonts.medium,
+            fontSize: theme.fontSizes.xs,
+          },
         })}
       >
         <Tab.Screen
@@ -179,6 +209,14 @@ export default function AppNavigator() {
           name="Stats"
           component={StatsScreen}
           options={{ tabBarLabel: "Estatísticas" }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileStack}
+          options={{
+            tabBarLabel: "Perfil",
+            headerShown: false,
+          }}
         />
       </Tab.Navigator>
       <CustomAlert />
