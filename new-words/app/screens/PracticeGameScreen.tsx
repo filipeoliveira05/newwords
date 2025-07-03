@@ -170,7 +170,11 @@ export default function PracticeGameScreen({ route }: Props) {
               style: "destructive",
               onPress: () => {
                 hasConfirmedExit.current = true;
-                // Navegação inteligente baseada na origem
+                // Primeiro, volta um passo na pilha de prática para a limpar.
+                // Isto remove o ecrã de jogo e deixa o 'PracticeHub' como o ecrã ativo.
+                navigation.goBack();
+
+                // De seguida, navega para o separador de destino correto.
                 if (origin === "DeckDetail") {
                   navigation.navigate("HomeDecks");
                 } else if (origin === "Stats") {

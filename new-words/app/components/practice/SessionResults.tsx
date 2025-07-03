@@ -101,6 +101,7 @@ export default function SessionResults({
 
     // Navegação inteligente baseada na origem
     if (origin === "DeckDetail") {
+      navigation.goBack();
       navigation.navigate("HomeDecks");
     } else if (origin === "Stats") {
       navigation.navigate("Stats");
