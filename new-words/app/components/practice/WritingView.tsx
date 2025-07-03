@@ -9,7 +9,7 @@ import {
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 export default function WritingView() {
   // --- Store State and Actions ---

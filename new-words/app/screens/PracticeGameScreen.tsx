@@ -29,7 +29,7 @@ import MultipleChoiceView from "../components/practice/MultipleChoiceView";
 import WritingView from "../components/practice/WritingView";
 import SessionResults from "../components/practice/SessionResults";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 type Props = {
   route: RouteProp<PracticeStackParamList, "PracticeGame">;

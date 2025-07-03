@@ -29,7 +29,7 @@ import { useAlertStore } from "@/stores/useAlertStore";
 import ChipInput from "../components/ChipInput";
 import WordEditModal from "../components/WordEditModal";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
 

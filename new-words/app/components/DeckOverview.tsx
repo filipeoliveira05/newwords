@@ -8,7 +8,7 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import AppText from "./AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 type DeckOverviewProps = {
   title: string;

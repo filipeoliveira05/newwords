@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useAlertStore, AlertButton } from "@/stores/useAlertStore";
 import AppText from "./AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 const CustomAlert = () => {
   const { isVisible, title, message, buttons, hideAlert } = useAlertStore();

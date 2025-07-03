@@ -8,7 +8,7 @@ import Animated, {
   withDelay,
 } from "react-native-reanimated";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 type AchievementBadgeProps = {
   title: string;

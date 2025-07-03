@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 export default function StreakCounter() {
   const streak = usePracticeStore((state) => state.streak);

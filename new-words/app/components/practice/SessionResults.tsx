@@ -8,7 +8,7 @@ import { usePracticeStore } from "@/stores/usePracticeStore";
 import { updateUserPracticeMetrics } from "../../../services/storage";
 import { RootTabParamList } from "../../../types/navigation";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 type SessionResultsProps = {
   onPlayAgain: () => void;

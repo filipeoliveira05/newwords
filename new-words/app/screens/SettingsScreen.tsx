@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../types/navigation";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 

@@ -22,7 +22,7 @@ import { HomeStackParamList, RootTabParamList } from "../../types/navigation";
 import WordOverview from "../components/WordOverview";
 import WordEditModal from "../components/WordEditModal";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 

@@ -9,7 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 export default function FlashcardView() {
   const [isFlipped, setIsFlipped] = useState(false);

@@ -12,7 +12,7 @@ import AppText from "../components/AppText";
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import DeckOverview from "../components/DeckOverview";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 export default function HomeDecksScreen({ navigation }: any) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();

@@ -10,7 +10,7 @@ import Toast, {
 } from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 import {
   HomeStackParamList,

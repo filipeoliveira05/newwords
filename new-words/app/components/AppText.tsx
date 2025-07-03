@@ -1,6 +1,6 @@
 import React from "react";
 import { Text, StyleSheet, TextProps } from "react-native";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 // Definimos as variantes de fonte que queremos usar na aplicação.
 // O nome deve corresponder ao que foi definido no `useFonts` no AppNavigator.

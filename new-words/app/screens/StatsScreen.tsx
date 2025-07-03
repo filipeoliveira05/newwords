@@ -34,7 +34,7 @@ import DailyGoalProgress from "../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../../config/achievements";
 import AchievementBadge from "../components/stats/AchievementBadge";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 // Define the type for the marked dates object locally.
 // This is necessary because the version of `react-native-calendars`

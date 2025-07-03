@@ -17,7 +17,7 @@ import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { HomeStackParamList } from "../../types/navigation";
 import AppText from "../components/AppText";
-import { theme } from "../theme";
+import { theme } from "../../config/theme";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "AddOrEditDeck">;
 

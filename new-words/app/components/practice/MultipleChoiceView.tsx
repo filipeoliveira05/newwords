@@ -11,7 +11,7 @@ import { useWordStore } from "@/stores/wordStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { Word } from "@/types/database";
 import AppText from "../AppText";
-import { theme } from "../../theme";
+import { theme } from "../../../config/theme";
 
 export default function MultipleChoiceView() {
   const currentWord = usePracticeStore((state) => state.getCurrentWord());
