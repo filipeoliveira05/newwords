@@ -456,6 +456,31 @@ export async function countWrongWords(): Promise<number> {
   }
 }
 
+export async function getFavoriteWords(): Promise<Word[]> {
+  try {
+    const query = `
+      SELECT * FROM words
+      WHERE isFavorite = 1
+      ORDER BY lastTrained ASC;
+    `;
+    return await db.getAllAsync<Word>(query);
+  } catch (e) {
+    console.error("Erro ao obter palavras favoritas:", e);
+    throw e;
+  }
+}
+
+export async function countFavoriteWords(): Promise<number> {
+  try {
+    const query = "SELECT COUNT(*) as count FROM words WHERE isFavorite = 1";
+    const result = await db.getFirstAsync<{ count: number }>(query);
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras favoritas:", e);
+    throw e;
+  }
+}
+
 const getNextReviewDate = (level: Word["masteryLevel"]): string => {
   const date = new Date();
   if (level === "learning") date.setDate(date.getDate() + 1); // Review tomorrow

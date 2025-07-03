@@ -9,6 +9,8 @@ import {
   getRandomWords as dbGetRandomWords,
   getWrongWords as dbGetWrongWords,
   countWrongWords as dbCountWrongWords,
+  getFavoriteWords as dbGetFavoriteWords,
+  countFavoriteWords as dbCountFavoriteWords,
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
@@ -26,6 +28,8 @@ interface WordState {
   fetchAllWords: () => Promise<void>;
   wrongWordsCount: number;
   fetchWrongWordsCount: () => Promise<void>;
+  favoriteWordsCount: number;
+  fetchFavoriteWordsCount: () => Promise<void>;
   urgentWordsCount: number;
   fetchUrgentWordCount: () => Promise<void>;
   fetchWordsForPractice: (deckId?: number) => Promise<Word[]>;
@@ -39,6 +43,7 @@ interface WordState {
     sessionDeckId?: number
   ) => Promise<Word[]>;
   fetchWrongWords: (deckId?: number) => Promise<Word[]>;
+  fetchFavoriteWords: () => Promise<Word[]>;
   fetchAllLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
   countWordsForPractice: (deckId?: number) => Promise<number>;
   getTotalWordCount: () => Promise<number>;
@@ -61,6 +66,7 @@ interface WordState {
 export const useWordStore = create<WordState>((set, get) => ({
   words: {},
   wrongWordsCount: 0,
+  favoriteWordsCount: 0,
   urgentWordsCount: 0,
   loading: false,
 
@@ -115,6 +121,17 @@ export const useWordStore = create<WordState>((set, get) => ({
     } catch (error) {
       console.error("Erro ao contar palavras erradas no store", error);
       set({ wrongWordsCount: 0 });
+    }
+  },
+
+  fetchFavoriteWordsCount: async () => {
+    // Não precisa de setar loading aqui para não piscar a tela inteira
+    try {
+      const count = await dbCountFavoriteWords();
+      set({ favoriteWordsCount: count });
+    } catch (error) {
+      console.error("Erro ao contar palavras favoritas no store", error);
+      set({ favoriteWordsCount: 0 });
     }
   },
 
@@ -208,6 +225,17 @@ export const useWordStore = create<WordState>((set, get) => ({
       return words;
     } catch (error) {
       console.error("Erro ao obter palavras erradas no store", error);
+      return [];
+    }
+  },
+
+  fetchFavoriteWords: async () => {
+    try {
+      // No futuro, podemos filtrar por deckId se necessário
+      const words = await dbGetFavoriteWords();
+      return words;
+    } catch (error) {
+      console.error("Erro ao obter palavras favoritas no store", error);
       return [];
     }
   },
