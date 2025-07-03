@@ -1,7 +1,6 @@
 import React, { useCallback } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -13,6 +12,9 @@ import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PracticeStackParamList } from "../../types/navigation";
+
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 type Props = NativeStackScreenProps<PracticeStackParamList, "PracticeHub">;
 
@@ -67,8 +69,10 @@ export default function PracticeHubScreen({ navigation }: Props) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F8EF7" />
-        <Text style={styles.loadingText}>A verificar o seu progresso...</Text>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText variant="bold" style={styles.loadingText}>
+          A verificar o seu progresso...
+        </AppText>
       </View>
     );
   }
@@ -76,7 +80,9 @@ export default function PracticeHubScreen({ navigation }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Centro de Prática</Text>
+        <AppText variant="bold" style={styles.title}>
+          Centro de Prática
+        </AppText>
       </View>
 
       {/* Cartão de Estado da Prática */}
@@ -102,11 +108,17 @@ export default function PracticeHubScreen({ navigation }: Props) {
             size={32}
             style={[
               styles.statusIcon,
-              { color: urgentWordsCount > 0 ? "#fff" : "#2a9d8f" },
+              {
+                color:
+                  urgentWordsCount > 0
+                    ? theme.colors.surface
+                    : theme.colors.success,
+              },
             ]}
           />
           <View style={styles.statusTextContainer}>
-            <Text
+            <AppText
+              variant="bold"
               style={[
                 styles.statusTitle,
                 urgentWordsCount === 0 && styles.allClearTitle,
@@ -117,8 +129,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
                     urgentWordsCount > 1 ? "palavras" : "palavra"
                   } para rever!`
                 : "Tudo em dia!"}
-            </Text>
-            <Text
+            </AppText>
+            <AppText
               style={[
                 styles.statusDescription,
                 urgentWordsCount === 0 && styles.allClearDescription,
@@ -127,12 +139,14 @@ export default function PracticeHubScreen({ navigation }: Props) {
               {urgentWordsCount > 0
                 ? "Toque aqui para começar a revisão."
                 : "Toque para iniciar uma prática livre."}
-            </Text>
+            </AppText>
           </View>
           <Ionicons
             name="chevron-forward"
             size={24}
-            color={urgentWordsCount > 0 ? "#fff" : "#2a9d8f"}
+            color={
+              urgentWordsCount > 0 ? theme.colors.surface : theme.colors.success
+            }
           />
         </View>
       </TouchableOpacity>
@@ -148,18 +162,22 @@ export default function PracticeHubScreen({ navigation }: Props) {
             <Ionicons
               name="bonfire-outline"
               size={32}
-              style={[styles.statusIcon, { color: "#fff" }]}
+              style={[styles.statusIcon, { color: theme.colors.surface }]}
             />
             <View style={styles.statusTextContainer}>
-              <Text style={styles.statusTitle}>
+              <AppText variant="bold" style={styles.statusTitle}>
                 {wrongWordsCount} {wrongWordsCount > 1 ? "palavras" : "palavra"}{" "}
                 a corrigir
-              </Text>
-              <Text style={styles.statusDescription}>
+              </AppText>
+              <AppText style={styles.statusDescription}>
                 Pratique as palavras que errou da última vez.
-              </Text>
+              </AppText>
             </View>
-            <Ionicons name="chevron-forward" size={24} color="#fff" />
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={theme.colors.surface}
+            />
           </View>
         </TouchableOpacity>
       )}
@@ -172,12 +190,18 @@ export default function PracticeHubScreen({ navigation }: Props) {
       >
         <Ionicons name="albums-outline" size={28} style={styles.modeIcon} />
         <View style={styles.modeTextContainer}>
-          <Text style={styles.modeTitle}>Revisão Clássica</Text>
-          <Text style={styles.modeDescription}>
+          <AppText variant="bold" style={styles.modeTitle}>
+            Revisão Clássica
+          </AppText>
+          <AppText style={styles.modeDescription}>
             Flashcards simples: veja a palavra, adivinhe o significado.
-          </Text>
+          </AppText>
         </View>
-        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+        <Ionicons
+          name="chevron-forward"
+          size={22}
+          color={theme.colors.textMuted}
+        />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -191,12 +215,18 @@ export default function PracticeHubScreen({ navigation }: Props) {
       >
         <Ionicons name="list-outline" size={28} style={styles.modeIcon} />
         <View style={styles.modeTextContainer}>
-          <Text style={styles.modeTitle}>Escolha Múltipla</Text>
-          <Text style={styles.modeDescription}>
+          <AppText variant="bold" style={styles.modeTitle}>
+            Escolha Múltipla
+          </AppText>
+          <AppText style={styles.modeDescription}>
             Escolha o significado correto entre 4 opções.
-          </Text>
+          </AppText>
         </View>
-        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+        <Ionicons
+          name="chevron-forward"
+          size={22}
+          color={theme.colors.textMuted}
+        />
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -207,12 +237,18 @@ export default function PracticeHubScreen({ navigation }: Props) {
       >
         <Ionicons name="pencil-outline" size={28} style={styles.modeIcon} />
         <View style={styles.modeTextContainer}>
-          <Text style={styles.modeTitle}>Jogo da Escrita</Text>
-          <Text style={styles.modeDescription}>
+          <AppText variant="bold" style={styles.modeTitle}>
+            Jogo da Escrita
+          </AppText>
+          <AppText style={styles.modeDescription}>
             Nós mostramos o significado, você escreve a palavra.
-          </Text>
+          </AppText>
         </View>
-        <Ionicons name="chevron-forward" size={22} color="#adb5bd" />
+        <Ionicons
+          name="chevron-forward"
+          size={22}
+          color={theme.colors.textMuted}
+        />
       </TouchableOpacity>
     </View>
   );
@@ -221,14 +257,14 @@ export default function PracticeHubScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
     paddingHorizontal: 20,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   centerContent: {
     justifyContent: "center",
@@ -239,9 +275,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.text,
     marginBottom: 8,
   },
   statusCard: {
@@ -261,15 +296,15 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   statusCardUrgent: {
-    backgroundColor: "#e76f51",
+    backgroundColor: theme.colors.danger,
   },
   statusCardWrong: {
-    backgroundColor: "#f4a261", // Cor de "desafio"
+    backgroundColor: theme.colors.challenge,
   },
   statusCardAllClear: {
-    backgroundColor: "#e0f2f1",
+    backgroundColor: theme.colors.successLight,
     borderWidth: 1,
-    borderColor: "#b2dfdb",
+    borderColor: theme.colors.successBorder,
   },
   statusIcon: {
     marginRight: 16,
@@ -278,25 +313,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusTitle: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#fff",
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.surface,
   },
   allClearTitle: {
-    color: "#004d40", // A dark, readable green
+    color: theme.colors.successDark,
   },
   statusDescription: {
-    fontSize: 14,
-    color: "#ffe8e1",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.dangerLight,
     marginTop: 4,
   },
   allClearDescription: {
-    color: "#00796b", // A medium, readable green
+    color: theme.colors.successMedium,
   },
   modeButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     padding: 20,
     borderRadius: 12,
     marginBottom: 16,
@@ -306,44 +340,42 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
   modeIcon: {
-    color: "#4F8EF7",
+    color: theme.colors.primary,
     marginRight: 20,
   },
   modeTextContainer: {
     flex: 1,
   },
   modeTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   modeDescription: {
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
   disabledButton: {
-    backgroundColor: "#e9ecef",
-    borderColor: "#dee2e6",
+    backgroundColor: theme.colors.disabled,
+    borderColor: theme.colors.border,
   },
   disabledIcon: {
-    color: "#adb5bd",
+    color: theme.colors.textMuted,
   },
   disabledText: {
-    color: "#adb5bd",
+    color: theme.colors.textMuted,
   },
   loadingText: {
     marginTop: 20,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4a4e69",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
   },
   loadingSubText: {
     marginTop: 8,
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
 });

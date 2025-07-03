@@ -1,11 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -13,6 +7,8 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { updateUserPracticeMetrics } from "../../../services/storage";
 import { RootTabParamList } from "../../../types/navigation";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 type SessionResultsProps = {
   onPlayAgain: () => void;
@@ -127,31 +123,39 @@ export default function SessionResults({
         />
       )} */}
 
-      <Text style={styles.title}>
+      <AppText variant="bold" style={styles.title}>
         {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
-      </Text>
+      </AppText>
 
       {isUrgentSessionComplete ? (
         <View style={styles.summaryCard}>
-          <Ionicons name="checkmark-done-circle" size={48} color="#2a9d8f" />
-          <Text style={styles.congratsTitle}>Revisão Concluída!</Text>
-          <Text style={styles.congratsSubtitle}>
+          <Ionicons
+            name="checkmark-done-circle"
+            size={48}
+            color={theme.colors.success}
+          />
+          <AppText variant="bold" style={styles.congratsTitle}>
+            Revisão Concluída!
+          </AppText>
+          <AppText style={styles.congratsSubtitle}>
             Todas as palavras urgentes foram revistas. Pode agora praticar
             livremente.
-          </Text>
+          </AppText>
         </View>
       ) : (
         <View style={styles.summaryCard}>
-          <Text style={styles.scoreText}>
+          <AppText style={styles.scoreText}>
             Você acertou {numCorrect} de {totalWordsInRound} palavras!
-          </Text>
-          <Text style={styles.percentageText}>{scorePercentage}%</Text>
+          </AppText>
+          <AppText variant="bold" style={styles.percentageText}>
+            {scorePercentage}%
+          </AppText>
           <View style={styles.progressContainer}>
-            <Text style={styles.progressTitle}>
+            <AppText variant="medium" style={styles.progressTitle}>
               {sessionType === "urgent"
                 ? "Progresso da Revisão"
                 : "Progresso da Prática"}
-            </Text>
+            </AppText>
             <View style={styles.progressBarBackground}>
               <View
                 style={[
@@ -162,9 +166,9 @@ export default function SessionResults({
                 ]}
               />
             </View>
-            <Text
+            <AppText
               style={styles.progressLabel}
-            >{`${wordsPracticedInSession.size} / ${fullSessionWordPool.length}`}</Text>
+            >{`${wordsPracticedInSession.size} / ${fullSessionWordPool.length}`}</AppText>
           </View>
         </View>
       )}
@@ -172,12 +176,16 @@ export default function SessionResults({
       {/* Only show if user has incorrect words */}
       {wordsToReview.length > 0 && (
         <View style={styles.reviewSection}>
-          <Text style={styles.reviewTitle}>Palavras Erradas a Rever:</Text>
+          <AppText variant="bold" style={styles.reviewTitle}>
+            Palavras Erradas a Rever:
+          </AppText>
           <ScrollView style={styles.scrollView}>
             {wordsToReview.map((word) => (
               <View key={word.id} style={styles.wordItem}>
-                <Text style={styles.wordFront}>{word.name}</Text>
-                <Text style={styles.wordBack}>{word.meaning}</Text>
+                <AppText variant="medium" style={styles.wordFront}>
+                  {word.name}
+                </AppText>
+                <AppText style={styles.wordBack}>{word.meaning}</AppText>
               </View>
             ))}
           </ScrollView>
@@ -191,14 +199,18 @@ export default function SessionResults({
             style={[styles.button, styles.secondaryButton, styles.halfButton]}
             onPress={handleExit}
           >
-            <Text style={styles.secondaryButtonText}>Sair</Text>
+            <AppText variant="bold" style={styles.secondaryButtonText}>
+              Sair
+            </AppText>
           </TouchableOpacity>
           {!isSessionComplete && (
             <TouchableOpacity
               style={[styles.button, styles.primaryButton, styles.halfButton]}
               onPress={onPlayAgain}
             >
-              <Text style={styles.primaryButtonText}>Próxima Ronda</Text>
+              <AppText variant="bold" style={styles.primaryButtonText}>
+                Próxima Ronda
+              </AppText>
             </TouchableOpacity>
           )}
         </View>
@@ -217,42 +229,39 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.text,
     marginBottom: 20,
   },
   summaryCard: {
-    backgroundColor: "white",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 25,
     width: "100%",
     alignItems: "center",
     marginBottom: 30,
     elevation: 5,
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOpacity: 0.1,
     shadowRadius: 10,
   },
   scoreText: {
-    fontSize: 18,
-    color: "#333",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.text,
     marginBottom: 8,
   },
   percentageText: {
     fontSize: 42,
-    fontWeight: "bold",
-    color: "#4F8EF7",
+    color: theme.colors.primary,
   },
   congratsTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#2a9d8f",
+    fontSize: theme.fontSizes.xxl,
+    color: theme.colors.success,
     marginTop: 16,
   },
   congratsSubtitle: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
   },
@@ -261,30 +270,28 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reviewTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.text,
     marginBottom: 10,
   },
   scrollView: {
     width: "100%",
   },
   wordItem: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
     marginBottom: 8,
     borderLeftWidth: 4,
-    borderLeftColor: "#ff4d6d",
+    borderLeftColor: theme.colors.danger,
   },
   wordFront: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: theme.fontSizes.base,
   },
   wordBack: {
-    fontSize: 14,
-    color: "#666",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   actionsContainer: {
@@ -300,7 +307,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
@@ -310,54 +317,47 @@ const styles = StyleSheet.create({
     flex: 1,
     marginHorizontal: 8,
   },
-  practiceMistakesButton: {
-    backgroundColor: "#f4a261", // Orange color for high visibility
-    marginBottom: 16,
-  },
   primaryButton: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
   },
   primaryButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.base,
   },
   secondaryButton: {
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
   },
   secondaryButtonText: {
-    color: "#495057",
-    fontWeight: "bold",
-    fontSize: 16,
+    color: theme.colors.textMedium,
+    fontSize: theme.fontSizes.base,
   },
   progressContainer: {
     width: "100%",
     marginTop: 20,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
+    borderTopColor: theme.colors.borderLight,
   },
   progressTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#4a4e69",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
     textAlign: "center",
     marginBottom: 8,
   },
   progressBarBackground: {
     height: 12,
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
     borderRadius: 6,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     borderRadius: 6,
   },
   progressLabel: {
-    fontSize: 12,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 6,
   },

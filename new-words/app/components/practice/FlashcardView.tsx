@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
@@ -8,6 +8,8 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 export default function FlashcardView() {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -77,10 +79,14 @@ export default function FlashcardView() {
           style={[styles.card, styles.cardFront, frontAnimatedStyle]}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Palavra</Text>
-            <Text style={styles.cardText}>{currentWord.name}</Text>
+            <AppText variant="medium" style={styles.cardTitle}>
+              Palavra
+            </AppText>
+            <AppText variant="bold" style={styles.cardText}>
+              {currentWord.name}
+            </AppText>
           </View>
-          <Text style={styles.cardHint}>Toque para virar</Text>
+          <AppText style={styles.cardHint}>Toque para virar</AppText>
         </Animated.View>
 
         {/* Verso do Cartão */}
@@ -88,8 +94,12 @@ export default function FlashcardView() {
           style={[styles.card, styles.cardBack, backAnimatedStyle]}
         >
           <View style={styles.cardContent}>
-            <Text style={styles.cardTitle}>Significado</Text>
-            <Text style={styles.cardText}>{currentWord.meaning}</Text>
+            <AppText variant="medium" style={styles.cardTitle}>
+              Significado
+            </AppText>
+            <AppText variant="bold" style={styles.cardText}>
+              {currentWord.meaning}
+            </AppText>
           </View>
         </Animated.View>
       </TouchableOpacity>
@@ -100,13 +110,17 @@ export default function FlashcardView() {
             style={[styles.button, styles.incorrectButton]}
             onPress={() => handleAnswer(false)}
           >
-            <Text style={styles.buttonText}>Errei</Text>
+            <AppText variant="bold" style={styles.buttonText}>
+              Errei
+            </AppText>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.correctButton]}
             onPress={() => handleAnswer(true)}
           >
-            <Text style={styles.buttonText}>Acertei!</Text>
+            <AppText variant="bold" style={styles.buttonText}>
+              Acertei!
+            </AppText>
           </TouchableOpacity>
         </View>
       )}
@@ -123,7 +137,7 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: "100%",
     height: 320,
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -133,7 +147,7 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     height: 320,
-    backgroundColor: "white",
+    backgroundColor: theme.colors.surface,
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
@@ -150,23 +164,21 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#adb5bd",
+    color: theme.colors.textMuted,
     marginBottom: 16,
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   cardText: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#212529",
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.text,
     textAlign: "center",
   },
   cardHint: {
     position: "absolute",
     bottom: 20,
-    fontSize: 14,
-    color: "#ced4da",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMuted,
   },
   buttonContainer: {
     flexDirection: "row",
@@ -181,21 +193,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
   },
   incorrectButton: {
-    backgroundColor: "#ff4d6d",
+    backgroundColor: theme.colors.danger,
   },
   correctButton: {
-    backgroundColor: "#2a9d8f",
+    backgroundColor: theme.colors.success,
   },
   buttonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.base,
   },
 });

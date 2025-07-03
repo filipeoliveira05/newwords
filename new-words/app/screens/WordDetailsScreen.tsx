@@ -7,7 +7,6 @@ import React, {
 import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -29,6 +28,8 @@ import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import ChipInput from "../components/ChipInput";
 import WordEditModal from "../components/WordEditModal";
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
 
@@ -41,7 +42,7 @@ const masteryLevelText = {
 const formatNullableDate = (dateString: string | null) => {
   if (!dateString) return "N/A";
   try {
-    // Using parseISO to handle the ISO string format correctly
+    // Usar parseISO para lidar corretamente com o formato de string ISO
     return format(parseISO(dateString), "dd MMM yyyy, HH:mm", { locale: pt });
   } catch (e) {
     console.error("Failed to parse date:", e);
@@ -344,10 +345,10 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
       title: "", // Title is now in the custom header
       headerBackButtonDisplayMode: "minimal",
       headerStyle: {
-        backgroundColor: "#f8fafc",
+        backgroundColor: theme.colors.background,
       },
       headerShadowVisible: false, // Use this to hide shadow/border
-      headerTintColor: "#22223b",
+      headerTintColor: theme.colors.text,
       headerRight: () =>
         wordDetails && (
           <View style={styles.headerIconsContainer}>
@@ -369,20 +370,30 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
               <Ionicons
                 name={wordDetails.isFavorite ? "star" : "star-outline"}
                 size={24}
-                color={wordDetails.isFavorite ? "#FFD700" : "#a9a9a9"}
+                color={
+                  wordDetails.isFavorite ? "#FFD700" : theme.colors.iconMuted
+                }
               />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIcon}
               onPress={handleEditWord}
             >
-              <Ionicons name="pencil-outline" size={22} color="#495057" />
+              <Ionicons
+                name="pencil-outline"
+                size={22}
+                color={theme.colors.textMedium}
+              />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIcon}
               onPress={handleDeleteWord}
             >
-              <Ionicons name="trash-outline" size={22} color="#d11a2a" />
+              <Ionicons
+                name="trash-outline"
+                size={22}
+                color={theme.colors.dangerDark}
+              />
             </TouchableOpacity>
           </View>
         ),
@@ -392,7 +403,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#22223b" />
+        <ActivityIndicator size="large" color={theme.colors.text} />
       </View>
     );
   }
@@ -400,8 +411,12 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   if (!wordDetails) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Ionicons name="alert-circle-outline" size={60} color="#ced4da" />
-        <Text style={styles.errorText}>Palavra não encontrada.</Text>
+        <Ionicons
+          name="alert-circle-outline"
+          size={60}
+          color={theme.colors.iconMuted}
+        />
+        <AppText style={styles.errorText}>Palavra não encontrada.</AppText>
       </View>
     );
   }
@@ -416,24 +431,28 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wordHeader}>
-          <Text style={styles.wordName}>{wordDetails.name}</Text>
-          <Text style={styles.sectionContent}>{wordDetails.meaning}</Text>
+          <AppText variant="bold" style={styles.wordName}>
+            {wordDetails.name}
+          </AppText>
+          <AppText style={styles.sectionContent}>{wordDetails.meaning}</AppText>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Categoria Gramatical</Text>
+          <AppText variant="bold" style={styles.label}>
+            Categoria Gramatical
+          </AppText>
           <TouchableOpacity
             style={styles.categorySelector}
             onPress={() => setIsCategoryModalVisible(true)}
           >
-            <Text
+            <AppText
               style={
                 category ? styles.categoryText : styles.categoryPlaceholder
               }
             >
               {category || "Escolha uma categoria"}
-            </Text>
-            <Ionicons name="chevron-down" size={20} color="#6c757d" />
+            </AppText>
+            <Ionicons name="chevron-down" size={20} color={theme.colors.icon} />
           </TouchableOpacity>
         </View>
 
@@ -465,43 +484,57 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         />
 
         <View style={styles.section}>
-          <Text style={styles.label}>Estatísticas</Text>
+          <AppText variant="bold" style={styles.label}>
+            Estatísticas
+          </AppText>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Nível</Text>
-              <Text style={styles.statValue}>
+              <AppText style={styles.statLabel}>Nível</AppText>
+              <AppText variant="medium" style={styles.statValue}>
                 {masteryLevelText[wordDetails.masteryLevel]}
-              </Text>
+              </AppText>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Vezes Praticada</Text>
-              <Text style={styles.statValue}>{wordDetails.timesTrained}</Text>
+              <AppText style={styles.statLabel}>Vezes Praticada</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.timesTrained}
+              </AppText>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Respostas Corretas</Text>
-              <Text style={styles.statValue}>{wordDetails.timesCorrect}</Text>
+              <AppText style={styles.statLabel}>Respostas Corretas</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.timesCorrect}
+              </AppText>
             </View>
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Respostas Incorretas</Text>
-              <Text style={styles.statValue}>{wordDetails.timesIncorrect}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Última Resposta</Text>
-              <Text style={styles.statValue}>
-                {formatLastAnswer(wordDetails.lastAnswerCorrect ?? null)}
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>Última Prática</Text>
-              <Text style={styles.statValue}>
-                {formatNullableDate(wordDetails.lastTrained)}
-              </Text>
+              <AppText style={styles.statLabel}>Respostas Incorretas</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.timesIncorrect}
+              </AppText>
             </View>
             <View style={[styles.statItem, { borderBottomWidth: 0 }]}>
-              <Text style={styles.statLabel}>Data de Criação</Text>
-              <Text style={styles.statValue}>
+              <AppText style={styles.statLabel}>Data de Criação</AppText>
+              <AppText variant="medium" style={styles.statValue}>
                 {formatNullableDate(wordDetails.createdAt)}
-              </Text>
+              </AppText>
+            </View>
+            <View style={styles.statItem}>
+              <AppText style={styles.statLabel}>Última Prática</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {formatNullableDate(wordDetails.lastTrained)}
+              </AppText>
+            </View>
+            <View style={styles.statItem}>
+              <AppText style={styles.statLabel}>Última Resposta</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {formatLastAnswer(wordDetails.lastAnswerCorrect ?? null)}
+              </AppText>
+            </View>
+            <View style={styles.statItem}>
+              <AppText style={styles.statLabel}>Próxima Prática</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {formatNullableDate(wordDetails.nextReviewDate)}
+              </AppText>
             </View>
           </View>
         </View>
@@ -518,7 +551,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           onPressOut={() => setIsCategoryModalVisible(false)}
         >
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Escolha uma Categoria</Text>
+            <AppText variant="bold" style={styles.modalTitle}>
+              Escolha uma Categoria
+            </AppText>
             {CATEGORIES.map((cat) => (
               <TouchableOpacity
                 key={cat}
@@ -528,14 +563,16 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
                   setIsCategoryModalVisible(false);
                 }}
               >
-                <Text style={styles.modalOptionText}>{cat}</Text>
+                <AppText style={styles.modalOptionText}>{cat}</AppText>
               </TouchableOpacity>
             ))}
             <TouchableOpacity
               style={[styles.modalOption, styles.modalCancelButton]}
               onPress={() => setIsCategoryModalVisible(false)}
             >
-              <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+              <AppText variant="medium" style={styles.modalCancelButtonText}>
+                Cancelar
+              </AppText>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -557,9 +594,11 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
             disabled={isSaving}
           >
             {isSaving ? (
-              <ActivityIndicator color="#fff" />
+              <ActivityIndicator color={theme.colors.surface} />
             ) : (
-              <Text style={styles.saveBarButtonText}>Guardar Alterações</Text>
+              <AppText variant="bold" style={styles.saveBarButtonText}>
+                Guardar Alterações
+              </AppText>
             )}
           </TouchableOpacity>
         </View>
@@ -571,7 +610,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   centerContent: {
     flex: 1,
@@ -586,26 +625,24 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     paddingBottom: 24,
     borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
+    borderBottomColor: theme.colors.border,
   },
   wordName: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["4xl"],
+    color: theme.colors.text,
     marginBottom: 10,
   },
   section: {
     marginBottom: 24,
   },
   sectionContent: {
-    fontSize: 16,
+    fontSize: theme.fontSizes.base,
     lineHeight: 24,
-    color: "#495057",
+    color: theme.colors.textMedium,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     marginBottom: 8,
     textTransform: "uppercase",
   },
@@ -613,28 +650,28 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     padding: 16,
   },
   categoryText: {
-    fontSize: 16,
-    color: "#222",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
   },
   categoryPlaceholder: {
-    fontSize: 16,
-    color: "#999",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.placeholder,
   },
   errorText: {
-    fontSize: 18,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textSecondary,
     marginTop: 16,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: theme.colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -642,42 +679,40 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: "100%",
     maxWidth: 320,
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 8,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.text,
     textAlign: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e9ecef",
+    borderBottomColor: theme.colors.border,
   },
   modalOption: {
     paddingVertical: 16,
     alignItems: "center",
   },
   modalOptionText: {
-    fontSize: 17,
-    color: "#4F8EF7",
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.primary,
   },
   modalCancelButton: {
     borderTopWidth: 1,
-    borderTopColor: "#e9ecef",
+    borderTopColor: theme.colors.border,
     marginTop: 8,
   },
   modalCancelButtonText: {
-    fontSize: 17,
-    color: "#e76f51",
-    fontWeight: "600",
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.danger,
   },
   statsContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     paddingHorizontal: 16,
   },
   statItem: {
@@ -686,16 +721,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f1f1",
+    borderBottomColor: theme.colors.borderLight,
   },
   statLabel: {
-    fontSize: 15,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
   statValue: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#22223b",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.text,
     textAlign: "right",
     flexShrink: 1,
     marginLeft: 8,
@@ -719,9 +753,9 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 16,
     paddingBottom: 24, // Extra padding for home bar on iOS
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: "#e9ecef",
+    borderTopColor: theme.colors.border,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
@@ -729,15 +763,14 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   saveBarButton: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
   },
   saveBarButtonText: {
-    color: "#fff",
-    fontSize: 17,
-    fontWeight: "bold",
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.md,
   },
 });
 

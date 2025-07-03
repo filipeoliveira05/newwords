@@ -1,6 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 export default function ProgressBar() {
   const wordsPracticedInSession = usePracticeStore(
@@ -25,10 +27,12 @@ export default function ProgressBar() {
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
-        <Text style={styles.progressTitle}>{progressTitle}</Text>
-        <Text style={styles.progressText}>
+        <AppText variant="medium" style={styles.progressTitle}>
+          {progressTitle}
+        </AppText>
+        <AppText variant="medium" style={styles.progressText}>
           {wordsPracticedCount} / {totalWordsInPool}
-        </Text>
+        </AppText>
       </View>
       <View style={styles.barBackground}>
         <View style={[styles.barFill, { width: `${progressPercentage}%` }]} />
@@ -50,25 +54,23 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
   progressText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#4a4e69",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
   },
   barBackground: {
     width: "100%",
     height: 12,
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
     borderRadius: 6,
     overflow: "hidden",
   },
   barFill: {
     height: "100%",
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     borderRadius: 6,
   },
 });

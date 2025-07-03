@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AppText from "./AppText";
+import { theme } from "../theme";
 
 type ChipInputProps = {
   label: string;
@@ -47,12 +43,14 @@ const ChipInput = ({
   return (
     <View style={styles.section}>
       <View style={styles.labelContainer}>
-        <Text style={styles.label}>{label}</Text>
+        <AppText variant="bold" style={styles.label}>
+          {label}
+        </AppText>
         <TouchableOpacity onPress={toggleInput} style={styles.toggleButton}>
           <Ionicons
             name={isAdding ? "remove-circle-outline" : "add-circle-outline"}
             size={24}
-            color="#4F8EF7"
+            color={theme.colors.primary}
           />
         </TouchableOpacity>
       </View>
@@ -63,7 +61,7 @@ const ChipInput = ({
             value={currentValue}
             onChangeText={setCurrentValue}
             placeholder={placeholder}
-            placeholderTextColor="#999"
+            placeholderTextColor={theme.colors.placeholder}
             onSubmitEditing={handleAddItem}
             blurOnSubmit={false}
             autoFocus
@@ -71,7 +69,11 @@ const ChipInput = ({
             multiline={layout === "stack"}
           />
           <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-            <Ionicons name="checkmark-circle" size={28} color="#2a9d8f" />
+            <Ionicons
+              name="checkmark-circle"
+              size={28}
+              color={theme.colors.success}
+            />
           </TouchableOpacity>
         </View>
       )}
@@ -83,24 +85,30 @@ const ChipInput = ({
               key={index}
               style={layout === "wrap" ? styles.chipWrap : styles.chipStack}
             >
-              <Text
+              <AppText
                 style={
                   layout === "wrap" ? styles.chipTextWrap : styles.chipTextStack
                 }
               >
                 {item}
-              </Text>
+              </AppText>
               <TouchableOpacity
                 onPress={() => handleRemoveItem(index)}
                 style={styles.removeButton}
               >
-                <Ionicons name="close-circle" size={20} color="#6c757d" />
+                <Ionicons
+                  name="close-circle"
+                  size={20}
+                  color={theme.colors.icon}
+                />
               </TouchableOpacity>
             </View>
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyChipText}>Nenhum item adicionado.</Text>
+            <AppText style={styles.emptyChipText}>
+              Nenhum item adicionado.
+            </AppText>
           </View>
         )}
       </View>
@@ -117,9 +125,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textTransform: "uppercase",
   },
   toggleButton: {
@@ -128,14 +135,20 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     paddingLeft: 16,
     marginBottom: 12,
   },
-  input: { flex: 1, fontSize: 16, color: "#222", paddingVertical: 14 },
+  input: {
+    flex: 1,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
+    paddingVertical: 14,
+    fontFamily: theme.fonts.regular,
+  },
   addButton: { padding: 12 },
   chipContainerWrap: {
     flexDirection: "row",
@@ -145,7 +158,7 @@ const styles = StyleSheet.create({
   chipWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
     borderRadius: 20,
     paddingVertical: 8,
     paddingLeft: 15,
@@ -156,18 +169,22 @@ const styles = StyleSheet.create({
   chipStack: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
-  chipTextWrap: { fontSize: 14, color: "#495057", marginRight: 8 },
+  chipTextWrap: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
+    marginRight: 8,
+  },
   chipTextStack: {
     flex: 1,
-    fontSize: 15,
-    color: "#495057",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
     lineHeight: 22,
     marginRight: 12,
   },
@@ -177,7 +194,11 @@ const styles = StyleSheet.create({
   emptyContainer: {
     marginTop: 8,
   },
-  emptyChipText: { color: "#adb5bd", fontStyle: "italic", fontSize: 14 },
+  emptyChipText: {
+    color: theme.colors.textMuted,
+    fontStyle: "italic",
+    fontSize: theme.fontSizes.sm,
+  },
 });
 
 export default ChipInput;

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   Modal,
   TouchableOpacity,
@@ -12,6 +11,8 @@ import {
   Pressable,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AppText from "./AppText";
+import { theme } from "../theme";
 
 interface WordEditModalProps {
   isVisible: boolean;
@@ -63,17 +64,17 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
         <View style={styles.modalContainer}>
           <View style={styles.modalHandle} />
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>
+            <AppText variant="bold" style={styles.modalTitle}>
               {isEditMode ? "Editar Palavra" : "Nova Palavra"}
-            </Text>
+            </AppText>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color="#6c757d" />
+              <Ionicons name="close" size={24} color={theme.colors.icon} />
             </TouchableOpacity>
           </View>
 
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>PALAVRA</Text>
+              <AppText style={styles.label}>PALAVRA</AppText>
               <Pressable
                 style={styles.inputContainer}
                 onPress={() => nameInputRef.current?.focus()}
@@ -89,14 +90,14 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                   value={name}
                   onChangeText={setName}
                   placeholder="Ex: Apple"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={theme.colors.placeholder}
                   autoCapitalize="none"
                 />
               </Pressable>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>SIGNIFICADO</Text>
+              <AppText style={styles.label}>SIGNIFICADO</AppText>
               <Pressable
                 style={styles.inputContainer}
                 onPress={() => meaningInputRef.current?.focus()}
@@ -112,7 +113,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                   value={meaning}
                   onChangeText={setMeaning}
                   placeholder="Ex: Maçã"
-                  placeholderTextColor="#999"
+                  placeholderTextColor={theme.colors.placeholder}
                   autoCapitalize="none"
                 />
               </Pressable>
@@ -127,9 +128,9 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
             {isSaving ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.saveButtonText}>
+              <AppText variant="bold" style={styles.saveButtonText}>
                 {isEditMode ? "Guardar Alterações" : "Adicionar Palavra"}
-              </Text>
+              </AppText>
             )}
           </TouchableOpacity>
         </View>
@@ -141,11 +142,11 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: theme.colors.overlay,
     justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -154,7 +155,7 @@ const styles = StyleSheet.create({
   modalHandle: {
     width: 40,
     height: 5,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.border,
     borderRadius: 2.5,
     alignSelf: "center",
     marginBottom: 16,
@@ -165,14 +166,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  modalTitle: { fontSize: 22, fontWeight: "bold", color: "#22223b" },
+  modalTitle: { fontSize: theme.fontSizes.xxl },
   closeButton: { padding: 8 },
   form: { marginBottom: 24 },
   inputGroup: { marginBottom: 24 },
   label: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textMuted,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -180,30 +180,35 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     paddingHorizontal: 16,
   },
-  inputIcon: { color: "#adb5bd", marginRight: 12 },
-  input: { flex: 1, fontSize: 16, color: "#222", paddingVertical: 14 },
+  inputIcon: { color: theme.colors.textMuted, marginRight: 12 },
+  input: {
+    flex: 1,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
+    paddingVertical: 14,
+    fontFamily: theme.fonts.regular,
+  },
   saveButton: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: "center",
-    shadowColor: "#4F8EF7",
+    shadowColor: theme.colors.primary,
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
-  buttonDisabled: { backgroundColor: "#a9c7f5" },
+  buttonDisabled: { backgroundColor: theme.colors.disabled },
   saveButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 17,
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.md,
     letterSpacing: 0.5,
   },
 });

@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  BackHandler,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity, BackHandler } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -14,6 +8,8 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { useAlertStore, AlertButton } from "@/stores/useAlertStore";
+import AppText from "./AppText";
+import { theme } from "../theme";
 
 const CustomAlert = () => {
   const { isVisible, title, message, buttons, hideAlert } = useAlertStore();
@@ -98,8 +94,10 @@ const CustomAlert = () => {
   return (
     <Animated.View style={[styles.overlay, animatedOverlayStyle]}>
       <Animated.View style={[styles.container, animatedContainerStyle]}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.message}>{message}</Text>
+        <AppText variant="bold" style={styles.title}>
+          {title}
+        </AppText>
+        <AppText style={styles.message}>{message}</AppText>
         <View style={styles.buttonContainer}>
           {buttons.map((button, index) => (
             <React.Fragment key={index}>
@@ -107,11 +105,12 @@ const CustomAlert = () => {
                 style={styles.button}
                 onPress={() => handleButtonPress(button)}
               >
-                <Text
+                <AppText
+                  variant="bold"
                   style={[styles.buttonText, getButtonTextStyle(button.style)]}
                 >
                   {button.text}
-                </Text>
+                </AppText>
               </TouchableOpacity>
               {index < buttons.length - 1 && (
                 <View style={styles.buttonSeparator} />
@@ -129,7 +128,7 @@ export default CustomAlert;
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    backgroundColor: theme.colors.overlay,
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -138,50 +137,46 @@ const styles = StyleSheet.create({
   container: {
     width: "100%",
     maxWidth: 320,
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    paddingTop: 24, // Padding superior
+    paddingTop: 24,
     alignItems: "center",
-    overflow: "hidden", // Garante que o borderRadius se aplica aos filhos
+    overflow: "hidden",
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.xl,
+    color: theme.colors.text,
     marginBottom: 8,
     textAlign: "center",
-    paddingHorizontal: 24, // Padding para o texto não colar às bordas
+    paddingHorizontal: 24,
   },
   message: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginBottom: 24,
-    paddingHorizontal: 24, // Padding para o texto não colar às bordas
+    paddingHorizontal: 24,
   },
   buttonContainer: {
     flexDirection: "row",
     width: "100%",
     borderTopWidth: 1,
-    borderTopColor: "#e9ecef",
+    borderTopColor: theme.colors.border,
   },
   button: {
     flex: 1,
     paddingVertical: 14,
     alignItems: "center",
   },
-  buttonText: {
-    fontSize: 17,
-    fontWeight: "600",
-  },
+  buttonText: { fontSize: theme.fontSizes.md },
   buttonTextDefault: {
-    color: "#4F8EF7",
+    color: theme.colors.primary,
   },
   buttonTextDestructive: {
-    color: "#ef4444",
+    color: theme.colors.danger,
   },
   buttonSeparator: {
     width: 1,
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
   },
 });

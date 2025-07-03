@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  Text,
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
@@ -11,6 +10,8 @@ import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { Word } from "@/types/database";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 export default function MultipleChoiceView() {
   const currentWord = usePracticeStore((state) => state.getCurrentWord());
@@ -69,21 +70,21 @@ export default function MultipleChoiceView() {
 
   const getButtonStyle = (optionId: number) => {
     if (!isAnswered) {
-      return styles.optionButton;
+      return styles.optionButton; // Default style
     }
     if (optionId === currentWord?.id) {
-      return [styles.optionButton, styles.correctOption];
+      return [styles.optionButton, styles.correctOption]; // Correct answer
     }
     if (optionId === selectedOptionId) {
-      return [styles.optionButton, styles.incorrectOption];
+      return [styles.optionButton, styles.incorrectOption]; // User's wrong choice
     }
-    return [styles.optionButton, styles.disabledOption];
+    return [styles.optionButton, styles.disabledOption]; // Other options
   };
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F8EF7" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -91,7 +92,7 @@ export default function MultipleChoiceView() {
   if (!currentWord) {
     return (
       <View style={styles.container}>
-        <Text>Fim da ronda!</Text>
+        <AppText>Fim da ronda!</AppText>
       </View>
     );
   }
@@ -99,8 +100,10 @@ export default function MultipleChoiceView() {
   return (
     <View style={styles.container}>
       <View style={styles.questionContainer}>
-        <Text style={styles.questionLabel}>Qual o significado de:</Text>
-        <Text style={styles.wordText}>{currentWord.name}</Text>
+        <AppText style={styles.questionLabel}>Qual o significado de:</AppText>
+        <AppText variant="bold" style={styles.wordText}>
+          {currentWord.name}
+        </AppText>
       </View>
 
       <View style={styles.optionsContainer}>
@@ -111,7 +114,7 @@ export default function MultipleChoiceView() {
             onPress={() => handleAnswer(option)}
             disabled={isAnswered}
           >
-            <Text style={styles.optionText}>{option.meaning}</Text>
+            <AppText style={styles.optionText}>{option.meaning}</AppText>
           </TouchableOpacity>
         ))}
       </View>
@@ -134,27 +137,26 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 30,
     width: "100%",
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
   questionLabel: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginBottom: 8,
   },
   wordText: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["4xl"],
+    color: theme.colors.text,
     textAlign: "center",
   },
   optionsContainer: {
@@ -162,27 +164,26 @@ const styles = StyleSheet.create({
     marginTop: 32, // Reduz a margem para aproximar as opções
   },
   optionButton: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     padding: 20,
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 2,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     alignItems: "center",
   },
   optionText: {
-    fontSize: 18,
-    fontWeight: "500",
-    color: "#495057",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
     textAlign: "center",
   },
   correctOption: {
-    backgroundColor: "#d1fae5",
-    borderColor: "#10b981",
+    backgroundColor: theme.colors.successLight,
+    borderColor: theme.colors.success,
   },
   incorrectOption: {
-    backgroundColor: "#fee2e2",
-    borderColor: "#ef4444",
+    backgroundColor: theme.colors.dangerLight,
+    borderColor: theme.colors.danger,
   },
   disabledOption: {
     opacity: 0.5,

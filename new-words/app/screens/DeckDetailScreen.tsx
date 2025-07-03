@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
@@ -22,6 +21,8 @@ import { Word } from "../../types/database";
 import { HomeStackParamList, RootTabParamList } from "../../types/navigation";
 import WordOverview from "../components/WordOverview";
 import WordEditModal from "../components/WordEditModal";
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 const EMPTY_WORDS_ARRAY: Word[] = [];
 
@@ -159,7 +160,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             style={styles.headerButton}
             onPress={() => setSortModalVisible(true)}
           >
-            <Ionicons name="swap-vertical-outline" size={24} color="#495057" />
+            <Ionicons
+              name="swap-vertical-outline"
+              size={24}
+              color={theme.colors.textMedium}
+            />
           </TouchableOpacity>
           {/* Futuramente, outros ícones (filtrar, editar, etc.) podem ser adicionados aqui */}
         </View>
@@ -384,8 +389,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color="#4F8EF7" />
-          <Text style={styles.emptyText}>A carregar palavras...</Text>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+          <AppText style={styles.emptyText}>A carregar palavras...</AppText>
         </View>
       );
     }
@@ -393,23 +398,35 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     if (searchQuery) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons name="search-circle-outline" size={60} color="#ced4da" />
-          <Text style={styles.emptyTitle}>Nenhum resultado</Text>
-          <Text style={styles.emptySubtitle}>
+          <Ionicons
+            name="search-circle-outline"
+            size={60}
+            color={theme.colors.iconMuted}
+          />
+          <AppText variant="bold" style={styles.emptyTitle}>
+            Nenhum resultado
+          </AppText>
+          <AppText style={styles.emptySubtitle}>
             Não encontrámos palavras para `{searchQuery}`.
-          </Text>
+          </AppText>
         </View>
       );
     }
 
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="document-text-outline" size={60} color="#ced4da" />
-        <Text style={styles.emptyTitle}>Nenhuma palavra ainda</Text>
-        <Text style={styles.emptySubtitle}>
+        <Ionicons
+          name="document-text-outline"
+          size={60}
+          color={theme.colors.iconMuted}
+        />
+        <AppText variant="bold" style={styles.emptyTitle}>
+          Nenhuma palavra ainda
+        </AppText>
+        <AppText style={styles.emptySubtitle}>
           Este conjunto está vazio. Adicione a sua primeira palavra para começar
           a aprender.
-        </Text>
+        </AppText>
         <TouchableOpacity
           style={styles.emptyButton}
           onPress={() => {
@@ -417,8 +434,10 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             setIsModalVisible(true);
           }}
         >
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.emptyButtonText}>Adicionar Palavra</Text>
+          <Ionicons name="add" size={20} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.emptyButtonText}>
+            Adicionar Palavra
+          </AppText>
         </TouchableOpacity>
       </View>
     );
@@ -427,21 +446,31 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Text style={styles.deckTitle}>{title}</Text>
-        <Text style={styles.deckAuthor}>por {author}</Text>
+        <AppText variant="bold" style={styles.deckTitle}>
+          {title}
+        </AppText>
+        <AppText style={styles.deckAuthor}>por {author}</AppText>
         <View style={styles.searchBarContainer}>
-          <Ionicons name="search-outline" size={20} color="#9e9e9e" />
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color={theme.colors.placeholder}
+          />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
             autoCapitalize="none"
             onChangeText={setSearchQuery}
             placeholder="Procurar por palavra ou significado..."
-            placeholderTextColor="#9e9e9e"
+            placeholderTextColor={theme.colors.placeholder}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9e9e9e" />
+              <Ionicons
+                name="close-circle"
+                size={20}
+                color={theme.colors.placeholder}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -449,21 +478,30 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <View style={styles.legendContainer}>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: "#adb5bd" }]}
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: theme.colors.mastery.new },
+                ]}
               />
-              <Text style={styles.legendLabel}>Nova</Text>
+              <AppText style={styles.legendLabel}>Nova</AppText>
             </View>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: "#f4a261" }]}
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: theme.colors.mastery.learning },
+                ]}
               />
-              <Text style={styles.legendLabel}>Em Aprendizagem</Text>
+              <AppText style={styles.legendLabel}>Em Aprendizagem</AppText>
             </View>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: "#2a9d8f" }]}
+                style={[
+                  styles.legendDot,
+                  { backgroundColor: theme.colors.mastery.mastered },
+                ]}
               />
-              <Text style={styles.legendLabel}>Dominada</Text>
+              <AppText style={styles.legendLabel}>Dominada</AppText>
             </View>
           </View>
         )}
@@ -505,7 +543,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             onPress={() => setPracticeModalVisible(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="flash" size={28} color="#fff" />
+            <Ionicons name="flash" size={28} color={theme.colors.surface} />
           </TouchableOpacity>
         )}
         {wordsForCurrentDeck.length > 0 && (
@@ -517,7 +555,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={32} color="#fff" />
+            <Ionicons name="add" size={32} color={theme.colors.surface} />
           </TouchableOpacity>
         )}
       </View>
@@ -545,12 +583,14 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Escolha um Modo</Text>
+              <AppText variant="bold" style={styles.modalTitle}>
+                Escolha um Modo
+              </AppText>
               <TouchableOpacity
                 onPress={() => setPracticeModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color="#6c757d" />
+                <Ionicons name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
 
@@ -564,10 +604,12 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 style={styles.modeIcon}
               />
               <View>
-                <Text style={styles.modeTitle}>Revisão Clássica</Text>
-                <Text style={styles.modeDescription}>
+                <AppText variant="bold" style={styles.modeTitle}>
+                  Revisão Clássica
+                </AppText>
+                <AppText style={styles.modeDescription}>
                   Flashcards simples: veja a palavra, adivinhe o significado.
-                </Text>
+                </AppText>
               </View>
             </TouchableOpacity>
 
@@ -577,10 +619,12 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             >
               <Ionicons name="list-outline" size={24} style={styles.modeIcon} />
               <View>
-                <Text style={styles.modeTitle}>Escolha Múltipla</Text>
-                <Text style={styles.modeDescription}>
+                <AppText variant="bold" style={styles.modeTitle}>
+                  Escolha Múltipla
+                </AppText>
+                <AppText style={styles.modeDescription}>
                   Escolha o significado correto entre 4 opções.
-                </Text>
+                </AppText>
               </View>
             </TouchableOpacity>
 
@@ -594,10 +638,12 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 style={styles.modeIcon}
               />
               <View>
-                <Text style={styles.modeTitle}>Jogo da Escrita</Text>
-                <Text style={styles.modeDescription}>
+                <AppText variant="bold" style={styles.modeTitle}>
+                  Jogo da Escrita
+                </AppText>
+                <AppText style={styles.modeDescription}>
                   Nós mostramos o significado, você escreve a palavra.
-                </Text>
+                </AppText>
               </View>
             </TouchableOpacity>
           </View>
@@ -619,12 +665,14 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <View style={styles.modalContainer}>
             <View style={styles.modalHandle} />
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Ordenar Por</Text>
+              <AppText variant="bold" style={styles.modalTitle}>
+                Ordenar Por
+              </AppText>
               <TouchableOpacity
                 onPress={() => setSortModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color="#6c757d" />
+                <Ionicons name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 400 }}>
@@ -634,7 +682,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                   style={styles.sortOptionButton}
                   onPress={() => handleSortSelect(option)}
                 >
-                  <Text
+                  <AppText
                     style={[
                       styles.sortOptionText,
                       sortConfig.criterion === option.criterion &&
@@ -643,7 +691,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                     ]}
                   >
                     {option.label}
-                  </Text>
+                  </AppText>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -657,7 +705,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   listContentContainer: {
     flexGrow: 1,
@@ -668,16 +716,14 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 16,
     paddingHorizontal: 16,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   deckTitle: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["3xl"],
   },
   deckAuthor: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
   legendContainer: {
@@ -698,25 +744,26 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   legendLabel: {
-    fontSize: 12,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textSecondary,
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     paddingHorizontal: 16,
     marginTop: 24,
     height: 50,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
-    color: "#222",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
     marginLeft: 12,
+    fontFamily: theme.fonts.regular,
   },
   emptyContainer: {
     flex: 1,
@@ -726,14 +773,13 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#495057",
+    fontSize: theme.fontSizes.xl,
+    color: theme.colors.textMedium,
     marginTop: 16,
   },
   emptySubtitle: {
-    fontSize: 16,
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: 8,
     marginBottom: 24,
@@ -741,21 +787,20 @@ const styles = StyleSheet.create({
   },
   emptyButton: {
     flexDirection: "row",
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
     alignItems: "center",
   },
   emptyButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.base,
     marginLeft: 8,
   },
   emptyText: {
     marginTop: 10,
-    color: "#6c757d",
+    color: theme.colors.textSecondary,
   },
   fabContainer: {
     position: "absolute",
@@ -770,29 +815,29 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 8,
+    elevation: 4,
     shadowColor: "#000",
     shadowOpacity: 0.3,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
   practiceFab: {
-    backgroundColor: "#f4a261", // Orange, like in stats
+    backgroundColor: theme.colors.challenge,
     marginRight: 16,
     width: 56,
     height: 56,
     borderRadius: 28,
   },
   addFab: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: theme.colors.overlay,
     justifyContent: "flex-end", // Alinha o modal na parte inferior
   },
   modalContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -801,7 +846,7 @@ const styles = StyleSheet.create({
   modalHandle: {
     width: 40,
     height: 5,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.border,
     borderRadius: 2.5,
     alignSelf: "center",
     marginBottom: 16,
@@ -813,9 +858,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalTitle: {
-    fontSize: 22,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.xxl,
   },
   closeButton: {
     padding: 8,
@@ -823,40 +866,38 @@ const styles = StyleSheet.create({
   modeButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
     padding: 16,
     borderRadius: 12,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
   modeIcon: {
     color: "#4F8EF7",
     marginRight: 16,
   },
   modeTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.base,
   },
   modeDescription: {
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   sortOptionButton: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f1f1",
+    borderBottomColor: theme.colors.borderLight,
   },
   sortOptionText: {
-    fontSize: 16,
-    color: "#495057",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMedium,
     textAlign: "center",
   },
   sortOptionTextActive: {
-    color: "#4F8EF7",
-    fontWeight: "bold",
+    color: theme.colors.primary,
+    fontFamily: theme.fonts.bold,
   },
   headerRightContainer: {
     flexDirection: "row",

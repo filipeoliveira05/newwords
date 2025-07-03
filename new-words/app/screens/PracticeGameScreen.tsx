@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -29,6 +28,8 @@ import FlashcardView from "../components/practice/FlashcardView";
 import MultipleChoiceView from "../components/practice/MultipleChoiceView";
 import WritingView from "../components/practice/WritingView";
 import SessionResults from "../components/practice/SessionResults";
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 type Props = {
   route: RouteProp<PracticeStackParamList, "PracticeGame">;
@@ -52,9 +53,11 @@ const GameHeader = ({
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top + 15 }]}>
       <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color="#4a4e69" />
+        <Ionicons name="arrow-back" size={24} color={theme.colors.textMedium} />
       </TouchableOpacity>
-      <Text style={styles.headerTitle}>{gameModeTitles[mode]}</Text>
+      <AppText variant="bold" style={styles.headerTitle}>
+        {gameModeTitles[mode]}
+      </AppText>
       <View style={styles.headerRight}>
         <StreakCounter />
       </View>
@@ -187,8 +190,10 @@ export default function PracticeGameScreen({ route }: Props) {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4F8EF7" />
-        <Text style={styles.loadingText}>A preparar a sua sessão...</Text>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText variant="bold" style={styles.loadingText}>
+          A preparar a sua sessão...
+        </AppText>
       </View>
     );
   }
@@ -225,25 +230,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: "#f0f4f8",
+    backgroundColor: theme.colors.background,
     paddingTop: 100, // Increased padding to create more space for the absolute header
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f0f4f8",
+    backgroundColor: theme.colors.background,
   },
   loadingText: {
     marginTop: 20,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4a4e69",
-  },
-  loadingSubText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
   },
   headerContainer: {
     width: "100%",
@@ -262,9 +261,8 @@ const styles = StyleSheet.create({
     padding: 8, // Larger touch area
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#4a4e69",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
   },
   headerRight: {
     minWidth: 40, // Approx width of back button to keep title centered

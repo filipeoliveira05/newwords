@@ -1,6 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 type DailyGoalProgressProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -23,19 +25,23 @@ const DailyGoalProgress = ({
       <Ionicons
         name={isCompleted ? "checkmark-circle" : icon}
         size={24}
-        color={isCompleted ? "#2a9d8f" : "#495057"}
+        color={isCompleted ? theme.colors.success : theme.colors.textMedium}
         style={styles.icon}
       />
       <View style={styles.details}>
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, isCompleted && styles.completedText]}>
+          <AppText
+            variant="medium"
+            style={[styles.title, isCompleted && styles.completedText]}
+          >
             {title}
-          </Text>
-          <Text
+          </AppText>
+          <AppText
+            variant={isCompleted ? "bold" : "regular"}
             style={[styles.progressText, isCompleted && styles.completedText]}
           >
             {Math.min(current, target)} / {target}
-          </Text>
+          </AppText>
         </View>
         <View style={styles.progressBarBackground}>
           <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
@@ -54,18 +60,21 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  title: { fontSize: 15, fontWeight: "500", color: "#495057" },
-  progressText: { fontSize: 14, color: "#6c757d" },
-  completedText: { color: "#2a9d8f", fontWeight: "bold" },
+  title: { fontSize: theme.fontSizes.sm, color: theme.colors.textMedium },
+  progressText: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
+  },
+  completedText: { color: theme.colors.success },
   progressBarBackground: {
     height: 8,
-    backgroundColor: "#e9ecef",
+    backgroundColor: theme.colors.border,
     borderRadius: 4,
     overflow: "hidden",
   },
   progressBarFill: {
     height: "100%",
-    backgroundColor: "#2a9d8f",
+    backgroundColor: theme.colors.success,
     borderRadius: 4,
   },
 });

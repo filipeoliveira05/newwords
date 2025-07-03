@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Menu,
@@ -7,6 +7,8 @@ import {
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
+import AppText from "./AppText";
+import { theme } from "../theme";
 
 type DeckOverviewProps = {
   title: string;
@@ -36,17 +38,23 @@ export default function DeckOverview({
     >
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons name="albums-outline" size={28} color="#4F8EF7" />
+          <Ionicons
+            name="albums-outline"
+            size={28}
+            color={theme.colors.primary}
+          />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={2}>
+          <AppText variant="bold" style={styles.title} numberOfLines={2}>
             {title}
-          </Text>
-          <Text style={styles.author}>por {author}</Text>
+          </AppText>
+          <AppText style={styles.author}>por {author}</AppText>
         </View>
       </View>
       <View style={styles.footer}>
-        <Text style={styles.words}>{totalWords} palavras</Text>
+        <AppText variant="medium" style={styles.words}>
+          {totalWords} palavras
+        </AppText>
         <Menu>
           <MenuTrigger
             customStyles={{
@@ -54,19 +62,23 @@ export default function DeckOverview({
               triggerWrapper: styles.menuTrigger,
             }}
           >
-            <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
+            <Ionicons
+              name="ellipsis-vertical"
+              size={22}
+              color={theme.colors.icon}
+            />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
             <MenuOption onSelect={onAddWord}>
               <View style={styles.menuItem}>
-                <Ionicons name="add" size={20} color="#222" />
-                <Text style={styles.menuText}>Adicionar palavra</Text>
+                <Ionicons name="add" size={20} color={theme.colors.text} />
+                <AppText style={styles.menuText}>Adicionar palavra</AppText>
               </View>
             </MenuOption>
             <MenuOption onSelect={onEdit}>
               <View style={styles.menuItem}>
-                <Ionicons name="pencil" size={18} color="#222" />
-                <Text style={styles.menuText}>Editar detalhes</Text>
+                <Ionicons name="pencil" size={18} color={theme.colors.text} />
+                <AppText style={styles.menuText}>Editar detalhes</AppText>
               </View>
             </MenuOption>
 
@@ -74,10 +86,16 @@ export default function DeckOverview({
 
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
-                <Ionicons name="trash" size={18} color="#d11a2a" />
-                <Text style={[styles.menuText, { color: "#d11a2a" }]}>
+                <Ionicons
+                  name="trash"
+                  size={18}
+                  color={theme.colors.dangerDark}
+                />
+                <AppText
+                  style={[styles.menuText, { color: theme.colors.dangerDark }]}
+                >
                   Apagar
-                </Text>
+                </AppText>
               </View>
             </MenuOption>
           </MenuOptions>
@@ -89,7 +107,7 @@ export default function DeckOverview({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     marginVertical: 8,
     padding: 20,
@@ -108,7 +126,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 12,
-    backgroundColor: "#e8f0fe",
+    backgroundColor: theme.colors.primaryLighter,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -117,13 +135,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 17,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.text,
   },
   author: {
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
     marginTop: 2,
   },
   footer: {
@@ -131,13 +148,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: "#f1f1f1",
+    borderTopColor: theme.colors.borderLight,
     paddingTop: 16,
   },
   words: {
-    fontSize: 14,
-    color: "#495057",
-    fontWeight: "500",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
   },
   menuTrigger: {
     padding: 8,
@@ -156,12 +172,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuText: {
-    fontSize: 15,
-    color: "#222",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.text,
     marginLeft: 12,
   },
   separator: {
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.border,
   },
 });

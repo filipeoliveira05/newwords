@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from "react";
 import {
-  Text,
   View,
   StyleSheet,
   ScrollView,
@@ -34,6 +33,8 @@ import { allPossibleDailyGoals, DailyGoal } from "../../config/dailyGoals";
 import DailyGoalProgress from "../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../../config/achievements";
 import AchievementBadge from "../components/stats/AchievementBadge";
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 // Define the type for the marked dates object locally.
 // This is necessary because the version of `react-native-calendars`
@@ -268,8 +269,8 @@ export default function StatsScreen() {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#22223b" />
-        <Text style={styles.loadingText}>A calcular estatísticas...</Text>
+        <ActivityIndicator size="large" color={theme.colors.text} />
+        <AppText style={styles.loadingText}>A calcular estatísticas...</AppText>
       </View>
     );
   }
@@ -279,7 +280,9 @@ export default function StatsScreen() {
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
     >
-      <Text style={styles.title}>As suas Estatísticas</Text>
+      <AppText variant="bold" style={styles.title}>
+        As suas Estatísticas
+      </AppText>
 
       {/* Secção 1: Métricas Principais */}
       <View style={styles.statsGrid}>
@@ -287,33 +290,37 @@ export default function StatsScreen() {
           icon="checkmark-circle-outline"
           value={`${Math.round(stats?.successRate ?? 0)}%`}
           label="Taxa de Sucesso"
-          color="#2a9d8f"
+          color={theme.colors.success}
         />
         <StatCard
           icon="star-outline"
           value={stats?.wordsMastered ?? 0}
           label="Palavras Dominadas"
-          color="#e9c46a"
+          color={theme.colors.warning}
         />
         <StatCard
           icon="flame-outline"
           value={userMetrics?.longestStreak ?? 0}
           label="Maior Streak"
-          color="#f4a261"
+          color={theme.colors.challenge}
         />
         <StatCard
           icon="calendar-outline"
           value={userMetrics?.consecutiveDays ?? 0}
           label="Dias Seguidos"
-          color="#e76f51"
+          color={theme.colors.danger}
         />
       </View>
 
       {/* Secção : Metas Diárias */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Metas Diárias</Text>
-          <Text style={styles.countdownText}>{timeRemaining}</Text>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Metas Diárias
+          </AppText>
+          <AppText variant="bold" style={styles.countdownText}>
+            {timeRemaining}
+          </AppText>
         </View>
         {activeDailyGoals.map((goal) => (
           <DailyGoalProgress
@@ -328,57 +335,71 @@ export default function StatsScreen() {
 
       {/* Secção 2: Mapa de Atividade (Placeholder) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Mapa de Atividade</Text>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Mapa de Atividade
+        </AppText>
         <Calendar
           markedDates={markedDates}
           theme={{
-            calendarBackground: "#fff",
-            textSectionTitleColor: "#b6c1cd",
+            calendarBackground: theme.colors.surface,
+            textSectionTitleColor: theme.colors.textMuted,
             selectedDayBackgroundColor: "#00adf5",
             selectedDayTextColor: "#ffffff",
-            todayTextColor: "#e76f51",
-            dayTextColor: "#2d4150",
-            textDisabledColor: "#d9e1e8",
-            arrowColor: "#e76f51",
-            monthTextColor: "#22223b",
-            textMonthFontWeight: "bold",
+            todayTextColor: theme.colors.danger,
+            dayTextColor: theme.colors.textMedium,
+            textDisabledColor: theme.colors.border,
+            arrowColor: theme.colors.danger,
+            monthTextColor: theme.colors.text,
+            textMonthFontFamily: theme.fonts.bold,
+            textDayFontFamily: theme.fonts.regular,
+            textDayHeaderFontFamily: theme.fonts.medium,
           }}
         />
       </View>
 
       {/* Secção 3: Palavras Desafiadoras */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Palavras Desafiadoras</Text>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Palavras Desafiadoras
+        </AppText>
         {challengingWords.length > 0 ? (
           <>
             {challengingWords.map((word) => (
               <View key={word.id} style={styles.wordItem}>
-                <Text style={styles.wordName}>{word.name}</Text>
-                <Text style={styles.wordSuccessRate}>
+                <AppText variant="medium" style={styles.wordName}>
+                  {word.name}
+                </AppText>
+                <AppText variant="bold" style={styles.wordSuccessRate}>
                   Acerto: {Math.round(word.successRate)}%
-                </Text>
+                </AppText>
               </View>
             ))}
             <TouchableOpacity
               style={styles.practiceButton}
               onPress={handlePracticeChallengingWords}
             >
-              <Ionicons name="flame-outline" size={20} color="#fff" />
-              <Text style={styles.practiceButtonText}>
+              <Ionicons
+                name="flame-outline"
+                size={20}
+                color={theme.colors.surface}
+              />
+              <AppText variant="bold" style={styles.practiceButtonText}>
                 Praticar estas palavras
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </>
         ) : (
-          <Text style={styles.placeholderText}>
+          <AppText style={styles.placeholderText}>
             Nenhuma palavra difícil por agora. Bom trabalho!
-          </Text>
+          </AppText>
         )}
       </View>
 
       {/* Secção 4: Conquistas (Placeholder) */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Conquistas</Text>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Conquistas
+        </AppText>
         {processedAchievements.map((ach) => (
           <AchievementBadge
             key={ach.id}
@@ -397,7 +418,7 @@ export default function StatsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   centerContent: {
     flex: 1,
@@ -409,9 +430,8 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.text,
     marginBottom: 24,
   },
   statsGrid: {
@@ -421,7 +441,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   section: {
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 20,
@@ -438,14 +458,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   countdownText: {
-    fontSize: 14,
-    color: "#e76f51",
-    fontWeight: "bold",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.danger,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.text,
     marginBottom: 16,
   },
   wordItem: {
@@ -454,46 +472,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f1f1",
+    borderBottomColor: theme.colors.borderLight,
   },
   wordName: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#495057",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMedium,
   },
   wordSuccessRate: {
-    fontSize: 14,
-    color: "#e76f51",
-    fontWeight: "600",
-  },
-  placeholderBox: {
-    backgroundColor: "#f0f4f8",
-    borderRadius: 8,
-    padding: 40,
-    alignItems: "center",
-    justifyContent: "center",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.danger,
   },
   placeholderText: {
-    color: "#adb5bd",
-    fontSize: 14,
+    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.sm,
   },
   practiceButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f4a261",
+    backgroundColor: theme.colors.challenge,
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 20,
   },
   practiceButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.base,
     marginLeft: 8,
   },
   loadingText: {
     marginTop: 10,
-    color: "#6c757d",
+    color: theme.colors.textSecondary,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
@@ -7,6 +7,8 @@ import Animated, {
   withSpring,
   withDelay,
 } from "react-native-reanimated";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 type AchievementBadgeProps = {
   title: string;
@@ -45,11 +47,10 @@ const AchievementBadge = ({
     }
   }, [isNew, scale, opacity]);
 
-  const iconColor = unlocked ? "#e9c46a" : "#adb5bd";
+  const iconColor = unlocked ? theme.colors.warning : theme.colors.iconMuted;
   const containerStyle = unlocked
     ? styles.container
     : [styles.container, styles.lockedContainer];
-  const textColor = unlocked ? styles.unlockedText : styles.lockedText;
 
   return (
     <Animated.View style={[containerStyle, animatedStyle]}>
@@ -57,8 +58,23 @@ const AchievementBadge = ({
         <Ionicons name={icon} size={32} color={iconColor} />
       </View>
       <View style={styles.textContainer}>
-        <Text style={[styles.title, textColor]}>{title}</Text>
-        <Text style={[styles.description, textColor]}>{description}</Text>
+        <AppText
+          variant="bold"
+          style={[
+            styles.title,
+            unlocked ? styles.unlockedText : styles.lockedText,
+          ]}
+        >
+          {title}
+        </AppText>
+        <AppText
+          style={[
+            styles.description,
+            unlocked ? styles.unlockedText : styles.lockedText,
+          ]}
+        >
+          {description}
+        </AppText>
       </View>
     </Animated.View>
   );
@@ -68,15 +84,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#f1f1f1",
+    borderColor: theme.colors.borderLight,
   },
   lockedContainer: {
-    backgroundColor: "#f8f9fa",
+    backgroundColor: theme.colors.background,
   },
   iconContainer: {
     marginRight: 16,
@@ -87,18 +103,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: theme.fontSizes.base,
   },
   description: {
-    fontSize: 14,
+    fontSize: theme.fontSizes.sm,
     marginTop: 2,
   },
   unlockedText: {
-    color: "#495057",
+    color: theme.colors.textMedium,
   },
   lockedText: {
-    color: "#adb5bd",
+    color: theme.colors.textMuted,
   },
 });
 

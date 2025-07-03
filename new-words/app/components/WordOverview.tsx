@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Menu,
@@ -8,6 +8,8 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import { Swipeable } from "react-native-gesture-handler";
+import AppText from "./AppText";
+import { theme } from "../theme";
 
 type WordOverviewProps = {
   name: string;
@@ -63,9 +65,9 @@ export default function WordOverview({
   };
 
   const masteryColor = {
-    new: "#adb5bd", // cinzento para palavras novas
-    learning: "#f4a261", // laranja para palavras em aprendizagem
-    mastered: "#2a9d8f", // verde para palavras dominadas
+    new: theme.colors.mastery.new,
+    learning: theme.colors.mastery.learning,
+    mastered: theme.colors.mastery.mastered,
   }[masteryLevel];
 
   return (
@@ -75,15 +77,19 @@ export default function WordOverview({
           style={[styles.masteryIndicator, { backgroundColor: masteryColor }]}
         />
         <View style={styles.textContainer}>
-          <Text style={styles.word}>{name}</Text>
-          <Text style={styles.meaning}>{meaning}</Text>
+          <AppText variant="bold" style={styles.word}>
+            {name}
+          </AppText>
+          <AppText style={styles.meaning}>{meaning}</AppText>
         </View>
         {/* Mostra o valor da ordenação, se existir */}
         {displayValue !== undefined && (
           <View style={styles.displayValueContainer}>
-            <Text style={styles.displayValue}>{displayValue}</Text>
+            <AppText variant="bold" style={styles.displayValue}>
+              {displayValue}
+            </AppText>
             {displayLabel && (
-              <Text style={styles.displayLabel}>{displayLabel}</Text>
+              <AppText style={styles.displayLabel}>{displayLabel}</AppText>
             )}
           </View>
         )}
@@ -102,13 +108,21 @@ export default function WordOverview({
               triggerWrapper: styles.menuTrigger,
             }}
           >
-            <Ionicons name="ellipsis-vertical" size={22} color="#6c757d" />
+            <Ionicons
+              name="ellipsis-vertical"
+              size={22}
+              color={theme.colors.icon}
+            />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
             <MenuOption onSelect={onViewDetails}>
               <View style={styles.menuItem}>
-                <Ionicons name="eye-outline" size={18} color="#495057" />
-                <Text style={styles.menuText}>Ver Detalhes</Text>
+                <Ionicons
+                  name="eye-outline"
+                  size={18}
+                  color={theme.colors.textMedium}
+                />
+                <AppText style={styles.menuText}>Ver Detalhes</AppText>
               </View>
             </MenuOption>
             <MenuOption onSelect={onToggleFavorite}>
@@ -116,26 +130,36 @@ export default function WordOverview({
                 <Ionicons
                   name={isFavorite ? "star" : "star-outline"}
                   size={18}
-                  color={isFavorite ? "#FFD700" : "#495057"}
+                  color={isFavorite ? "#FFD700" : theme.colors.textMedium}
                 />
-                <Text style={styles.menuText}>
+                <AppText style={styles.menuText}>
                   {isFavorite ? "Desfavoritar" : "Favoritar"}
-                </Text>
+                </AppText>
               </View>
             </MenuOption>
             <MenuOption onSelect={onEdit}>
               <View style={styles.menuItem}>
-                <Ionicons name="pencil-outline" size={18} color="#495057" />
-                <Text style={styles.menuText}>Editar</Text>
+                <Ionicons
+                  name="pencil-outline"
+                  size={18}
+                  color={theme.colors.textMedium}
+                />
+                <AppText style={styles.menuText}>Editar</AppText>
               </View>
             </MenuOption>
             <View style={styles.separator} />
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
-                <Ionicons name="trash-outline" size={18} color="#d11a2a" />
-                <Text style={[styles.menuText, { color: "#d11a2a" }]}>
+                <Ionicons
+                  name="trash-outline"
+                  size={18}
+                  color={theme.colors.dangerDark}
+                />
+                <AppText
+                  style={[styles.menuText, { color: theme.colors.dangerDark }]}
+                >
                   Apagar
-                </Text>
+                </AppText>
               </View>
             </MenuOption>
           </MenuOptions>
@@ -150,12 +174,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     padding: 20,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
   },
   masteryIndicator: {
     width: 10,
@@ -168,14 +192,13 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   word: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
     marginBottom: 4,
   },
   meaning: {
-    fontSize: 14,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
   },
   displayValueContainer: {
     alignItems: "flex-end",
@@ -184,13 +207,12 @@ const styles = StyleSheet.create({
     minWidth: 50,
   },
   displayValue: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#495057",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textMedium,
   },
   displayLabel: {
-    fontSize: 10,
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textMuted,
     textTransform: "uppercase",
   },
   favoriteIcon: {
@@ -214,13 +236,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuText: {
-    fontSize: 15,
-    color: "#222",
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.text,
     marginLeft: 12,
   },
   separator: {
     height: 1,
-    backgroundColor: "#e0e0e0",
+    backgroundColor: theme.colors.border,
     marginHorizontal: 8,
   },
   rightActionContainer: {
@@ -234,12 +256,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   editButton: {
-    backgroundColor: "#adb5bd", // Um cinza mais claro e neutro
+    backgroundColor: theme.colors.textMuted,
     borderTopLeftRadius: 12,
     borderBottomLeftRadius: 12,
   },
   deleteButton: {
-    backgroundColor: "#e76f51",
+    backgroundColor: theme.colors.danger,
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
   },

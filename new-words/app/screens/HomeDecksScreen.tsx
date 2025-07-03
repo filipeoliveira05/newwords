@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import {
-  Text,
   View,
   StyleSheet,
   ScrollView,
@@ -9,9 +8,11 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
+import AppText from "../components/AppText";
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import DeckOverview from "../components/DeckOverview";
+import { theme } from "../theme";
 
 export default function HomeDecksScreen({ navigation }: any) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
@@ -24,8 +25,8 @@ export default function HomeDecksScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color="#4F8EF7" />
-        <Text style={{ marginTop: 8 }}>A carregar conjuntos...</Text>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText style={{ marginTop: 8 }}>A carregar conjuntos...</AppText>
       </View>
     );
   }
@@ -33,17 +34,25 @@ export default function HomeDecksScreen({ navigation }: any) {
   if (!decks || decks.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons name="file-tray-stacked-outline" size={80} color="#ced4da" />
-        <Text style={styles.emptyTitle}>Nenhum conjunto encontrado</Text>
-        <Text style={styles.emptySubtitle}>
+        <Ionicons
+          name="file-tray-stacked-outline"
+          size={80}
+          color={theme.colors.iconMuted}
+        />
+        <AppText variant="bold" style={styles.emptyTitle}>
+          Nenhum conjunto encontrado
+        </AppText>
+        <AppText style={styles.emptySubtitle}>
           Comece por criar o seu primeiro conjunto de palavras.
-        </Text>
+        </AppText>
         <TouchableOpacity
           style={styles.emptyButton}
           onPress={() => navigation.navigate("AddOrEditDeck")}
         >
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.emptyButtonText}>Criar Primeiro Conjunto</Text>
+          <Ionicons name="add" size={20} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.emptyButtonText}>
+            Criar Primeiro Conjunto
+          </AppText>
         </TouchableOpacity>
       </View>
     );
@@ -52,10 +61,12 @@ export default function HomeDecksScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Meus Conjuntos</Text>
-        <Text style={styles.subtitle}>
+        <AppText variant="bold" style={styles.title}>
+          Meus Conjuntos
+        </AppText>
+        <AppText style={styles.subtitle}>
           Continue a sua jornada de aprendizagem.
-        </Text>
+        </AppText>
       </View>
       <ScrollView contentContainerStyle={styles.list}>
         {decks.map((deck) => (
@@ -115,7 +126,7 @@ export default function HomeDecksScreen({ navigation }: any) {
         style={styles.fab}
         onPress={() => navigation.navigate("AddOrEditDeck")}
       >
-        <Ionicons name="add" size={32} color="#fff" />
+        <Ionicons name="add" size={32} color={theme.colors.surface} />
       </TouchableOpacity>
     </View>
   );
@@ -124,7 +135,7 @@ export default function HomeDecksScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   centerContent: {
     justifyContent: "center",
@@ -134,18 +145,17 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: "#f1f1f1",
+    borderBottomColor: theme.colors.borderLight,
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.text,
   },
   subtitle: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginTop: 4,
   },
   list: {
@@ -157,33 +167,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#495057",
+    fontSize: theme.fontSizes.xl,
+    color: theme.colors.text,
     marginTop: 24,
   },
   emptySubtitle: {
-    fontSize: 16,
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: 8,
     marginBottom: 24,
   },
   emptyButton: {
     flexDirection: "row",
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: "center",
   },
   emptyButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "bold",
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.base,
     marginLeft: 8,
   },
   fab: {
@@ -193,7 +201,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,

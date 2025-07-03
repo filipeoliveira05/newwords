@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -17,6 +16,8 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { HomeStackParamList } from "../../types/navigation";
+import AppText from "../components/AppText";
+import { theme } from "../theme";
 
 type Props = NativeStackScreenProps<HomeStackParamList, "AddOrEditDeck">;
 
@@ -57,10 +58,10 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
       title: "", // O título agora está no corpo do ecrã
       headerBackButtonDisplayMode: "minimal",
       headerStyle: {
-        backgroundColor: "#f8fafc",
+        backgroundColor: theme.colors.background,
       },
       headerShadowVisible: false,
-      headerTintColor: "#22223b",
+      headerTintColor: theme.colors.text,
     });
   }, [navigation, isEdit]);
 
@@ -108,21 +109,21 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
           <Ionicons
             name={isEdit ? "create-outline" : "add-circle-outline"}
             size={48}
-            color="#4F8EF7"
+            color={theme.colors.primary}
           />
-          <Text style={styles.headerTitle}>
+          <AppText variant="bold" style={styles.headerTitle}>
             {isEdit ? "Editar Conjunto" : "Criar Novo Conjunto"}
-          </Text>
-          <Text style={styles.headerSubtitle}>
+          </AppText>
+          <AppText style={styles.headerSubtitle}>
             {isEdit
               ? "Altere os detalhes do seu conjunto."
               : "Dê um nome e um autor ao seu novo conjunto de palavras."}
-          </Text>
+          </AppText>
         </View>
 
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>TÍTULO DO CONJUNTO</Text>
+            <AppText style={styles.label}>TÍTULO DO CONJUNTO</AppText>
             <Pressable
               style={styles.inputContainer}
               onPress={() => titleInputRef.current?.focus()}
@@ -138,13 +139,13 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
                 value={title}
                 onChangeText={setTitle}
                 placeholder="Ex: Vocabulário de Inglês"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.placeholder}
               />
             </Pressable>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>AUTOR</Text>
+            <AppText style={styles.label}>AUTOR</AppText>
             <Pressable
               style={styles.inputContainer}
               onPress={() => authorInputRef.current?.focus()}
@@ -160,7 +161,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
                 value={author}
                 onChangeText={setAuthor}
                 placeholder="Ex: John Doe"
-                placeholderTextColor="#999"
+                placeholderTextColor={theme.colors.placeholder}
               />
             </Pressable>
           </View>
@@ -172,11 +173,11 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
           disabled={isSaving}
         >
           {isSaving ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={theme.colors.surface} />
           ) : (
-            <Text style={styles.buttonText}>
+            <AppText variant="bold" style={styles.buttonText}>
               {isEdit ? "Guardar Alterações" : "Criar Conjunto"}
-            </Text>
+            </AppText>
           )}
         </TouchableOpacity>
       </ScrollView>
@@ -187,7 +188,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f8fafc",
+    backgroundColor: theme.colors.background,
   },
   scrollContainer: {
     flexGrow: 1,
@@ -201,14 +202,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#22223b",
+    fontSize: theme.fontSizes["2xl"],
+    color: theme.colors.text,
     marginTop: 16,
   },
   headerSubtitle: {
-    fontSize: 16,
-    color: "#6c757d",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
     maxWidth: "90%",
@@ -220,9 +220,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: 12,
-    fontWeight: "bold",
-    color: "#adb5bd",
+    fontSize: theme.fontSizes.xs,
+    color: theme.colors.textMuted,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -230,42 +229,42 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: theme.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#e9ecef",
+    borderColor: theme.colors.border,
     paddingHorizontal: 16,
   },
   inputIcon: {
-    color: "#adb5bd",
+    color: theme.colors.textMuted,
     marginRight: 12,
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    color: "#222",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
     paddingVertical: 14, // Aumenta a área de toque vertical
+    fontFamily: theme.fonts.regular,
   },
   button: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 14,
     borderRadius: 8,
     marginTop: 22,
     width: "100%",
     alignItems: "center",
-    shadowColor: "#4F8EF7",
+    shadowColor: theme.colors.primary,
     shadowOpacity: 0.18,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 },
     elevation: 2,
   },
   buttonDisabled: {
-    backgroundColor: "#a9c7f5",
+    backgroundColor: theme.colors.disabled,
   },
   buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 17,
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.md,
     letterSpacing: 0.5,
   },
 });

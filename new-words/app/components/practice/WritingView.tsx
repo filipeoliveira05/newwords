@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
@@ -9,6 +8,8 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import AppText from "../AppText";
+import { theme } from "../../theme";
 
 export default function WritingView() {
   // --- Store State and Actions ---
@@ -65,16 +66,18 @@ export default function WritingView() {
   }
 
   const getInputBorderColor = () => {
-    if (feedback === "correct") return "#10b981";
-    if (feedback === "incorrect") return "#ef4444";
-    return "#ced4da";
+    if (feedback === "correct") return theme.colors.success;
+    if (feedback === "incorrect") return theme.colors.danger;
+    return theme.colors.border;
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.questionContainer}>
-        <Text style={styles.questionHint}>Significado:</Text>
-        <Text style={styles.questionText}>{currentWord.meaning}</Text>
+        <AppText style={styles.questionHint}>Significado:</AppText>
+        <AppText variant="bold" style={styles.questionText}>
+          {currentWord.meaning}
+        </AppText>
       </View>
 
       <View style={styles.answerContainer}>
@@ -84,7 +87,7 @@ export default function WritingView() {
           value={answer}
           onChangeText={setAnswer}
           placeholder="Escreva a palavra..."
-          placeholderTextColor="#adb5bd"
+          placeholderTextColor={theme.colors.textMuted}
           autoCapitalize="none"
           autoCorrect={false}
           returnKeyType="done"
@@ -92,9 +95,9 @@ export default function WritingView() {
           editable={!feedback}
         />
         {feedback === "incorrect" && (
-          <Text style={styles.correctAnswerText}>
+          <AppText variant="bold" style={styles.correctAnswerText}>
             A resposta correta é: {currentWord.name}
-          </Text>
+          </AppText>
         )}
       </View>
 
@@ -103,7 +106,9 @@ export default function WritingView() {
         onPress={handleCheckAnswer}
         disabled={!!feedback}
       >
-        <Text style={styles.buttonText}>Verificar</Text>
+        <AppText variant="bold" style={styles.buttonText}>
+          Verificar
+        </AppText>
       </TouchableOpacity>
     </View>
   );
@@ -112,50 +117,58 @@ export default function WritingView() {
 const styles = StyleSheet.create({
   container: { width: "90%", alignItems: "center", maxWidth: 400 },
   questionContainer: {
-    backgroundColor: "white",
+    backgroundColor: theme.colors.surface,
     width: "100%",
     padding: 25,
     borderRadius: 20,
     alignItems: "center",
     marginBottom: 40,
-    shadowColor: "#000",
+    shadowColor: theme.colors.text,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 12,
     elevation: 8,
   },
-  questionHint: { fontSize: 16, color: "#adb5bd", marginBottom: 8 },
+  questionHint: {
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMuted,
+    marginBottom: 8,
+  },
   questionText: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#212529",
+    fontSize: theme.fontSizes["2xl"],
+    color: theme.colors.text,
     textAlign: "center",
   },
   answerContainer: { width: "100%", marginBottom: 24 },
   input: {
-    backgroundColor: "white",
+    backgroundColor: theme.colors.surface,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    fontSize: 18,
+    fontSize: theme.fontSizes.lg,
     textAlign: "center",
-    color: "#212529",
+    color: theme.colors.text,
+    fontFamily: theme.fonts.regular,
   },
   correctAnswerText: {
     marginTop: 12,
-    fontSize: 16,
-    color: "#10b981",
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.success,
     textAlign: "center",
-    fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#4F8EF7",
+    backgroundColor: theme.colors.primary,
     paddingVertical: 18,
     borderRadius: 12,
     width: "100%",
     alignItems: "center",
   },
-  disabledButton: { backgroundColor: "#adb5bd" },
-  buttonText: { color: "white", fontSize: 18, fontWeight: "bold" },
+  disabledButton: {
+    backgroundColor: theme.colors.disabled,
+  },
+  buttonText: {
+    color: theme.colors.surface,
+    fontSize: theme.fontSizes.lg,
+  },
 });

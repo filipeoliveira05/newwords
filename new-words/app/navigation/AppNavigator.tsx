@@ -1,5 +1,5 @@
 import React from "react";
-import { View } from "react-native";
+import { View, ActivityIndicator } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -9,6 +9,7 @@ import Toast, {
   BaseToastProps,
 } from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import { useFonts } from "expo-font";
 
 import {
   HomeStackParamList,
@@ -114,6 +115,20 @@ const toastConfig = {
 };
 
 export default function AppNavigator() {
+  const [fontsLoaded] = useFonts({
+    "Satoshi-Regular": require("../../assets/fonts/Satoshi-Regular.otf"),
+    "Satoshi-Medium": require("../../assets/fonts/Satoshi-Medium.otf"),
+    "Satoshi-Bold": require("../../assets/fonts/Satoshi-Bold.otf"),
+  });
+
+  if (!fontsLoaded) {
+    // Pode mostrar um ecrã de loading mais elaborado, mas por agora isto é suficiente.
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
