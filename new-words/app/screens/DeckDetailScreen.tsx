@@ -250,7 +250,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   };
 
   const handleStartPractice = (
-    mode: "flashcard" | "multiple-choice" | "writing"
+    mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists"
   ) => {
     setPracticeModalVisible(false); // Fecha o modal imediatamente
 
@@ -573,6 +573,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         visible={practiceModalVisible}
         transparent
         animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent={true}
         onRequestClose={() => setPracticeModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
@@ -646,6 +648,25 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 </AppText>
               </View>
             </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modeButton}
+              onPress={() => handleStartPractice("combine-lists")}
+            >
+              <Ionicons
+                name="git-compare-outline"
+                size={24}
+                style={styles.modeIcon}
+              />
+              <View>
+                <AppText variant="bold" style={styles.modeTitle}>
+                  Combinar Listas
+                </AppText>
+                <AppText style={styles.modeDescription}>
+                  Combine as palavras com os seus significados.
+                </AppText>
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -655,6 +676,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         visible={sortModalVisible}
         transparent
         animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent={true}
         onRequestClose={() => setSortModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
