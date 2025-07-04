@@ -90,41 +90,57 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     const dir = direction === "asc" ? 1 : -1;
     const masteryMap = { new: 1, learning: 2, mastered: 3 };
 
-    wordsToDisplay.sort((a, b) => {
+    wordsToDisplay.sort((wordA, wordB) => {
+      let comparison = 0;
       switch (criterion) {
         case "isFavorite":
           // This sort is always descending (favorites first)
-          return b.isFavorite - a.isFavorite;
+          comparison = wordB.isFavorite - wordA.isFavorite;
+          break;
         case "name":
-          return a.name.localeCompare(b.name) * dir;
+          comparison = wordA.name.localeCompare(wordB.name) * dir;
+          break;
         case "masteryLevel":
-          return (
-            (masteryMap[a.masteryLevel] - masteryMap[b.masteryLevel]) * dir
-          );
+          comparison =
+            (masteryMap[wordA.masteryLevel] - masteryMap[wordB.masteryLevel]) *
+            dir;
+          break;
         case "createdAt":
           // Assumes createdAt is never null
-          return (
-            (new Date(a.createdAt).getTime() -
-              new Date(b.createdAt).getTime()) *
-            dir
-          );
+          comparison =
+            (new Date(wordA.createdAt).getTime() -
+              new Date(wordB.createdAt).getTime()) *
+            dir;
+          break;
         case "lastTrained":
           // Treat null as the oldest date (comes first in asc)
-          const dateA = a.lastTrained ? new Date(a.lastTrained).getTime() : 0;
-          const dateB = b.lastTrained ? new Date(b.lastTrained).getTime() : 0;
-          return (dateA - dateB) * dir;
+          const dateA = wordA.lastTrained
+            ? new Date(wordA.lastTrained).getTime()
+            : 0;
+          const dateB = wordB.lastTrained
+            ? new Date(wordB.lastTrained).getTime()
+            : 0;
+          comparison = (dateA - dateB) * dir;
+          break;
         case "lastAnswerCorrect":
           // Treat null as a third category (-1)
-          const answerA = a.lastAnswerCorrect ?? -1;
-          const answerB = b.lastAnswerCorrect ?? -1;
-          return (answerA - answerB) * dir;
+          const answerA = wordA.lastAnswerCorrect ?? -1;
+          const answerB = wordB.lastAnswerCorrect ?? -1;
+          comparison = (answerA - answerB) * dir;
+          break;
         case "timesTrained":
         case "timesCorrect":
         case "timesIncorrect":
-          return (a[criterion] - b[criterion]) * dir;
-        default:
-          return 0;
+          comparison = (wordA[criterion] - wordB[criterion]) * dir;
+          break;
       }
+
+      // Tie-breaker: if primary comparison is equal, sort by name alphabetically
+      if (comparison === 0 && criterion !== "name") {
+        return wordA.name.localeCompare(wordB.name);
+      }
+
+      return comparison;
     });
 
     return wordsToDisplay;
