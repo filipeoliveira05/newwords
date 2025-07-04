@@ -39,7 +39,9 @@ const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStack() {
   return (
-    <HomeStackNav.Navigator screenOptions={{ animation: "slide_from_right" }}>
+    <HomeStackNav.Navigator
+      screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
+    >
       <HomeStackNav.Screen
         name="HomeDecksList"
         component={HomeDecksScreen}
@@ -88,7 +90,7 @@ const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 function ProfileStack() {
   return (
     <ProfileStackNav.Navigator
-      screenOptions={{ animation: "slide_from_right" }}
+      screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
     >
       <ProfileStackNav.Screen
         name="ProfileMain"
