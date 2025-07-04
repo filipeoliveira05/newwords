@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -45,6 +45,76 @@ interface SortConfig {
 }
 type Props = NativeStackScreenProps<HomeStackParamList, "DeckDetail">;
 
+const sortOptions: {
+  label: string;
+  criterion: SortCriterion;
+  direction: SortDirection;
+}[] = [
+  { label: "Favoritos Primeiro", criterion: "isFavorite", direction: "desc" },
+  {
+    label: "Data de Criação (Mais Recentes)",
+    criterion: "createdAt",
+    direction: "desc",
+  },
+  {
+    label: "Data de Criação (Mais Antigas)",
+    criterion: "createdAt",
+    direction: "asc",
+  },
+  { label: "Ordem Alfabética (A-Z)", criterion: "name", direction: "asc" },
+  { label: "Ordem Alfabética (Z-A)", criterion: "name", direction: "desc" },
+  {
+    label: "Nível (Ascendente)",
+    criterion: "masteryLevel",
+    direction: "asc",
+  },
+  {
+    label: "Nível (Descendente)",
+    criterion: "masteryLevel",
+    direction: "desc",
+  },
+  {
+    label: "Vezes Praticadas (Menos)",
+    criterion: "timesTrained",
+    direction: "asc",
+  },
+  {
+    label: "Vezes Praticadas (Mais)",
+    criterion: "timesTrained",
+    direction: "desc",
+  },
+  {
+    label: "Respostas Corretas (Mais)",
+    criterion: "timesCorrect",
+    direction: "desc",
+  },
+  {
+    label: "Respostas Incorretas (Mais)",
+    criterion: "timesIncorrect",
+    direction: "desc",
+  },
+  {
+    label: "Última Resposta (Erradas primeiro)",
+    criterion: "lastAnswerCorrect",
+    direction: "asc",
+  },
+  {
+    label: "Última Resposta (Certas primeiro)",
+    criterion: "lastAnswerCorrect",
+    direction: "desc",
+  },
+  {
+    label: "Última Prática (Mais Recente)",
+    criterion: "lastTrained",
+    direction: "desc",
+  },
+  {
+    label: "Última Prática (Mais Antiga)",
+    criterion: "lastTrained",
+    direction: "asc",
+  },
+];
+
 export default function DeckDetailScreen({ navigation, route }: Props) {
   const { deckId, title, author, openAddWordModal } = route.params;
 
@@ -72,6 +142,9 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     criterion: "createdAt",
     direction: "desc",
   });
+
+  const flatListRef = useRef<FlatList<Word>>(null);
+  const sortScrollViewRef = useRef<ScrollView>(null);
 
   const displayWords = useMemo(() => {
     // 1. Filter based on search query
@@ -160,6 +233,37 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       setIsModalVisible(true);
     }
   }, [deckId, openAddWordModal, fetchWordsOfDeck]);
+
+  // Efeito para fazer scroll para o topo quando a ordenação muda.
+  // Isto é acionado sempre que o sortConfig é alterado.
+  useEffect(() => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
+    }
+  }, [sortConfig]);
+
+  // Efeito para fazer scroll para a opção de ordenação ativa quando o modal abre.
+  useEffect(() => {
+    if (sortModalVisible && sortScrollViewRef.current) {
+      // Usamos um timeout para garantir que o modal e a lista já foram renderizados
+      setTimeout(() => {
+        const activeSortIndex = sortOptions.findIndex(
+          (option) =>
+            option.criterion === sortConfig.criterion &&
+            option.direction === sortConfig.direction
+        );
+
+        if (activeSortIndex > -1) {
+          const ITEM_HEIGHT = 53; // Altura aproximada de cada item da lista
+          // Calcula o offset para que a opção selecionada não fique colada ao topo.
+          // Mostra o item anterior, se existir.
+          const yOffset = Math.max(0, activeSortIndex - 1) * ITEM_HEIGHT;
+          // O scroll é feito sem animação para que a posição seja instantânea.
+          sortScrollViewRef.current?.scrollTo({ y: yOffset, animated: false });
+        }
+      }, 100);
+    }
+  }, [sortModalVisible, sortConfig]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -287,7 +391,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   const getDisplayDataForWord = (
     word: Word,
     criterion: SortCriterion
-  ): { value?: string | number; label?: string } => {
+  ): {
+    value?: string | number;
+    label?: string;
+    displayIcon?: { name: keyof typeof Ionicons.glyphMap; color: string };
+  } => {
     const formatNullableDate = (dateString: string | null) => {
       if (!dateString) return "Nunca";
       try {
@@ -318,83 +426,22 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         if (word.lastAnswerCorrect === null)
           return { value: "N/A", label: "últ. resp." };
         return {
-          value: word.lastAnswerCorrect === 1 ? "Certa" : "Errada",
+          displayIcon: {
+            name:
+              word.lastAnswerCorrect === 1
+                ? "checkmark-circle"
+                : "close-circle",
+            color:
+              word.lastAnswerCorrect === 1
+                ? theme.colors.success
+                : theme.colors.danger,
+          },
           label: "últ. resp.",
         };
       default:
         return {};
     }
   };
-
-  const sortOptions: {
-    label: string;
-    criterion: SortCriterion;
-    direction: SortDirection;
-  }[] = [
-    { label: "Favoritos Primeiro", criterion: "isFavorite", direction: "desc" },
-    {
-      label: "Data de Criação (Mais Recentes)",
-      criterion: "createdAt",
-      direction: "desc",
-    },
-    {
-      label: "Data de Criação (Mais Antigas)",
-      criterion: "createdAt",
-      direction: "asc",
-    },
-    { label: "Ordem Alfabética (A-Z)", criterion: "name", direction: "asc" },
-    { label: "Ordem Alfabética (Z-A)", criterion: "name", direction: "desc" },
-    {
-      label: "Nível (Ascendente)",
-      criterion: "masteryLevel",
-      direction: "asc",
-    },
-    {
-      label: "Nível (Descendente)",
-      criterion: "masteryLevel",
-      direction: "desc",
-    },
-    {
-      label: "Vezes Praticadas (Menos)",
-      criterion: "timesTrained",
-      direction: "asc",
-    },
-    {
-      label: "Vezes Praticadas (Mais)",
-      criterion: "timesTrained",
-      direction: "desc",
-    },
-    {
-      label: "Respostas Corretas (Mais)",
-      criterion: "timesCorrect",
-      direction: "desc",
-    },
-    {
-      label: "Respostas Incorretas (Mais)",
-      criterion: "timesIncorrect",
-      direction: "desc",
-    },
-    {
-      label: "Última Resposta (Erradas primeiro)",
-      criterion: "lastAnswerCorrect",
-      direction: "asc",
-    },
-    {
-      label: "Última Resposta (Certas primeiro)",
-      criterion: "lastAnswerCorrect",
-      direction: "desc",
-    },
-    {
-      label: "Última Prática (Mais Recente)",
-      criterion: "lastTrained",
-      direction: "desc",
-    },
-    {
-      label: "Última Prática (Mais Antiga)",
-      criterion: "lastTrained",
-      direction: "asc",
-    },
-  ];
 
   const handleSortSelect = (config: SortConfig) => {
     setSortConfig(config);
@@ -523,10 +570,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         )}
       </View>
       <FlatList
+        ref={flatListRef}
         data={displayWords}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => {
-          const { value, label } = getDisplayDataForWord(
+          const { value, label, displayIcon } = getDisplayDataForWord(
             item,
             sortConfig.criterion
           );
@@ -544,6 +592,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               onDelete={() => handleDeleteWord(item.id)}
               displayValue={value}
               displayLabel={label}
+              displayIcon={displayIcon}
             />
           );
         }}
@@ -626,7 +675,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                   Revisão Clássica
                 </AppText>
                 <AppText style={styles.modeDescription}>
-                  Flashcards simples: veja a palavra, adivinhe o significado.
+                  Flashcards simples: veja a palavra, adivinhe o significado
                 </AppText>
               </View>
             </TouchableOpacity>
@@ -641,7 +690,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                   Escolha Múltipla
                 </AppText>
                 <AppText style={styles.modeDescription}>
-                  Escolha o significado correto entre 4 opções.
+                  Escolha o significado correto entre 4 opções
                 </AppText>
               </View>
             </TouchableOpacity>
@@ -660,7 +709,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                   Jogo da Escrita
                 </AppText>
                 <AppText style={styles.modeDescription}>
-                  Nós mostramos o significado, você escreve a palavra.
+                  Nós mostramos o significado, você escreve a palavra
                 </AppText>
               </View>
             </TouchableOpacity>
@@ -679,7 +728,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                   Combinar Listas
                 </AppText>
                 <AppText style={styles.modeDescription}>
-                  Combine as palavras com os seus significados.
+                  Combine as palavras com os seus significados
                 </AppText>
               </View>
             </TouchableOpacity>
@@ -714,7 +763,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 <Ionicons name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={{ maxHeight: 400 }}>
+            <ScrollView ref={sortScrollViewRef} style={{ maxHeight: 400 }}>
               {sortOptions.map((option, index) => (
                 <TouchableOpacity
                   key={index}
