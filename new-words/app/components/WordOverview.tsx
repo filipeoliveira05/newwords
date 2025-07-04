@@ -22,6 +22,10 @@ type WordOverviewProps = {
   isFavorite?: number; // 1 for favorite, 0 for not favorite
   displayValue?: string | number;
   displayLabel?: string;
+  displayIcon?: {
+    name: keyof typeof Ionicons.glyphMap;
+    color: string;
+  };
 };
 
 export default function WordOverview({
@@ -35,6 +39,7 @@ export default function WordOverview({
   isFavorite,
   displayValue,
   displayLabel,
+  displayIcon,
 }: WordOverviewProps) {
   const swipeableRef = useRef<Swipeable>(null);
 
@@ -83,15 +88,28 @@ export default function WordOverview({
           <AppText style={styles.meaning}>{meaning}</AppText>
         </View>
         {/* Mostra o valor da ordenação, se existir */}
-        {displayValue !== undefined && (
+        {displayIcon ? (
           <View style={styles.displayValueContainer}>
-            <AppText variant="bold" style={styles.displayValue}>
-              {displayValue}
-            </AppText>
+            <Ionicons
+              name={displayIcon.name}
+              size={24}
+              color={displayIcon.color}
+            />
             {displayLabel && (
               <AppText style={styles.displayLabel}>{displayLabel}</AppText>
             )}
           </View>
+        ) : (
+          displayValue !== undefined && (
+            <View style={styles.displayValueContainer}>
+              <AppText variant="bold" style={styles.displayValue}>
+                {displayValue}
+              </AppText>
+              {displayLabel && (
+                <AppText style={styles.displayLabel}>{displayLabel}</AppText>
+              )}
+            </View>
+          )
         )}
         <TouchableOpacity
           onPress={onToggleFavorite}
