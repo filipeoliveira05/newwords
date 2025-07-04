@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -6,21 +6,43 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
+import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 
 import AppText from "../components/AppText";
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import DeckOverview from "../components/DeckOverview";
+import { seedDatabase } from "../../services/seeder";
 import { theme } from "../../config/theme";
 
 export default function HomeDecksScreen({ navigation }: any) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
+  const [isSeeding, setIsSeeding] = useState(false);
 
   useEffect(() => {
     fetchDecks();
   }, [fetchDecks]);
   const { showAlert } = useAlertStore.getState();
+
+  const handleSeedData = async () => {
+    setIsSeeding(true);
+    try {
+      await seedDatabase();
+      Toast.show({
+        type: "success",
+        text1: "Dados de teste carregados!",
+      });
+    } catch (error) {
+      showAlert({
+        title: "Erro",
+        message: "Não foi possível carregar os dados de teste.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -54,6 +76,29 @@ export default function HomeDecksScreen({ navigation }: any) {
             Criar Primeiro Conjunto
           </AppText>
         </TouchableOpacity>
+        {/* Botão para carregar dados de teste, apenas em modo de desenvolvimento */}
+        {__DEV__ && (
+          <TouchableOpacity
+            style={styles.seedButtonEmptyState}
+            onPress={handleSeedData}
+            disabled={isSeeding}
+          >
+            {isSeeding ? (
+              <ActivityIndicator color={theme.colors.primary} />
+            ) : (
+              <>
+                <Ionicons
+                  name="leaf-outline"
+                  size={18}
+                  color={theme.colors.primary}
+                />
+                <AppText style={styles.seedButtonText}>
+                  Carregar dados de teste
+                </AppText>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -205,5 +250,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
+  },
+  seedButtonEmptyState: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 20,
+    padding: 8,
+  },
+  seedButtonText: {
+    marginLeft: 8,
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
+    fontFamily: theme.fonts.medium,
   },
 });
