@@ -39,7 +39,7 @@ const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
 
 function HomeStack() {
   return (
-    <HomeStackNav.Navigator>
+    <HomeStackNav.Navigator screenOptions={{ animation: "slide_from_right" }}>
       <HomeStackNav.Screen
         name="HomeDecksList"
         component={HomeDecksScreen}
@@ -48,12 +48,12 @@ function HomeStack() {
       <HomeStackNav.Screen
         name="DeckDetail"
         component={DeckDetailScreen}
-        options={{ title: "Detalhes do Conjunto", animation: "fade" }}
+        options={{ title: "Detalhes do Conjunto" }}
       />
       <HomeStackNav.Screen
         name="WordDetails"
         component={WordDetailsScreen}
-        options={{ title: "Detalhes da Palavra", animation: "fade" }}
+        options={{ title: "Detalhes da Palavra" }}
       />
       <HomeStackNav.Screen
         name="AddOrEditDeck"
@@ -87,7 +87,9 @@ const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStack() {
   return (
-    <ProfileStackNav.Navigator>
+    <ProfileStackNav.Navigator
+      screenOptions={{ animation: "slide_from_right" }}
+    >
       <ProfileStackNav.Screen
         name="ProfileMain"
         component={ProfileScreen}
