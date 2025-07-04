@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -16,11 +21,26 @@ export default function ProgressBar() {
   const totalWordsInPool = fullSessionWordPool.length;
   const wordsPracticedCount = wordsPracticedInSession.size;
 
+  const progressPercentage =
+    totalWordsInPool > 0 ? (wordsPracticedCount / totalWordsInPool) * 100 : 0;
+
+  const progress = useSharedValue(0);
+
+  // Animate the progress bar width
+  useEffect(() => {
+    progress.value = withTiming(progressPercentage, { duration: 400 });
+  }, [progressPercentage, progress]);
+
+  const animatedBarFillStyle = useAnimatedStyle(() => {
+    return {
+      width: `${progress.value}%`,
+    };
+  });
+
   if (totalWordsInPool === 0) {
     return null;
   }
 
-  const progressPercentage = (wordsPracticedCount / totalWordsInPool) * 100;
   const progressTitle =
     sessionType === "urgent" ? "Progresso da Revisão" : "Progresso da Prática";
 
@@ -35,7 +55,7 @@ export default function ProgressBar() {
         </AppText>
       </View>
       <View style={styles.barBackground}>
-        <View style={[styles.barFill, { width: `${progressPercentage}%` }]} />
+        <Animated.View style={[styles.barFill, animatedBarFillStyle]} />
       </View>
     </View>
   );
