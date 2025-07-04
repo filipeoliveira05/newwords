@@ -148,7 +148,18 @@ export default function PracticeGameScreen({ route }: Props) {
         isActive = false;
         endSession();
       };
-    }, [deckId, mode, sessionType, wordsFromRoute])
+    }, [
+      deckId,
+      mode,
+      sessionType,
+      wordsFromRoute,
+      fetchWordsForPractice,
+      fetchAllLeastPracticedWords,
+      showAlert,
+      navigation,
+      initializeSession,
+      endSession,
+    ])
   );
 
   useEffect(
@@ -190,7 +201,7 @@ export default function PracticeGameScreen({ route }: Props) {
           ],
         });
       }),
-    [navigation, sessionState]
+    [navigation, sessionState, showAlert, origin]
   );
 
   if (isLoading) {

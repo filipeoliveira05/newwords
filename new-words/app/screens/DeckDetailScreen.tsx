@@ -143,7 +143,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       setEditingWord(null); // Garante que está em modo de adição
       setIsModalVisible(true);
     }
-  }, [deckId, openAddWordModal]);
+  }, [deckId, openAddWordModal, fetchWordsOfDeck]);
 
   useEffect(() => {
     navigation.setOptions({

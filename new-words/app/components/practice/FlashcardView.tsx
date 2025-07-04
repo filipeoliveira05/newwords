@@ -44,7 +44,7 @@ export default function FlashcardView() {
     setIsFlipped(false);
     // Reseta a animação para a nova palavra
     rotation.value = withTiming(0, { duration: 0 });
-  }, [currentWord]);
+  }, [currentWord, rotation]);
 
   if (!currentWord) {
     return null;

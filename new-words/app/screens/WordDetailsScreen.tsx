@@ -136,7 +136,17 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     } finally {
       setLoading(false);
     }
-  }, [wordId, navigation, showAlert]);
+  }, [
+    wordId,
+    navigation,
+    showAlert,
+    setWordDetails,
+    setCategory,
+    setSynonyms,
+    setAntonyms,
+    setSentences,
+    setInitialState,
+  ]);
 
   useFocusEffect(
     useCallback(() => {

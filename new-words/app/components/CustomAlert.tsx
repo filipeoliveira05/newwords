@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { View, StyleSheet, TouchableOpacity, BackHandler } from "react-native";
 import Animated, {
   useSharedValue,
@@ -15,6 +15,15 @@ const CustomAlert = () => {
   const { isVisible, title, message, buttons, hideAlert } = useAlertStore();
   const [isRendered, setIsRendered] = useState(false);
   const progress = useSharedValue(0); // Um valor de 0 a 1 para controlar as animações
+
+  const handleButtonPress = useCallback(
+    (button: AlertButton) => {
+      // Primeiro executa a ação, depois fecha o modal.
+      button.onPress();
+      hideAlert();
+    },
+    [hideAlert]
+  );
 
   // Efeito para lidar com o botão de voltar do hardware no Android.
   // Quando o alerta está visível, o botão de voltar deve agir como um "cancelar".
@@ -39,7 +48,7 @@ const CustomAlert = () => {
     );
 
     return () => backHandler.remove();
-  }, [isVisible, buttons]);
+  }, [isVisible, buttons, handleButtonPress]);
 
   // Estilo animado para o overlay, controla o fade-in/out
   const animatedOverlayStyle = useAnimatedStyle(() => {
@@ -72,13 +81,7 @@ const CustomAlert = () => {
         }
       });
     }
-  }, [isVisible, isRendered]);
-
-  const handleButtonPress = (button: AlertButton) => {
-    // Primeiro executa a ação, depois fecha o modal.
-    button.onPress();
-    hideAlert();
-  };
+  }, [isVisible, isRendered, progress]);
 
   const getButtonTextStyle = (style?: AlertButton["style"]) => {
     if (style === "destructive") {

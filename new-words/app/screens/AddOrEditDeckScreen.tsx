@@ -51,7 +51,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
         });
       }
     }
-  }, [deckId, isEdit, decks, navigation]);
+  }, [deckId, isEdit, decks, navigation, showAlert]);
 
   useEffect(() => {
     navigation.setOptions({

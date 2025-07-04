@@ -20,7 +20,7 @@ export default function StreakCounter() {
       // Animação de "pop" quando a streak aumenta
       scale.value = withSequence(withSpring(1.3), withSpring(1));
     }
-  }, [streak]);
+  }, [streak, scale]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {

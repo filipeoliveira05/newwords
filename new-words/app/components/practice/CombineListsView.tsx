@@ -64,7 +64,7 @@ export default function CombineListsView() {
       setIncorrectPair(null);
       containerOpacity.value = 1; // Reset opacity for new rounds
     }
-  }, [currentRoundWords]);
+  }, [currentRoundWords, containerOpacity]);
 
   const handleWordSelect = (word: ListItem, index: number) => {
     // Não bloqueia a interação se houver um par incorreto,

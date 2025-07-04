@@ -71,7 +71,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
       // Atualiza a contagem caso tenha sido corrigido noutro local
       fetchWrongWordsCount();
     }
-  }, [navigation, fetchWrongWords, fetchWrongWordsCount]);
+  }, [navigation, fetchWrongWords, fetchWrongWordsCount, showAlert]);
 
   const handleStartFavoritePractice = useCallback(async () => {
     const wordsToPractice = await fetchFavoriteWords();
@@ -90,7 +90,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
       // Atualiza a contagem caso tenha sido corrigido noutro local
       fetchFavoriteWordsCount();
     }
-  }, [navigation, fetchFavoriteWords, fetchFavoriteWordsCount]);
+  }, [navigation, fetchFavoriteWords, fetchFavoriteWordsCount, showAlert]);
 
   if (loading) {
     return (
