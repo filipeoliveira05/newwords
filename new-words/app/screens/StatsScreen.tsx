@@ -276,142 +276,145 @@ export default function StatsScreen() {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.contentContainer}
-    >
-      <AppText variant="bold" style={styles.title}>
-        As suas Estatísticas
-      </AppText>
-
-      {/* Secção 1: Métricas Principais */}
-      <View style={styles.statsGrid}>
-        <StatCard
-          icon="checkmark-circle-outline"
-          value={`${Math.round(stats?.successRate ?? 0)}%`}
-          label="Taxa de Sucesso"
-          color={theme.colors.success}
-        />
-        <StatCard
-          icon="school-outline"
-          value={stats?.wordsMastered ?? 0}
-          label="Palavras Dominadas"
-          color={theme.colors.dark}
-        />
-        <StatCard
-          icon="flame-outline"
-          value={userMetrics?.longestStreak ?? 0}
-          label="Maior Streak"
-          color={theme.colors.challenge}
-        />
-        <StatCard
-          icon="calendar-outline"
-          value={userMetrics?.consecutiveDays ?? 0}
-          label="Dias Seguidos"
-          color={theme.colors.danger}
-        />
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <AppText variant="bold" style={styles.title}>
+          As suas Estatísticas
+        </AppText>
+        <AppText style={styles.subtitle}>
+          Acompanhe o seu progresso e conquistas.
+        </AppText>
       </View>
-
-      {/* Secção : Metas Diárias */}
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <AppText variant="bold" style={styles.sectionTitle}>
-            Metas Diárias
-          </AppText>
-          <AppText variant="bold" style={styles.countdownText}>
-            {timeRemaining}
-          </AppText>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        {/* Secção 1: Métricas Principais */}
+        <View style={styles.statsGrid}>
+          <StatCard
+            icon="checkmark-circle-outline"
+            value={`${Math.round(stats?.successRate ?? 0)}%`}
+            label="Taxa de Sucesso"
+            color={theme.colors.success}
+          />
+          <StatCard
+            icon="school-outline"
+            value={stats?.wordsMastered ?? 0}
+            label="Palavras Dominadas"
+            color={theme.colors.dark}
+          />
+          <StatCard
+            icon="flame-outline"
+            value={userMetrics?.longestStreak ?? 0}
+            label="Maior Streak"
+            color={theme.colors.challenge}
+          />
+          <StatCard
+            icon="calendar-outline"
+            value={userMetrics?.consecutiveDays ?? 0}
+            label="Dias Seguidos"
+            color={theme.colors.danger}
+          />
         </View>
-        {activeDailyGoals.map((goal) => (
-          <DailyGoalProgress
-            key={goal.id}
-            icon={goal.icon}
-            title={goal.title}
-            target={goal.target}
-            current={goal.getCurrentProgress(todaysStats)}
-          />
-        ))}
-      </View>
 
-      {/* Secção 2: Mapa de Atividade (Placeholder) */}
-      <View style={styles.section}>
-        <AppText variant="bold" style={styles.sectionTitle}>
-          Mapa de Atividade
-        </AppText>
-        <Calendar
-          markedDates={markedDates}
-          theme={{
-            calendarBackground: theme.colors.surface,
-            textSectionTitleColor: theme.colors.textMuted,
-            selectedDayBackgroundColor: "#00adf5",
-            selectedDayTextColor: "#ffffff",
-            todayTextColor: theme.colors.danger,
-            dayTextColor: theme.colors.textMedium,
-            textDisabledColor: theme.colors.border,
-            arrowColor: theme.colors.danger,
-            monthTextColor: theme.colors.text,
-            textMonthFontFamily: theme.fonts.bold,
-            textDayFontFamily: theme.fonts.regular,
-            textDayHeaderFontFamily: theme.fonts.medium,
-          }}
-        />
-      </View>
+        {/* Secção : Metas Diárias */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <AppText variant="bold" style={styles.sectionTitle}>
+              Metas Diárias
+            </AppText>
+            <AppText variant="bold" style={styles.countdownText}>
+              {timeRemaining}
+            </AppText>
+          </View>
+          {activeDailyGoals.map((goal) => (
+            <DailyGoalProgress
+              key={goal.id}
+              icon={goal.icon}
+              title={goal.title}
+              target={goal.target}
+              current={goal.getCurrentProgress(todaysStats)}
+            />
+          ))}
+        </View>
 
-      {/* Secção 3: Palavras Desafiadoras */}
-      <View style={styles.section}>
-        <AppText variant="bold" style={styles.sectionTitle}>
-          Palavras Desafiadoras
-        </AppText>
-        {challengingWords.length > 0 ? (
-          <>
-            {challengingWords.map((word) => (
-              <View key={word.id} style={styles.wordItem}>
-                <AppText variant="medium" style={styles.wordName}>
-                  {word.name}
-                </AppText>
-                <AppText variant="bold" style={styles.wordSuccessRate}>
-                  Acerto: {Math.round(word.successRate)}%
-                </AppText>
-              </View>
-            ))}
-            <TouchableOpacity
-              style={styles.practiceButton}
-              onPress={handlePracticeChallengingWords}
-            >
-              <Ionicons
-                name="flame-outline"
-                size={20}
-                color={theme.colors.surface}
-              />
-              <AppText variant="bold" style={styles.practiceButtonText}>
-                Praticar estas palavras
-              </AppText>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <AppText style={styles.placeholderText}>
-            Nenhuma palavra difícil por agora. Bom trabalho!
+        {/* Secção 2: Mapa de Atividade (Placeholder) */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Mapa de Atividade
           </AppText>
-        )}
-      </View>
-
-      {/* Secção 4: Conquistas (Placeholder) */}
-      <View style={styles.section}>
-        <AppText variant="bold" style={styles.sectionTitle}>
-          Conquistas
-        </AppText>
-        {processedAchievements.map((ach) => (
-          <AchievementBadge
-            key={ach.id}
-            title={ach.title}
-            description={ach.description}
-            icon={ach.icon}
-            unlocked={ach.unlocked}
-            isNew={ach.isNew}
+          <Calendar
+            markedDates={markedDates}
+            theme={{
+              calendarBackground: theme.colors.surface,
+              textSectionTitleColor: theme.colors.textMuted,
+              selectedDayBackgroundColor: "#00adf5",
+              selectedDayTextColor: "#ffffff",
+              todayTextColor: theme.colors.danger,
+              dayTextColor: theme.colors.textMedium,
+              textDisabledColor: theme.colors.border,
+              arrowColor: theme.colors.danger,
+              monthTextColor: theme.colors.text,
+              textMonthFontFamily: theme.fonts.bold,
+              textDayFontFamily: theme.fonts.regular,
+              textDayHeaderFontFamily: theme.fonts.medium,
+            }}
           />
-        ))}
-      </View>
-    </ScrollView>
+        </View>
+
+        {/* Secção 3: Palavras Desafiadoras */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Palavras Desafiadoras
+          </AppText>
+          {challengingWords.length > 0 ? (
+            <>
+              {challengingWords.map((word) => (
+                <View key={word.id} style={styles.wordItem}>
+                  <AppText variant="medium" style={styles.wordName}>
+                    {word.name}
+                  </AppText>
+                  <AppText variant="bold" style={styles.wordSuccessRate}>
+                    Acerto: {Math.round(word.successRate)}%
+                  </AppText>
+                </View>
+              ))}
+              <TouchableOpacity
+                style={styles.practiceButton}
+                onPress={handlePracticeChallengingWords}
+              >
+                <Ionicons
+                  name="flame-outline"
+                  size={20}
+                  color={theme.colors.surface}
+                />
+                <AppText variant="bold" style={styles.practiceButtonText}>
+                  Praticar estas palavras
+                </AppText>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <AppText style={styles.placeholderText}>
+              Nenhuma palavra difícil por agora. Bom trabalho!
+            </AppText>
+          )}
+        </View>
+
+        {/* Secção 4: Conquistas (Placeholder) */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Conquistas
+          </AppText>
+          {processedAchievements.map((ach) => (
+            <AchievementBadge
+              key={ach.id}
+              title={ach.title}
+              description={ach.description}
+              icon={ach.icon}
+              unlocked={ach.unlocked}
+              isNew={ach.isNew}
+            />
+          ))}
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -426,19 +429,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   contentContainer: {
-    padding: 20,
-    paddingTop: 60,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    paddingTop: 60, // Safe area
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
   },
   title: {
     fontSize: theme.fontSizes["3xl"],
     color: theme.colors.text,
-    marginBottom: 24,
   },
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
     marginBottom: 20,
+    marginTop: 24, // Add margin to separate from header
   },
   section: {
     backgroundColor: theme.colors.surface,
@@ -464,7 +475,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
-    marginBottom: 16,
   },
   wordItem: {
     flexDirection: "row",
@@ -503,5 +513,10 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: theme.colors.textSecondary,
+  },
+  subtitle: {
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
+    marginTop: 4,
   },
 });

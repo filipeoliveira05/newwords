@@ -104,235 +104,239 @@ export default function PracticeHubScreen({ navigation }: Props) {
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.scrollContent}
-    >
+    <View style={styles.container}>
       <View style={styles.header}>
         <AppText variant="bold" style={styles.title}>
           Centro de Prática
         </AppText>
-      </View>
-
-      {/* Secção de Revisão Focada */}
-      <View style={styles.section}>
-        <AppText variant="bold" style={styles.sectionTitle}>
-          Revisão Focada
+        <AppText style={styles.subtitle}>
+          Escolha uma atividade para começar a aprender.
         </AppText>
+      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Secção de Revisão Focada */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Revisão Focada
+          </AppText>
 
-        {urgentWordsCount === 0 &&
-          wrongWordsCount === 0 &&
-          favoriteWordsCount === 0 && (
-            <View style={styles.placeholderContainer}>
-              <Ionicons
-                name="checkmark-done-circle-outline"
-                size={28}
-                color={theme.colors.success}
-              />
-              <AppText style={styles.placeholderText}>
-                Nenhuma revisão pendente. Bom trabalho!
-              </AppText>
-            </View>
+          {urgentWordsCount === 0 &&
+            wrongWordsCount === 0 &&
+            favoriteWordsCount === 0 && (
+              <View style={styles.placeholderContainer}>
+                <Ionicons
+                  name="checkmark-done-circle-outline"
+                  size={28}
+                  color={theme.colors.success}
+                />
+                <AppText style={styles.placeholderText}>
+                  Nenhuma revisão pendente. Bom trabalho!
+                </AppText>
+              </View>
+            )}
+
+          {urgentWordsCount > 0 && (
+            <TouchableOpacity
+              style={[styles.statusCard, styles.statusCardUrgent]}
+              onPress={() => handleStartGame("flashcard", "urgent")}
+              activeOpacity={0.8}
+            >
+              <View style={styles.statusContent}>
+                <Ionicons
+                  name="flame-outline"
+                  size={32}
+                  style={[styles.statusIcon, { color: theme.colors.surface }]}
+                />
+                <View style={styles.statusTextContainer}>
+                  <AppText variant="bold" style={styles.statusTitle}>
+                    Revisão Urgente
+                  </AppText>
+                  <AppText style={styles.statusDescription}>
+                    {urgentWordsCount}{" "}
+                    {urgentWordsCount > 1 ? "palavras" : "palavra"} para rever
+                  </AppText>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={theme.colors.surface}
+                />
+              </View>
+            </TouchableOpacity>
           )}
 
-        {urgentWordsCount > 0 && (
-          <TouchableOpacity
-            style={[styles.statusCard, styles.statusCardUrgent]}
-            onPress={() => handleStartGame("flashcard", "urgent")}
-            activeOpacity={0.8}
-          >
-            <View style={styles.statusContent}>
-              <Ionicons
-                name="flame-outline"
-                size={32}
-                style={[styles.statusIcon, { color: theme.colors.surface }]}
-              />
-              <View style={styles.statusTextContainer}>
-                <AppText variant="bold" style={styles.statusTitle}>
-                  Revisão Urgente
-                </AppText>
-                <AppText style={styles.statusDescription}>
-                  {urgentWordsCount}{" "}
-                  {urgentWordsCount > 1 ? "palavras" : "palavra"} para rever
-                </AppText>
+          {wrongWordsCount > 0 && (
+            <TouchableOpacity
+              style={[styles.statusCard, styles.statusCardWrong]}
+              onPress={handleStartWrongPractice}
+              activeOpacity={0.8}
+            >
+              <View style={styles.statusContent}>
+                <Ionicons
+                  name="bonfire-outline"
+                  size={32}
+                  style={[styles.statusIcon, { color: theme.colors.surface }]}
+                />
+                <View style={styles.statusTextContainer}>
+                  <AppText variant="bold" style={styles.statusTitle}>
+                    Corrigir Erros
+                  </AppText>
+                  <AppText style={styles.statusDescriptionOnColor}>
+                    {wrongWordsCount}{" "}
+                    {wrongWordsCount > 1 ? "palavras" : "palavra"} que errou
+                  </AppText>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={theme.colors.surface}
+                />
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color={theme.colors.surface}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          )}
 
-        {wrongWordsCount > 0 && (
-          <TouchableOpacity
-            style={[styles.statusCard, styles.statusCardWrong]}
-            onPress={handleStartWrongPractice}
-            activeOpacity={0.8}
-          >
-            <View style={styles.statusContent}>
-              <Ionicons
-                name="bonfire-outline"
-                size={32}
-                style={[styles.statusIcon, { color: theme.colors.surface }]}
-              />
-              <View style={styles.statusTextContainer}>
-                <AppText variant="bold" style={styles.statusTitle}>
-                  Corrigir Erros
-                </AppText>
-                <AppText style={styles.statusDescriptionOnColor}>
-                  {wrongWordsCount}{" "}
-                  {wrongWordsCount > 1 ? "palavras" : "palavra"} que errou
-                </AppText>
+          {favoriteWordsCount > 0 && (
+            <TouchableOpacity
+              style={[styles.statusCard, styles.statusCardFavorite]}
+              onPress={handleStartFavoritePractice}
+              activeOpacity={0.8}
+            >
+              <View style={styles.statusContent}>
+                <Ionicons
+                  name="star-outline"
+                  size={32}
+                  style={[styles.statusIcon, { color: theme.colors.surface }]}
+                />
+                <View style={styles.statusTextContainer}>
+                  <AppText variant="bold" style={styles.statusTitle}>
+                    Praticar Favoritos
+                  </AppText>
+                  <AppText style={styles.statusDescriptionOnColor}>
+                    {favoriteWordsCount}{" "}
+                    {favoriteWordsCount > 1 ? "palavras" : "palavra"} marcada
+                  </AppText>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={24}
+                  color={theme.colors.surface}
+                />
               </View>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color={theme.colors.surface}
-              />
-            </View>
-          </TouchableOpacity>
-        )}
+            </TouchableOpacity>
+          )}
+        </View>
 
-        {favoriteWordsCount > 0 && (
+        {/* Secção de Prática Livre */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Prática Livre
+          </AppText>
           <TouchableOpacity
-            style={[styles.statusCard, styles.statusCardFavorite]}
-            onPress={handleStartFavoritePractice}
-            activeOpacity={0.8}
+            style={styles.modeButton}
+            onPress={() =>
+              handleStartGame(
+                "flashcard",
+                urgentWordsCount > 0 ? "urgent" : "free"
+              )
+            }
           >
-            <View style={styles.statusContent}>
-              <Ionicons
-                name="star-outline"
-                size={32}
-                style={[styles.statusIcon, { color: theme.colors.surface }]}
-              />
-              <View style={styles.statusTextContainer}>
-                <AppText variant="bold" style={styles.statusTitle}>
-                  Praticar Favoritos
-                </AppText>
-                <AppText style={styles.statusDescriptionOnColor}>
-                  {favoriteWordsCount}{" "}
-                  {favoriteWordsCount > 1 ? "palavras" : "palavra"} marcada
-                </AppText>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={24}
-                color={theme.colors.surface}
-              />
+            <Ionicons name="albums-outline" size={28} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Revisão Clássica
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Flashcards simples: veja a palavra, adivinhe o significado.
+              </AppText>
             </View>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color={theme.colors.textMuted}
+            />
           </TouchableOpacity>
-        )}
-      </View>
 
-      {/* Secção de Prática Livre */}
-      <View style={styles.section}>
-        <AppText variant="bold" style={styles.sectionTitle}>
-          Prática Livre
-        </AppText>
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() =>
-            handleStartGame(
-              "flashcard",
-              urgentWordsCount > 0 ? "urgent" : "free"
-            )
-          }
-        >
-          <Ionicons name="albums-outline" size={28} style={styles.modeIcon} />
-          <View style={styles.modeTextContainer}>
-            <AppText variant="bold" style={styles.modeTitle}>
-              Revisão Clássica
-            </AppText>
-            <AppText style={styles.modeDescription}>
-              Flashcards simples: veja a palavra, adivinhe o significado.
-            </AppText>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={theme.colors.textMuted}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() =>
+              handleStartGame(
+                "multiple-choice",
+                urgentWordsCount > 0 ? "urgent" : "free"
+              )
+            }
+          >
+            <Ionicons name="list-outline" size={28} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Escolha Múltipla
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Escolha o significado correto entre 4 opções.
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color={theme.colors.textMuted}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() =>
-            handleStartGame(
-              "multiple-choice",
-              urgentWordsCount > 0 ? "urgent" : "free"
-            )
-          }
-        >
-          <Ionicons name="list-outline" size={28} style={styles.modeIcon} />
-          <View style={styles.modeTextContainer}>
-            <AppText variant="bold" style={styles.modeTitle}>
-              Escolha Múltipla
-            </AppText>
-            <AppText style={styles.modeDescription}>
-              Escolha o significado correto entre 4 opções.
-            </AppText>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={theme.colors.textMuted}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() =>
+              handleStartGame(
+                "writing",
+                urgentWordsCount > 0 ? "urgent" : "free"
+              )
+            }
+          >
+            <Ionicons name="pencil-outline" size={28} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Jogo da Escrita
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Nós mostramos o significado, você escreve a palavra.
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color={theme.colors.textMuted}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() =>
-            handleStartGame("writing", urgentWordsCount > 0 ? "urgent" : "free")
-          }
-        >
-          <Ionicons name="pencil-outline" size={28} style={styles.modeIcon} />
-          <View style={styles.modeTextContainer}>
-            <AppText variant="bold" style={styles.modeTitle}>
-              Jogo da Escrita
-            </AppText>
-            <AppText style={styles.modeDescription}>
-              Nós mostramos o significado, você escreve a palavra.
-            </AppText>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={theme.colors.textMuted}
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.modeButton}
-          onPress={() =>
-            handleStartGame(
-              "combine-lists",
-              urgentWordsCount > 0 ? "urgent" : "free"
-            )
-          }
-        >
-          <Ionicons
-            name="git-compare-outline"
-            size={28}
-            style={styles.modeIcon}
-          />
-          <View style={styles.modeTextContainer}>
-            <AppText variant="bold" style={styles.modeTitle}>
-              Combinar Listas
-            </AppText>
-            <AppText style={styles.modeDescription}>
-              Combine as palavras com os seus significados.
-            </AppText>
-          </View>
-          <Ionicons
-            name="chevron-forward"
-            size={22}
-            color={theme.colors.textMuted}
-          />
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() =>
+              handleStartGame(
+                "combine-lists",
+                urgentWordsCount > 0 ? "urgent" : "free"
+              )
+            }
+          >
+            <Ionicons
+              name="git-compare-outline"
+              size={28}
+              style={styles.modeIcon}
+            />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Combinar Listas
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Combine as palavras com os seus significados.
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={22}
+              color={theme.colors.textMuted}
+            />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -353,16 +357,25 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 40,
   },
   header: {
-    paddingTop: 60,
+    paddingTop: 60, // Safe area
+    paddingHorizontal: 20,
     paddingBottom: 20,
+    backgroundColor: theme.colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
   },
   title: {
     fontSize: theme.fontSizes["3xl"],
     color: theme.colors.text,
-    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
+    marginTop: 4,
   },
   statusCard: {
     alignItems: "center",
