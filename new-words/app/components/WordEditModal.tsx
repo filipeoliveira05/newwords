@@ -54,87 +54,92 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
       visible={isVisible}
       transparent
       animationType="fade"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent={true}
       onRequestClose={onClose}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.modalOverlay}
-      >
+      {/* O Pressable serve como um backdrop clicável para fechar o modal */}
+      <View style={styles.modalOverlay}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHandle} />
-          <View style={styles.modalHeader}>
-            <AppText variant="bold" style={styles.modalTitle}>
-              {isEditMode ? "Editar Palavra" : "Nova Palavra"}
-            </AppText>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={24} color={theme.colors.icon} />
+        {/* O KeyboardAvoidingView envolve apenas o conteúdo do modal para que ele seja empurrado para cima pelo teclado */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <AppText variant="bold" style={styles.modalTitle}>
+                {isEditMode ? "Editar Palavra" : "Nova Palavra"}
+              </AppText>
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <Ionicons name="close" size={24} color={theme.colors.icon} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.form}>
+              <View style={styles.inputGroup}>
+                <AppText style={styles.label}>PALAVRA</AppText>
+                <Pressable
+                  style={styles.inputContainer}
+                  onPress={() => nameInputRef.current?.focus()}
+                >
+                  <Ionicons
+                    name="text-outline"
+                    style={styles.inputIcon}
+                    size={22}
+                  />
+                  <TextInput
+                    ref={nameInputRef}
+                    style={styles.input}
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="Ex: Apple"
+                    placeholderTextColor={theme.colors.placeholder}
+                    autoCapitalize="none"
+                  />
+                </Pressable>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <AppText style={styles.label}>SIGNIFICADO</AppText>
+                <Pressable
+                  style={styles.inputContainer}
+                  onPress={() => meaningInputRef.current?.focus()}
+                >
+                  <Ionicons
+                    name="chatbox-ellipses-outline"
+                    style={styles.inputIcon}
+                    size={22}
+                  />
+                  <TextInput
+                    ref={meaningInputRef}
+                    style={styles.input}
+                    value={meaning}
+                    onChangeText={setMeaning}
+                    placeholder="Ex: Maçã"
+                    placeholderTextColor={theme.colors.placeholder}
+                    autoCapitalize="none"
+                  />
+                </Pressable>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+              onPress={handleSave}
+              disabled={isSaving}
+            >
+              {isSaving ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <AppText variant="bold" style={styles.saveButtonText}>
+                  {isEditMode ? "Guardar Alterações" : "Adicionar Palavra"}
+                </AppText>
+              )}
             </TouchableOpacity>
           </View>
-
-          <View style={styles.form}>
-            <View style={styles.inputGroup}>
-              <AppText style={styles.label}>PALAVRA</AppText>
-              <Pressable
-                style={styles.inputContainer}
-                onPress={() => nameInputRef.current?.focus()}
-              >
-                <Ionicons
-                  name="text-outline"
-                  style={styles.inputIcon}
-                  size={22}
-                />
-                <TextInput
-                  ref={nameInputRef}
-                  style={styles.input}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Ex: Apple"
-                  placeholderTextColor={theme.colors.placeholder}
-                  autoCapitalize="none"
-                />
-              </Pressable>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <AppText style={styles.label}>SIGNIFICADO</AppText>
-              <Pressable
-                style={styles.inputContainer}
-                onPress={() => meaningInputRef.current?.focus()}
-              >
-                <Ionicons
-                  name="chatbox-ellipses-outline"
-                  style={styles.inputIcon}
-                  size={22}
-                />
-                <TextInput
-                  ref={meaningInputRef}
-                  style={styles.input}
-                  value={meaning}
-                  onChangeText={setMeaning}
-                  placeholder="Ex: Maçã"
-                  placeholderTextColor={theme.colors.placeholder}
-                  autoCapitalize="none"
-                />
-              </Pressable>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving && styles.buttonDisabled]}
-            onPress={handleSave}
-            disabled={isSaving}
-          >
-            {isSaving ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <AppText variant="bold" style={styles.saveButtonText}>
-                {isEditMode ? "Guardar Alterações" : "Adicionar Palavra"}
-              </AppText>
-            )}
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
