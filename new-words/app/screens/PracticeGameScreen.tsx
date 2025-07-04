@@ -27,6 +27,7 @@ import ProgressBar from "../components/practice/ProgressBar";
 import FlashcardView from "../components/practice/FlashcardView";
 import MultipleChoiceView from "../components/practice/MultipleChoiceView";
 import WritingView from "../components/practice/WritingView";
+import CombineListsView from "../components/practice/CombineListsView";
 import SessionResults from "../components/practice/SessionResults";
 import AppText from "../components/AppText";
 import { theme } from "../../config/theme";
@@ -39,13 +40,14 @@ const gameModeTitles = {
   flashcard: "Revisão Clássica",
   "multiple-choice": "Escolha Múltipla",
   writing: "Jogo da Escrita",
+  "combine-lists": "Combinar Listas",
 };
 
 const GameHeader = ({
   mode,
   onBackPress,
 }: {
-  mode: "flashcard" | "multiple-choice" | "writing";
+  mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists";
   onBackPress: () => void;
 }) => {
   const insets = useSafeAreaInsets();
@@ -221,6 +223,7 @@ export default function PracticeGameScreen({ route }: Props) {
         {mode === "flashcard" && <FlashcardView />}
         {mode === "multiple-choice" && <MultipleChoiceView />}
         {mode === "writing" && <WritingView />}
+        {mode === "combine-lists" && <CombineListsView />}
       </View>
     );
   }

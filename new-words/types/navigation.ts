@@ -16,7 +16,7 @@ export type HomeStackParamList = {
 export type PracticeStackParamList = {
   PracticeHub: undefined;
   PracticeGame: {
-    mode: "flashcard" | "multiple-choice" | "writing";
+    mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists";
     deckId?: number;
     sessionType: "urgent" | "free";
     words?: Word[]; // Passamos uma lista específica de palavras para praticar (ex: palavras difíceis)

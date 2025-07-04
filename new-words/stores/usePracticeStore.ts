@@ -8,7 +8,7 @@ interface PracticeWord {
   meaning: string;
 }
 
-type GameMode = "flashcard" | "multiple-choice" | "writing";
+type GameMode = "flashcard" | "multiple-choice" | "writing" | "combine-lists";
 type SessionType = "urgent" | "free";
 
 interface PracticeState {
@@ -34,6 +34,7 @@ interface PracticeState {
   startNextRound: () => void;
   startMistakesRound: (mistakeWords: PracticeWord[]) => void;
   recordAnswer: (wordId: number, isCorrect: boolean) => void;
+  completeRound: () => void;
   nextWord: () => void;
   endSession: () => void;
   getCurrentWord: () => PracticeWord | null;
@@ -78,8 +79,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   startNextRound: () => {
-    const { fullSessionWordPool, currentPoolIndex } = get();
-    const roundSize = 10;
+    const { fullSessionWordPool, currentPoolIndex, gameMode } = get();
+    const roundSize = gameMode === "combine-lists" ? 5 : 10;
     const nextWords = fullSessionWordPool.slice(
       currentPoolIndex,
       currentPoolIndex + roundSize
@@ -115,9 +116,17 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   recordAnswer: (wordId, isCorrect) => {
+    const { correctAnswers, incorrectAnswers } = get();
+
+    // Se a palavra já foi respondida nesta ronda (certa ou errada),
+    // não atualizamos as estatísticas da DB novamente.
+    // Isto previne que uma correção no modo "Combine Lists" sobreponha o erro inicial.
+    if (correctAnswers.includes(wordId) || incorrectAnswers.includes(wordId)) {
+      return;
+    }
+
     // Update the database immediately
     useWordStore.getState().updateStatsAfterAnswer(wordId, isCorrect);
-
     set((state) => ({
       correctAnswers:
         isCorrect && !state.correctAnswers.includes(wordId)
@@ -127,15 +136,21 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         !isCorrect && !state.incorrectAnswers.includes(wordId)
           ? [...state.incorrectAnswers, wordId]
           : state.incorrectAnswers,
-      // Add to session-wide practiced set.
-      wordsPracticedInSession: new Set(state.wordsPracticedInSession).add(
-        wordId
-      ),
+      // Add to session-wide practiced set. For combine-lists, only correct answers
+      // should advance the progress bar. For other modes, any attempt counts.
+      wordsPracticedInSession:
+        state.gameMode !== "combine-lists" || isCorrect
+          ? new Set(state.wordsPracticedInSession).add(wordId)
+          : state.wordsPracticedInSession,
       streak: isCorrect ? state.streak + 1 : 0,
       highestStreakThisRound: isCorrect
         ? Math.max(state.highestStreakThisRound, state.streak + 1)
         : state.highestStreakThisRound,
     }));
+  },
+
+  completeRound: () => {
+    set({ sessionState: "finished" });
   },
 
   nextWord: () => {

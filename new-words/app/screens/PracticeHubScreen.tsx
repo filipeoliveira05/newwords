@@ -42,7 +42,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
   const handleStartGame = useCallback(
     (
-      mode: "flashcard" | "multiple-choice" | "writing",
+      mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists",
       sessionType: "urgent" | "free"
     ) => {
       navigation.navigate("PracticeGame", {
@@ -294,6 +294,35 @@ export default function PracticeHubScreen({ navigation }: Props) {
             </AppText>
             <AppText style={styles.modeDescription}>
               Nós mostramos o significado, você escreve a palavra.
+            </AppText>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={22}
+            color={theme.colors.textMuted}
+          />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.modeButton}
+          onPress={() =>
+            handleStartGame(
+              "combine-lists",
+              urgentWordsCount > 0 ? "urgent" : "free"
+            )
+          }
+        >
+          <Ionicons
+            name="git-compare-outline"
+            size={28}
+            style={styles.modeIcon}
+          />
+          <View style={styles.modeTextContainer}>
+            <AppText variant="bold" style={styles.modeTitle}>
+              Combinar Listas
+            </AppText>
+            <AppText style={styles.modeDescription}>
+              Combine as palavras com os seus significados.
             </AppText>
           </View>
           <Ionicons
