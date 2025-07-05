@@ -24,11 +24,12 @@ export default function ProgressBar() {
   const progressPercentage =
     totalWordsInPool > 0 ? (wordsPracticedCount / totalWordsInPool) * 100 : 0;
 
-  const progress = useSharedValue(0);
+  // Inicializa o valor partilhado com a percentagem atual para evitar a animação inicial.
+  const progress = useSharedValue(progressPercentage);
 
   // Animate the progress bar width
   useEffect(() => {
-    progress.value = withTiming(progressPercentage, { duration: 400 });
+    progress.value = withTiming(progressPercentage, { duration: 300 });
   }, [progressPercentage, progress]);
 
   const animatedBarFillStyle = useAnimatedStyle(() => {
