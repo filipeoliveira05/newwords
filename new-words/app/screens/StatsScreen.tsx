@@ -5,9 +5,19 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Modal,
+  Pressable,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+  Easing,
+} from "react-native-reanimated";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
+import { format, parseISO } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Calendar, LocaleConfig } from "react-native-calendars";
@@ -23,12 +33,16 @@ import {
   getTodaysActiveGoalIds,
   setTodaysActiveGoalIds,
   unlockAchievements,
+  countWordsAddedOnDate,
+  getAchievementsUnlockedOnDate,
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../services/storage";
 import { RootTabParamList } from "../../types/navigation";
+import { shuffle } from "@/utils/arrayUtils";
+import { pt } from "date-fns/locale";
 import { allPossibleDailyGoals, DailyGoal } from "../../config/dailyGoals";
 import DailyGoalProgress from "../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../../config/achievements";
@@ -47,23 +61,6 @@ type MarkedDates = {
   };
 };
 
-// Helper function to shuffle an array
-const shuffle = <T,>(array: T[]): T[] => {
-  let currentIndex = array.length,
-    randomIndex;
-
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-
-  return array;
-};
-
 export default function StatsScreen() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<GlobalStats | null>(null);
@@ -77,6 +74,19 @@ export default function StatsScreen() {
   const [todaysStats, setTodaysStats] = useState<PracticeHistory | null>(null);
   const [activeDailyGoals, setActiveDailyGoals] = useState<DailyGoal[]>([]);
   const [timeRemaining, setTimeRemaining] = useState("");
+
+  // State for modal animation
+  const [isModalRendered, setIsModalRendered] = useState(false);
+  const overlayOpacity = useSharedValue(0);
+  const modalTranslateY = useSharedValue(300);
+
+  const [isDayDetailModalVisible, setIsDayDetailModalVisible] = useState(false);
+  const [selectedDayData, setSelectedDayData] = useState<{
+    date: string;
+    words_trained: number;
+    words_added: number;
+    unlocked_achievements: Achievement[];
+  } | null>(null);
 
   const [processedAchievements, setProcessedAchievements] = useState<
     (Achievement & { unlocked: boolean; isNew: boolean })[]
@@ -109,6 +119,47 @@ export default function StatsScreen() {
 
     return () => clearInterval(timerId);
   }, []);
+
+  // Effect to handle modal open/close animations
+  useEffect(() => {
+    if (isDayDetailModalVisible) {
+      setIsModalRendered(true);
+      overlayOpacity.value = withTiming(1, { duration: 250 });
+      modalTranslateY.value = withTiming(0, {
+        duration: 300,
+        easing: Easing.out(Easing.quad),
+      });
+    } else if (isModalRendered) {
+      // Only run close animation if it was rendered
+      overlayOpacity.value = withTiming(0, { duration: 250 });
+      modalTranslateY.value = withTiming(
+        300,
+        { duration: 300, easing: Easing.out(Easing.quad) },
+        (finished) => {
+          if (finished) {
+            runOnJS(setIsModalRendered)(false);
+          }
+        }
+      );
+    }
+  }, [
+    isDayDetailModalVisible,
+    isModalRendered,
+    overlayOpacity,
+    modalTranslateY,
+  ]);
+
+  const animatedOverlayStyle = useAnimatedStyle(() => {
+    return {
+      opacity: overlayOpacity.value,
+    };
+  });
+
+  const animatedModalStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateY: modalTranslateY.value }],
+    };
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -226,11 +277,43 @@ export default function StatsScreen() {
       acc[day.date] = {
         selected: true,
         selectedColor: getHeatmapColor(day.words_trained),
-        disableTouchEvent: true,
+        disableTouchEvent: false,
       };
       return acc;
     }, {} as MarkedDates);
   }, [practiceHistory]);
+
+  const handleDayPress = useCallback(
+    async (day: { dateString: string }) => {
+      const historyForDay = practiceHistory.find(
+        (h) => h.date === day.dateString
+      );
+
+      const [wordsAddedCount, unlockedAchievementIds] = await Promise.all([
+        countWordsAddedOnDate(day.dateString),
+        getAchievementsUnlockedOnDate(day.dateString),
+      ]);
+
+      const unlockedAchievements = achievements.filter((ach) =>
+        unlockedAchievementIds.includes(ach.id)
+      );
+
+      if (
+        historyForDay ||
+        wordsAddedCount > 0 ||
+        unlockedAchievements.length > 0
+      ) {
+        setSelectedDayData({
+          date: day.dateString,
+          words_trained: historyForDay?.words_trained ?? 0,
+          words_added: wordsAddedCount,
+          unlocked_achievements: unlockedAchievements,
+        });
+        setIsDayDetailModalVisible(true);
+      }
+    },
+    [practiceHistory]
+  );
 
   const handlePracticeChallengingWords = () => {
     if (challengingWords.length === 0) return;
@@ -335,13 +418,14 @@ export default function StatsScreen() {
           ))}
         </View>
 
-        {/* Secção 2: Mapa de Atividade (Placeholder) */}
+        {/* Secção 2: Mapa de Atividade */}
         <View style={styles.section}>
           <AppText variant="bold" style={styles.sectionTitle}>
             Mapa de Atividade
           </AppText>
           <Calendar
             markedDates={markedDates}
+            onDayPress={handleDayPress}
             theme={{
               calendarBackground: theme.colors.surface,
               textSectionTitleColor: theme.colors.textMuted,
@@ -414,6 +498,103 @@ export default function StatsScreen() {
           ))}
         </View>
       </ScrollView>
+
+      {/* Day Detail Modal */}
+      <Modal
+        visible={isModalRendered}
+        transparent
+        animationType="none"
+        onRequestClose={() => setIsDayDetailModalVisible(false)}
+      >
+        <Animated.View style={[styles.modalOverlay, animatedOverlayStyle]}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsDayDetailModalVisible(false)}
+          />
+          <Animated.View style={[styles.modalContainer, animatedModalStyle]}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <AppText variant="bold" style={styles.modalTitle}>
+                Detalhes do Dia
+              </AppText>
+              <TouchableOpacity
+                onPress={() => setIsDayDetailModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Ionicons name="close" size={24} color={theme.colors.icon} />
+              </TouchableOpacity>
+            </View>
+            {selectedDayData && (
+              <View style={styles.dayDetailContent}>
+                <AppText style={styles.dayDetailDate}>
+                  {format(
+                    parseISO(selectedDayData.date),
+                    "EEEE, dd 'de' MMMM 'de' yyyy",
+                    { locale: pt }
+                  )}
+                </AppText>
+                {/* Palavras Adicionadas - sempre visível */}
+                <View style={styles.dayDetailStat}>
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={24}
+                    color={theme.colors.success}
+                  />
+                  <AppText style={styles.dayDetailStatText}>
+                    <AppText variant="bold">
+                      {selectedDayData.words_added}
+                    </AppText>
+                    {selectedDayData.words_added === 1
+                      ? " palavra adicionada"
+                      : " palavras adicionadas"}
+                  </AppText>
+                </View>
+
+                {/* Palavras Praticadas - sempre visível */}
+                <View style={styles.dayDetailStat}>
+                  <Ionicons
+                    name="flash-outline"
+                    size={24}
+                    color={theme.colors.primary}
+                  />
+                  <AppText style={styles.dayDetailStatText}>
+                    <AppText variant="bold">
+                      {selectedDayData.words_trained}
+                    </AppText>
+                    {selectedDayData.words_trained === 1
+                      ? " palavra praticada"
+                      : " palavras praticadas"}
+                  </AppText>
+                </View>
+
+                {/* Conquistas - visível apenas se > 0 */}
+                {selectedDayData.unlocked_achievements.length > 0 && (
+                  <View style={styles.dayDetailSection}>
+                    <AppText
+                      variant="medium"
+                      style={styles.dayDetailSectionTitle}
+                    >
+                      Conquistas Desbloqueadas
+                    </AppText>
+                    {selectedDayData.unlocked_achievements.map((ach) => (
+                      <View key={ach.id} style={styles.dayDetailStat}>
+                        <Ionicons
+                          name={ach.icon as any}
+                          size={24}
+                          color={theme.colors.gold}
+                        />
+                        <AppText style={styles.dayDetailStatText}>
+                          {ach.title}
+                        </AppText>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            )}
+          </Animated.View>
+        </Animated.View>
+      </Modal>
     </View>
   );
 }
@@ -493,6 +674,7 @@ const styles = StyleSheet.create({
     color: theme.colors.danger,
   },
   placeholderText: {
+    marginTop: 5,
     color: theme.colors.textMuted,
     fontSize: theme.fontSizes.sm,
   },
@@ -518,5 +700,67 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     marginTop: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay,
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: theme.colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingTop: 12,
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: theme.colors.border,
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: -18,
+  },
+  modalTitle: {
+    fontSize: theme.fontSizes.xl,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  dayDetailContent: {
+    paddingTop: 16,
+  },
+  dayDetailDate: {
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
+    marginBottom: 24,
+    textAlign: "left",
+  },
+  dayDetailStat: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: 12,
+  },
+  dayDetailStatText: {
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.text,
+    marginLeft: 12,
+  },
+  dayDetailSection: {
+    width: "100%",
+    marginTop: 16,
+  },
+  dayDetailSectionTitle: {
+    fontSize: theme.fontSizes.sm,
+    color: theme.colors.textSecondary,
+    marginBottom: 12,
+    textTransform: "uppercase",
   },
 });
