@@ -60,8 +60,6 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-- [x] **Word Custom Screen:** Add a `WordDetailsScreen` showing detailed information about the word: name, meaning, grammar category (noun, verb, etc.), synonyms, sentences with that word, AI operations.
-- [x] **Alerts Design:** Improve looks of alert messages to keep the design consistent throughout the app and avoid generic android/IOS design.
 - [ ] **Delay and Lag:** Search for every aspect of the app that could be optimized. Search for ways to animate the app without compromising performance. Database Writes: No SessionResults, a função updateUserPracticeMetrics é assíncrona. Embora não deva bloquear a UI, qualquer lógica complexa que dependa dela pode parecer lenta.
 
 ### 🔮 Future Features (Next Levels)
@@ -81,6 +79,7 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
   - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
   - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
   - [ ] **Matching Game:** A classic mode where users match words to their definitions from two columns.
+  - [ ] **Combine Lists variant:** A similar mode to the normal Combine Lists but with a clock counting down (correct combinations add seconds) and combos (points multiplier that leads to higher xp in the end)
 
 - [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.
 - [ ] ⬅️ ➡️ **Tinder-Style Review:** Implement a fast and fluid swipe-right/swipe-left interface for flashcard review, making practice sessions more engaging.
