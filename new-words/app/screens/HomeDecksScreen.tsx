@@ -34,6 +34,7 @@ export default function HomeDecksScreen({ navigation }: any) {
         text1: "Dados de teste carregados!",
       });
     } catch (error) {
+      console.error("Falha ao carregar os dados de teste.", error);
       showAlert({
         title: "Erro",
         message: "Não foi possível carregar os dados de teste.",
