@@ -13,7 +13,9 @@ import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 
 export default function FlashcardView() {
-  const [isFlipped, setIsFlipped] = useState(false);
+  // Controla a visibilidade dos botões "Acertei" e "Errei".
+  // Torna-se verdadeiro após a primeira viragem e permanece assim.
+  const [showAnswerButtons, setShowAnswerButtons] = useState(false);
 
   const currentWord = usePracticeStore((state) => state.getCurrentWord());
   const { recordAnswer, nextWord } = usePracticeStore.getState();
@@ -36,7 +38,7 @@ export default function FlashcardView() {
     const scale = interpolate(rotation.value, [0, 90, 180], [1, 1.1, 1]);
 
     return {
-      transform: [{ rotateY: `${rotation.value}deg` }, { scale }],
+      transform: [{ rotateY: `${-rotation.value}deg` }, { scale }],
     };
   });
 
@@ -46,12 +48,12 @@ export default function FlashcardView() {
     const scale = interpolate(rotation.value, [0, 90, 180], [1, 1.1, 1]);
 
     return {
-      transform: [{ rotateY: `${rotation.value + 180}deg` }, { scale }],
+      transform: [{ rotateY: `${-rotation.value + 180}deg` }, { scale }],
     };
   });
 
   useEffect(() => {
-    setIsFlipped(false);
+    setShowAnswerButtons(false);
     // Reseta as animações para a nova palavra.
     rotation.value = 0;
     translateX.value = 0;
@@ -64,9 +66,15 @@ export default function FlashcardView() {
   }
 
   const handleReveal = () => {
-    if (isFlipped) return; // Previne virar novamente
-    rotation.value = withTiming(180, { duration: 600 });
-    setTimeout(() => setIsFlipped(true), 250); // Mostra os botões a meio da animação
+    // Anima a rotação para o lado oposto
+    rotation.value = withTiming(rotation.value === 0 ? 180 : 0, {
+      duration: 600,
+    });
+
+    // Mostra os botões de resposta após a primeira viragem e mantém-nos visíveis.
+    if (!showAnswerButtons) {
+      setTimeout(() => setShowAnswerButtons(true), 250);
+    }
   };
 
   const handleAnswer = (isCorrect: boolean) => {
@@ -115,7 +123,6 @@ export default function FlashcardView() {
         style={styles.cardContainer}
         onPress={handleReveal} // A área de toque agora tem a sombra e a perspetiva
         activeOpacity={0.7}
-        disabled={isFlipped}
       >
         {/* Frente do Cartão */}
         <Animated.View
@@ -161,7 +168,7 @@ export default function FlashcardView() {
         </Animated.View>
       </TouchableOpacity>
 
-      {isFlipped && (
+      {showAnswerButtons && (
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.incorrectButton]}
