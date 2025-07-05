@@ -336,6 +336,16 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     showAlert,
   ]);
 
+  const getCategoryColor = (categoryName: string | null): string => {
+    if (!categoryName) {
+      return theme.colors.border; // Cor neutra para quando nada está selecionado
+    }
+    const key = categoryName as keyof typeof theme.colors.category;
+    const defaultKey = "Outro" as keyof typeof theme.colors.category;
+
+    return theme.colors.category[key] || theme.colors.category[defaultKey];
+  };
+
   useEffect(
     () =>
       navigation.addListener("beforeRemove", (e) => {
@@ -485,14 +495,26 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
             style={styles.categorySelector}
             onPress={() => setIsCategoryModalVisible(true)}
           >
-            <AppText
-              style={
-                category ? styles.categoryText : styles.categoryPlaceholder
-              }
-            >
-              {category || "Escolha uma categoria"}
-            </AppText>
-            <Ionicons name="chevron-down" size={20} color={theme.colors.icon} />
+            <View style={styles.categorySelectorContent}>
+              <View
+                style={[
+                  styles.categoryDot,
+                  { backgroundColor: getCategoryColor(category) },
+                ]}
+              />
+              <AppText
+                style={
+                  category ? styles.categoryText : styles.categoryPlaceholder
+                }
+              >
+                {category || "Escolha uma categoria"}
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-down"
+              size={20}
+              color={theme.colors.iconMuted}
+            />
           </TouchableOpacity>
         </View>
 
@@ -704,6 +726,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.border,
     padding: 16,
+  },
+  categorySelectorContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  categoryDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 12,
   },
   categoryText: {
     fontSize: theme.fontSizes.base,
