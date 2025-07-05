@@ -591,7 +591,9 @@ export async function getChallengingWords(): Promise<ChallengingWord[]> {
         *,
         (CAST(timesCorrect AS REAL) * 100 / timesTrained) as successRate
       FROM words
-      WHERE timesTrained > 0
+      WHERE
+        timesTrained > 2 AND
+        (CAST(timesCorrect AS REAL) / timesTrained) < 0.8
       ORDER BY successRate ASC, timesIncorrect DESC, lastTrained ASC
       LIMIT 3
     `);
@@ -724,6 +726,19 @@ export async function getTodaysPracticeStats(): Promise<PracticeHistory | null> 
   }
 }
 
+export async function countWordsAddedOnDate(date: string): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM words WHERE date(createdAt) = ?",
+      [date]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras adicionadas na data:", e);
+    throw e;
+  }
+}
+
 // --- Daily Goal Functions ---
 
 export async function getTodaysActiveGoalIds(): Promise<string[] | null> {
@@ -737,6 +752,21 @@ export async function getTodaysActiveGoalIds(): Promise<string[] | null> {
     return result ? JSON.parse(result.goal_ids) : null;
   } catch (e) {
     console.error("Erro ao obter IDs das metas diárias ativas:", e);
+    throw e;
+  }
+}
+
+export async function getAchievementsUnlockedOnDate(
+  date: string
+): Promise<string[]> {
+  try {
+    const results = await db.getAllAsync<{ achievement_id: string }>(
+      "SELECT achievement_id FROM unlocked_achievements WHERE date(unlocked_at) = ?",
+      [date]
+    );
+    return results.map((r) => r.achievement_id);
+  } catch (e) {
+    console.error("Erro ao obter conquistas desbloqueadas na data:", e);
     throw e;
   }
 }
