@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { View, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, RefObject, useEffect, useRef } from "react";
+import {
+  View,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  useWindowDimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
@@ -11,6 +18,9 @@ type ChipInputProps = {
   placeholder: string;
   layout?: "wrap" | "stack";
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  scrollViewRef?: RefObject<ScrollView | null>;
+  currentScrollY?: RefObject<number>;
+  keyboardHeight?: number;
 };
 
 const ChipInput = ({
@@ -20,20 +30,79 @@ const ChipInput = ({
   placeholder,
   layout = "wrap",
   autoCapitalize = "sentences",
+  scrollViewRef,
+  currentScrollY,
+  keyboardHeight = 0,
 }: ChipInputProps) => {
   const [currentValue, setCurrentValue] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const chipInputRef = useRef<View>(null);
+  const { height: windowHeight } = useWindowDimensions();
 
   const handleAddItem = () => {
     if (currentValue.trim()) {
       onItemsChange([...items, currentValue.trim()]);
       setCurrentValue("");
+      // Esconde o campo de input depois de adicionar um item para um fluxo mais limpo.
+      setIsAdding(false);
     }
   };
 
+  const getEmptyText = (label: string): string => {
+    const lowerLabel = label.toLowerCase();
+    if (lowerLabel === "sinónimos") {
+      return "Nenhum sinónimo adicionado.";
+    }
+    if (lowerLabel === "antónimos") {
+      return "Nenhum antónimo adicionado.";
+    }
+    if (lowerLabel === "frases de exemplo") {
+      return "Nenhuma frase de exemplo adicionada.";
+    }
+    // Fallback genérico para outros casos
+    const singular = lowerLabel.endsWith("s")
+      ? lowerLabel.slice(0, -1)
+      : lowerLabel;
+    return `Nenhum ${singular} adicionado.`;
+  };
+
+  // Este efeito é acionado sempre que o input se torna visível.
+  // É responsável por fazer o scroll para a posição correta.
+  useEffect(() => {
+    if (isAdding && scrollViewRef?.current && chipInputRef.current) {
+      // Usamos um timeout para garantir que o teclado já apareceu e as medições são corretas.
+      const timer = setTimeout(() => {
+        chipInputRef.current?.measure((x, y, width, height, pageX, pageY) => {
+          const componentBottomOnScreen = pageY + height;
+          const visibleAreaEnd = windowHeight - keyboardHeight;
+
+          // Apenas faz scroll se o componente estiver tapado pelo teclado.
+          if (componentBottomOnScreen > visibleAreaEnd) {
+            // Calcula o quanto é preciso deslizar para o componente ficar visível.
+            const scrollAmountNeeded =
+              componentBottomOnScreen - visibleAreaEnd + 20; // 20px de margem
+            const currentOffset = currentScrollY?.current ?? 0;
+            const newScrollY = currentOffset + scrollAmountNeeded;
+            scrollViewRef.current?.scrollTo({ y: newScrollY, animated: true });
+          }
+        });
+      }, 150);
+
+      return () => clearTimeout(timer); // Limpa o timeout se o componente for desmontado.
+    }
+  }, [isAdding, windowHeight, keyboardHeight, scrollViewRef, currentScrollY]);
+
   const toggleInput = () => {
-    setIsAdding(!isAdding);
-    setCurrentValue(""); // Reset input when toggling
+    if (isAdding) {
+      setIsAdding(false);
+      setCurrentValue("");
+    } else {
+      // Para garantir que o autoFocus funciona de forma consistente em cliques repetidos,
+      // forçamos uma remontagem do TextInput fazendo um toggle rápido do estado.
+      setIsAdding(false); // Garante que está desligado
+      setCurrentValue("");
+      setTimeout(() => setIsAdding(true), 50); // Liga-o novamente após um pequeno delay
+    }
   };
 
   const handleRemoveItem = (indexToRemove: number) => {
@@ -41,7 +110,7 @@ const ChipInput = ({
   };
 
   return (
-    <View style={styles.section}>
+    <View style={styles.section} ref={chipInputRef}>
       <View style={styles.labelContainer}>
         <AppText variant="bold" style={styles.label}>
           {label}
@@ -63,54 +132,67 @@ const ChipInput = ({
             placeholder={placeholder}
             placeholderTextColor={theme.colors.placeholder}
             onSubmitEditing={handleAddItem}
+            onBlur={() => {
+              // Quando o input perde o foco (teclado é dispensado), esconde o campo de input.
+              setIsAdding(false);
+            }}
             blurOnSubmit={false}
             autoFocus
             autoCapitalize={autoCapitalize}
             multiline={layout === "stack"}
           />
-          <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-            <Ionicons
-              name="checkmark-circle"
-              size={28}
-              color={theme.colors.success}
-            />
-          </TouchableOpacity>
+          {currentValue.trim().length > 0 && (
+            <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
+              <Ionicons
+                name="checkmark-circle"
+                size={28}
+                color={theme.colors.success}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
       <View style={layout === "wrap" ? styles.chipContainerWrap : {}}>
-        {items.length > 0 ? (
-          items.map((item, index) => (
-            <View
-              key={index}
-              style={layout === "wrap" ? styles.chipWrap : styles.chipStack}
-            >
-              <AppText
-                style={
-                  layout === "wrap" ? styles.chipTextWrap : styles.chipTextStack
-                }
+        {items.length > 0
+          ? items.map((item, index) => (
+              <View
+                key={index}
+                style={layout === "wrap" ? styles.chipWrap : styles.chipStack}
               >
-                {item}
-              </AppText>
-              <TouchableOpacity
-                onPress={() => handleRemoveItem(index)}
-                style={styles.removeButton}
+                <AppText
+                  style={
+                    layout === "wrap"
+                      ? styles.chipTextWrap
+                      : styles.chipTextStack
+                  }
+                >
+                  {item}
+                </AppText>
+                <TouchableOpacity
+                  onPress={() => handleRemoveItem(index)}
+                  style={styles.removeButton}
+                >
+                  <Ionicons
+                    name="close-circle"
+                    size={20}
+                    color={theme.colors.icon}
+                  />
+                </TouchableOpacity>
+              </View>
+            ))
+          : !isAdding && (
+              <View
+                style={[
+                  styles.emptyContainer,
+                  layout === "stack" && { alignItems: "flex-start" },
+                ]}
               >
-                <Ionicons
-                  name="close-circle"
-                  size={20}
-                  color={theme.colors.icon}
-                />
-              </TouchableOpacity>
-            </View>
-          ))
-        ) : (
-          <View style={styles.emptyContainer}>
-            <AppText style={styles.emptyChipText}>
-              Nenhum item adicionado.
-            </AppText>
-          </View>
-        )}
+                <AppText style={styles.emptyChipText}>
+                  {getEmptyText(label)}
+                </AppText>
+              </View>
+            )}
       </View>
     </View>
   );
@@ -149,50 +231,55 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     fontFamily: theme.fonts.regular,
   },
-  addButton: { padding: 12 },
+  addButton: { padding: 10 },
   chipContainerWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: 8,
+    margin: -4,
+    marginTop: 4,
   },
   chipWrap: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: theme.colors.border,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingLeft: 15,
-    paddingRight: 8,
-    marginRight: 8,
-    marginBottom: 8,
+    backgroundColor: theme.colors.primaryLighter,
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingLeft: 12,
+    paddingRight: 6,
+    margin: 4,
   },
   chipStack: {
     flexDirection: "row",
     alignItems: "flex-start",
     backgroundColor: theme.colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 8,
+    padding: 12,
+    paddingLeft: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: theme.colors.primary,
   },
   chipTextWrap: {
     fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMedium,
+    color: theme.colors.dark,
     marginRight: 8,
+    fontFamily: theme.fonts.medium,
   },
   chipTextStack: {
     flex: 1,
     fontSize: theme.fontSizes.sm,
-    color: theme.colors.textMedium,
-    lineHeight: 22,
+    color: theme.colors.text,
+    lineHeight: 20,
     marginRight: 12,
   },
   removeButton: {
     padding: 2,
   },
   emptyContainer: {
-    marginTop: 8,
+    backgroundColor: theme.colors.background,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
   },
   emptyChipText: {
     color: theme.colors.textMuted,

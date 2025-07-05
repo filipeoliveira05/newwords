@@ -1,5 +1,6 @@
 import React, {
   useState,
+  useRef,
   useLayoutEffect,
   useCallback,
   useEffect,
@@ -11,9 +12,8 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Modal,
+  Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -67,6 +67,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   const [isSaving, setIsSaving] = useState(false);
   const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
+  const [keyboardPadding, setKeyboardPadding] = useState(0);
+  const scrollY = useRef(0);
+  const scrollViewRef = useRef<ScrollView>(null);
   // State for the new edit modal
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
@@ -147,6 +150,23 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     setSentences,
     setInitialState,
   ]);
+
+  // Efeito para gerir o espaço do teclado manualmente, evitando o "salto" do KeyboardAvoidingView.
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener("keyboardDidShow", (e) => {
+      // Adiciona um padding no fundo do ScrollView igual à altura do teclado.
+      setKeyboardPadding(e.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener("keyboardDidHide", () => {
+      // Remove o padding quando o teclado desaparece.
+      setKeyboardPadding(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -434,13 +454,21 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <View style={styles.container}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        ref={scrollViewRef}
+        contentContainerStyle={[
+          styles.scrollContent,
+          {
+            paddingBottom:
+              keyboardPadding || styles.scrollContent.paddingBottom,
+          },
+        ]}
         keyboardShouldPersistTaps="handled"
+        onScroll={(e) => {
+          scrollY.current = e.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={16}
       >
         <View style={styles.wordHeader}>
           <AppText variant="bold" style={styles.wordName}>
@@ -475,6 +503,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           placeholder="Adicionar sinónimo"
           layout="wrap"
           autoCapitalize="none"
+          scrollViewRef={scrollViewRef}
+          currentScrollY={scrollY}
+          keyboardHeight={keyboardPadding}
         />
 
         <ChipInput
@@ -484,6 +515,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           placeholder="Adicionar antónimo"
           layout="wrap"
           autoCapitalize="none"
+          scrollViewRef={scrollViewRef}
+          currentScrollY={scrollY}
+          keyboardHeight={keyboardPadding}
         />
 
         <ChipInput
@@ -493,6 +527,9 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           placeholder="Adicionar frase"
           layout="stack"
           autoCapitalize="sentences"
+          scrollViewRef={scrollViewRef}
+          currentScrollY={scrollY}
+          keyboardHeight={keyboardPadding}
         />
 
         <View style={styles.section}>
@@ -615,7 +652,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           </TouchableOpacity>
         </View>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
@@ -631,7 +668,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 100, // Espaço extra para a barra de guardar não sobrepor o conteúdo
+    paddingBottom: 100,
   },
   wordHeader: {
     marginBottom: 32,
