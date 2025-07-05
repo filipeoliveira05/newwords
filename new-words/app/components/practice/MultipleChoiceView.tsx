@@ -5,6 +5,12 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
@@ -24,6 +30,15 @@ export default function MultipleChoiceView() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   useEffect(() => {
     const generateOptions = async () => {
@@ -32,6 +47,10 @@ export default function MultipleChoiceView() {
       setIsLoading(true);
       setIsAnswered(false);
       setSelectedOptionId(null);
+
+      // Reseta as animações para a nova palavra
+      translateX.value = 0;
+      opacity.value = withTiming(1, { duration: 300 });
 
       try {
         const distractors = await fetchDistractorWords(currentWord.id, deckId);
@@ -46,7 +65,7 @@ export default function MultipleChoiceView() {
     };
 
     generateOptions();
-  }, [currentWord, deckId, fetchDistractorWords]);
+  }, [currentWord, deckId, fetchDistractorWords, translateX, opacity]);
 
   const handleAnswer = (option: Word) => {
     if (isAnswered || !currentWord) return;
@@ -62,10 +81,21 @@ export default function MultipleChoiceView() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
 
-    // Wait for a moment to show feedback, then move to the next word
+    // Adiciona um delay para o utilizador ver o feedback antes de avançar.
     setTimeout(() => {
-      nextWord();
-    }, 1200); // 1.2 seconds for feedback
+      // Anima a saída do cartão, sempre para a esquerda
+      const slideDirection = -500;
+      opacity.value = withTiming(0, { duration: 300 });
+      translateX.value = withTiming(
+        slideDirection,
+        { duration: 400 },
+        (finished) => {
+          if (finished) {
+            runOnJS(nextWord)();
+          }
+        }
+      );
+    }, 1200); // 1.2 segundos de delay
   };
 
   const getButtonStyle = (optionId: number) => {
@@ -79,6 +109,20 @@ export default function MultipleChoiceView() {
       return [styles.optionButton, styles.incorrectOption]; // User's wrong choice
     }
     return [styles.optionButton, styles.disabledOption]; // Other options
+  };
+
+  const getCategoryColors = (categoryName: string) => {
+    const key = categoryName as keyof typeof theme.colors.category;
+    const defaultKey = "Outro" as keyof typeof theme.colors.category;
+
+    return {
+      background:
+        theme.colors.categoryLighter[key] ||
+        theme.colors.categoryLighter[defaultKey],
+      text:
+        theme.colors.categoryDarker[key] ||
+        theme.colors.categoryDarker[defaultKey],
+    };
   };
 
   if (isLoading) {
@@ -97,13 +141,27 @@ export default function MultipleChoiceView() {
     );
   }
 
+  const categoryColors = getCategoryColors(currentWord.category);
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
       <View style={styles.questionContainer}>
         <AppText style={styles.questionLabel}>Qual o significado de:</AppText>
         <AppText variant="bold" style={styles.wordText}>
           {currentWord.name}
         </AppText>
+        <View
+          style={[
+            styles.categoryContainer,
+            { backgroundColor: categoryColors.background },
+          ]}
+        >
+          <AppText
+            style={[styles.categoryText, { color: categoryColors.text }]}
+          >
+            {currentWord.category}
+          </AppText>
+        </View>
       </View>
 
       <View style={styles.optionsContainer}>
@@ -118,7 +176,7 @@ export default function MultipleChoiceView() {
           </TouchableOpacity>
         ))}
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -141,27 +199,35 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 30,
     width: "100%",
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
+    // A sombra foi removida para evitar artefactos visuais durante a animação de deslize.
+    // Em vez disso, usamos uma borda um pouco mais visível para dar profundidade.
+    borderWidth: 2,
+    borderColor: theme.colors.border, // Usamos a borda padrão para consistência
   },
   questionLabel: {
     fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
-    marginBottom: 8,
   },
   wordText: {
     fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
+    marginTop: 16, // Espaço entre o rótulo e a palavra
     textAlign: "center",
   },
   optionsContainer: {
     width: "100%",
     marginTop: 32, // Reduz a margem para aproximar as opções
+  },
+  categoryContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 16, // Espaço entre a palavra e a categoria
+  },
+  categoryText: {
+    fontSize: 10, // Tamanho de fonte menor para a categoria
+    fontFamily: theme.fonts.bold,
+    textTransform: "uppercase",
   },
   optionButton: {
     backgroundColor: theme.colors.surface,

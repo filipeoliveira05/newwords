@@ -6,6 +6,12 @@ import {
   StyleSheet,
   Keyboard,
 } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
@@ -22,15 +28,30 @@ export default function WritingView() {
     null
   );
   const inputRef = useRef<TextInput>(null);
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
 
   // --- Effects ---
   useEffect(() => {
     // Reset state for the new word
     setAnswer("");
     setFeedback(null);
+
+    // Reset animation
+    translateX.value = 0;
+    opacity.value = 0;
+    opacity.value = withTiming(1, { duration: 300 });
+
     // Focus the input automatically for a smoother experience
-    setTimeout(() => inputRef.current?.focus(), 200);
-  }, [currentWord]);
+    setTimeout(() => inputRef.current?.focus(), 400);
+  }, [currentWord, translateX, opacity]);
+
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   // --- Handlers ---
   const handleCheckAnswer = () => {
@@ -54,7 +75,17 @@ export default function WritingView() {
     // Wait for a moment to show feedback, then move to the next word
     setTimeout(
       () => {
-        nextWord();
+        const slideDirection = -500; // Slide to the left
+        opacity.value = withTiming(0, { duration: 300 });
+        translateX.value = withTiming(
+          slideDirection,
+          { duration: 400 },
+          (finished) => {
+            if (finished) {
+              runOnJS(nextWord)();
+            }
+          }
+        );
       },
       isCorrect ? 1200 : 2500
     ); // Give more time to see the correct answer if wrong
@@ -71,13 +102,41 @@ export default function WritingView() {
     return theme.colors.border;
   };
 
+  const getCategoryColors = (categoryName: string) => {
+    const key = categoryName as keyof typeof theme.colors.category;
+    const defaultKey = "Outro" as keyof typeof theme.colors.category;
+
+    return {
+      background:
+        theme.colors.categoryLighter[key] ||
+        theme.colors.categoryLighter[defaultKey],
+      text:
+        theme.colors.categoryDarker[key] ||
+        theme.colors.categoryDarker[defaultKey],
+    };
+  };
+
+  const categoryColors = getCategoryColors(currentWord.category);
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
       <View style={styles.questionContainer}>
         <AppText style={styles.questionHint}>Significado:</AppText>
         <AppText variant="bold" style={styles.questionText}>
           {currentWord.meaning}
         </AppText>
+        <View
+          style={[
+            styles.categoryContainer,
+            { backgroundColor: categoryColors.background },
+          ]}
+        >
+          <AppText
+            style={[styles.categoryText, { color: categoryColors.text }]}
+          >
+            {currentWord.category}
+          </AppText>
+        </View>
       </View>
 
       <View style={styles.answerContainer}>
@@ -110,7 +169,7 @@ export default function WritingView() {
           Verificar
         </AppText>
       </TouchableOpacity>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -123,21 +182,30 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: "center",
     marginBottom: 40,
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 8,
+    // A sombra foi removida para evitar artefactos visuais durante a animação de deslize.
+    borderWidth: 2,
+    borderColor: theme.colors.border,
   },
   questionHint: {
     fontSize: theme.fontSizes.base,
     color: theme.colors.textMuted,
-    marginBottom: 8,
+    marginBottom: 20,
   },
   questionText: {
     fontSize: theme.fontSizes["2xl"],
     color: theme.colors.text,
     textAlign: "center",
+  },
+  categoryContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 12, // Espaço entre o significado e a categoria
+  },
+  categoryText: {
+    fontSize: 10,
+    fontFamily: theme.fonts.bold,
+    textTransform: "uppercase",
   },
   answerContainer: { width: "100%", marginBottom: 24 },
   input: {

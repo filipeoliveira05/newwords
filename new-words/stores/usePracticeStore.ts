@@ -6,6 +6,7 @@ interface PracticeWord {
   id: number;
   name: string;
   meaning: string;
+  category: string;
 }
 
 type GameMode = "flashcard" | "multiple-choice" | "writing" | "combine-lists";
@@ -26,7 +27,12 @@ interface PracticeState {
   streak: number;
   highestStreakThisRound: number;
   initializeSession: (
-    fullWordPool: PracticeWord[],
+    fullWordPool: {
+      id: number;
+      name: string;
+      meaning: string;
+      category: string | null;
+    }[],
     gameMode: GameMode,
     sessionType: SessionType,
     deckId?: number
@@ -65,8 +71,16 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       return;
     }
 
+    // Garante que cada palavra tem uma categoria para exibição.
+    const wordsWithDefaultCategory: PracticeWord[] = fullWordPool.map(
+      (word) => ({
+        ...word,
+        category: word.category || "Outro",
+      })
+    );
+
     set({
-      fullSessionWordPool: shuffle([...fullWordPool]),
+      fullSessionWordPool: shuffle([...wordsWithDefaultCategory]),
       gameMode: gameMode,
       sessionType: sessionType,
       deckId: deckId,

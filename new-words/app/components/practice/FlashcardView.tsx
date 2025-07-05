@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   interpolate,
+  runOnJS,
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
@@ -19,6 +20,15 @@ export default function FlashcardView() {
 
   // Valor da animação para a rotação do cartão
   const rotation = useSharedValue(0);
+  const translateX = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  const animatedContainerStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacity.value,
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   // Estilo animado para a frente do cartão
   const frontAnimatedStyle = useAnimatedStyle(() => {
@@ -42,9 +52,12 @@ export default function FlashcardView() {
 
   useEffect(() => {
     setIsFlipped(false);
-    // Reseta a animação para a nova palavra
-    rotation.value = withTiming(0, { duration: 0 });
-  }, [currentWord, rotation]);
+    // Reseta as animações para a nova palavra.
+    rotation.value = 0;
+    translateX.value = 0;
+    opacity.value = 0; // Começa invisível
+    opacity.value = withTiming(1, { duration: 300 }); // Anima a entrada
+  }, [currentWord, rotation, translateX, opacity]);
 
   if (!currentWord) {
     return null;
@@ -63,11 +76,41 @@ export default function FlashcardView() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
     recordAnswer(currentWord.id, isCorrect);
-    nextWord();
+
+    const slideDirection = isCorrect ? 500 : -500;
+
+    // Anima a saída do cartão
+    opacity.value = withTiming(0, { duration: 300 });
+    translateX.value = withTiming(
+      slideDirection,
+      { duration: 400 },
+      (finished) => {
+        if (finished) {
+          // Chama a próxima palavra no thread de JS quando a animação termina
+          runOnJS(nextWord)();
+        }
+      }
+    );
   };
 
+  const getCategoryColors = (categoryName: string) => {
+    const key = categoryName as keyof typeof theme.colors.category;
+    const defaultKey = "Outro" as keyof typeof theme.colors.category;
+
+    return {
+      background:
+        theme.colors.categoryLighter[key] ||
+        theme.colors.categoryLighter[defaultKey],
+      text:
+        theme.colors.categoryDarker[key] ||
+        theme.colors.categoryDarker[defaultKey],
+    };
+  };
+
+  const categoryColors = getCategoryColors(currentWord.category);
+
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
       <TouchableOpacity
         style={styles.cardContainer}
         onPress={handleReveal} // A área de toque agora tem a sombra e a perspetiva
@@ -78,13 +121,25 @@ export default function FlashcardView() {
         <Animated.View
           style={[styles.card, styles.cardFront, frontAnimatedStyle]}
         >
-          <View style={styles.cardContent}>
+          <View style={styles.cardMainContent}>
             <AppText variant="medium" style={styles.cardTitle}>
               Palavra
             </AppText>
             <AppText variant="bold" style={styles.cardText}>
               {currentWord.name}
             </AppText>
+            <View
+              style={[
+                styles.categoryContainer,
+                { backgroundColor: categoryColors.background },
+              ]}
+            >
+              <AppText
+                style={[styles.categoryText, { color: categoryColors.text }]}
+              >
+                {currentWord.category}
+              </AppText>
+            </View>
           </View>
           <AppText style={styles.cardHint}>Toque para virar</AppText>
         </Animated.View>
@@ -93,14 +148,16 @@ export default function FlashcardView() {
         <Animated.View
           style={[styles.card, styles.cardBack, backAnimatedStyle]}
         >
-          <View style={styles.cardContent}>
+          <View style={styles.cardMainContent}>
             <AppText variant="medium" style={styles.cardTitle}>
               Significado
             </AppText>
             <AppText variant="bold" style={styles.cardText}>
               {currentWord.meaning}
             </AppText>
+            <View style={styles.categoryPlaceholder} />
           </View>
+          <View style={{ height: 21 }} />
         </Animated.View>
       </TouchableOpacity>
 
@@ -124,7 +181,7 @@ export default function FlashcardView() {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
@@ -149,7 +206,7 @@ const styles = StyleSheet.create({
     height: 320,
     backgroundColor: theme.colors.surface,
     borderRadius: 20,
-    justifyContent: "center",
+    justifyContent: "space-between",
     alignItems: "center",
     padding: 25,
     position: "absolute",
@@ -159,13 +216,30 @@ const styles = StyleSheet.create({
   },
   cardFront: {},
   cardBack: {},
-  cardContent: {
+  cardMainContent: {
     alignItems: "center",
+  },
+  categoryContainer: {
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 8,
+    marginTop: 16, // Espaço entre a palavra e a categoria
+  },
+  categoryPlaceholder: {
+    // Simula o espaço da categoria para alinhamento.
+    // Altura (16px) + marginTop (16px) = 32px
+    height: 16,
+    marginTop: 16,
+  },
+  categoryText: {
+    fontSize: 10,
+    fontFamily: theme.fonts.bold,
+    textTransform: "uppercase",
   },
   cardTitle: {
     fontSize: 16,
     color: theme.colors.textMuted,
-    marginBottom: 16,
+    marginBottom: 40, // Espaço entre o título ("Palavra") e a palavra
     textTransform: "uppercase",
     letterSpacing: 1,
   },
@@ -175,8 +249,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   cardHint: {
-    position: "absolute",
-    bottom: 20,
     fontSize: theme.fontSizes.sm,
     color: theme.colors.textMuted,
   },
