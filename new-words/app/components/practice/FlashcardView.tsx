@@ -73,7 +73,9 @@ export default function FlashcardView() {
 
     // Mostra os botões de resposta após a primeira viragem e mantém-nos visíveis.
     if (!showAnswerButtons) {
-      setTimeout(() => setShowAnswerButtons(true), 250);
+      setTimeout(() => {
+        setShowAnswerButtons(true);
+      }, 250);
     }
   };
 
@@ -85,7 +87,7 @@ export default function FlashcardView() {
     }
     recordAnswer(currentWord.id, isCorrect);
 
-    const slideDirection = isCorrect ? 500 : -500;
+    const slideDirection = -500;
 
     // Anima a saída do cartão
     opacity.value = withTiming(0, { duration: 300 });
@@ -165,6 +167,7 @@ export default function FlashcardView() {
             <View style={styles.categoryPlaceholder} />
           </View>
           <View style={{ height: 21 }} />
+          <AppText style={styles.cardHint}>Toque para virar</AppText>
         </Animated.View>
       </TouchableOpacity>
 
@@ -201,11 +204,6 @@ const styles = StyleSheet.create({
   cardContainer: {
     width: "100%",
     height: 320,
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 16,
-    elevation: 10,
     transform: [{ perspective: 1200 }],
   },
   card: {
@@ -220,6 +218,10 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     backfaceVisibility: "hidden",
+    // A sombra foi removida para evitar artefactos na animação.
+    // Usamos uma borda para manter a definição visual.
+    borderWidth: 2,
+    borderColor: theme.colors.border,
   },
   cardFront: {},
   cardBack: {},
@@ -272,11 +274,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: theme.colors.text,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
   incorrectButton: {
     backgroundColor: theme.colors.danger,
