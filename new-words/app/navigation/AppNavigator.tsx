@@ -3,11 +3,6 @@ import { View, ActivityIndicator } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Toast, {
-  BaseToast,
-  ErrorToast,
-  BaseToastProps,
-} from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
@@ -109,35 +104,6 @@ const iconMapping = {
   Profile: ["person-circle", "person-circle-outline"],
 };
 
-const toastConfig = {
-  success: (props: BaseToastProps) => (
-    <BaseToast
-      {...props}
-      style={{
-        borderLeftColor: "#2a9d8f",
-        height: 80, // Aumenta a altura
-        width: "90%",
-      }}
-      contentContainerStyle={{ paddingHorizontal: 15 }}
-      text1Style={{
-        fontSize: 17, // Aumenta o tamanho do texto do título
-        fontWeight: "bold",
-      }}
-      text2Style={{
-        fontSize: 15, // Aumenta o tamanho do texto da mensagem
-      }}
-    />
-  ),
-  error: (props: BaseToastProps) => (
-    <ErrorToast
-      {...props}
-      style={{ height: 80, width: "90%", borderLeftColor: "#ef4444" }}
-      text1Style={{ fontSize: 17, fontWeight: "bold" }}
-      text2Style={{ fontSize: 15 }}
-    />
-  ),
-};
-
 export default function AppNavigator() {
   const [fontsLoaded] = useFonts({
     "Satoshi-Regular": require("../../assets/fonts/Satoshi-Regular.otf"),
@@ -224,7 +190,6 @@ export default function AppNavigator() {
         />
       </Tab.Navigator>
       <CustomAlert />
-      <Toast config={toastConfig} />
     </View>
   );
 }
