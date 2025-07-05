@@ -73,7 +73,10 @@ export default function MultipleChoiceView() {
     const isCorrect = option.id === currentWord.id;
     setIsAnswered(true);
     setSelectedOptionId(option.id);
-    recordAnswer(currentWord.id, isCorrect);
+
+    // Infer quality: 4 for correct (good), 1 for incorrect.
+    const quality = isCorrect ? 4 : 1;
+    recordAnswer(currentWord.id, quality);
 
     if (isCorrect) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

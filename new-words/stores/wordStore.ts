@@ -14,7 +14,7 @@ import {
   addWord as dbAddWord,
   updateWord as dbUpdateWord,
   deleteWord as dbDeleteWord,
-  updateWordStats as dbUpdateWordStats,
+  updateWordStatsWithQuality as dbUpdateWordStatsWithQuality,
   updateWordDetails as dbUpdateWordDetails,
   toggleWordFavoriteStatus as dbToggleWordFavoriteStatus,
 } from "../services/storage";
@@ -60,7 +60,7 @@ interface WordState {
   toggleFavoriteStatus: (id: number) => Promise<Word | null>;
   clearWordsForDeck: (deckId: number) => void;
   clearWords: () => void;
-  updateStatsAfterAnswer: (wordId: number, isCorrect: boolean) => Promise<void>;
+  updateStatsAfterAnswer: (wordId: number, quality: number) => Promise<void>;
 }
 
 export const useWordStore = create<WordState>((set, get) => ({
@@ -425,30 +425,31 @@ export const useWordStore = create<WordState>((set, get) => ({
     set({ words: {}, loading: false });
   },
 
-  updateStatsAfterAnswer: async (wordId, isCorrect) => {
+  updateStatsAfterAnswer: async (wordId, quality) => {
     try {
-      const updatedWord = await dbUpdateWordStats(wordId, isCorrect);
+      const updatedWord = await dbUpdateWordStatsWithQuality(wordId, quality);
 
       if (!updatedWord) return;
 
       // Also update the local state to keep the UI consistent
       set((state) => {
         const { deckId } = updatedWord;
-        if (!state.words[deckId]) {
-          return state; // Safety check, should not happen
+        const wordsForDeck = state.words[deckId] || [];
+        const wordIndex = wordsForDeck.findIndex((w) => w.id === wordId);
+        const newWordsForDeck = [...wordsForDeck];
+
+        if (wordIndex > -1) {
+          newWordsForDeck[wordIndex] = updatedWord;
+        } else {
+          // This case is unlikely but safe to handle
+          newWordsForDeck.push(updatedWord);
         }
 
-        const updatedWordsForDeck = state.words[deckId].map((word) =>
-          word.id === updatedWord.id ? updatedWord : word
-        );
-
-        return {
-          words: { ...state.words, [deckId]: updatedWordsForDeck },
-        };
+        return { words: { ...state.words, [deckId]: newWordsForDeck } };
       });
     } catch (error) {
       console.error(
-        "Erro ao atualizar estatísticas da palavra no store",
+        "Erro ao atualizar estatísticas da palavra com SM-2 no store",
         error
       );
       throw error;

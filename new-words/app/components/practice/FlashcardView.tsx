@@ -79,13 +79,15 @@ export default function FlashcardView() {
     }
   };
 
-  const handleAnswer = (isCorrect: boolean) => {
-    if (isCorrect) {
+  const handleAnswer = (quality: number) => {
+    // Quality < 3 is incorrect, >= 3 is correct
+    if (quality >= 3) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
-    recordAnswer(currentWord.id, isCorrect);
+    // Use the new SM-2 based function
+    recordAnswer(currentWord.id, quality);
 
     const slideDirection = -500;
 
@@ -173,20 +175,40 @@ export default function FlashcardView() {
 
       {showAnswerButtons && (
         <View style={styles.buttonContainer}>
+          {/* Quality 2: Incorrect */}
           <TouchableOpacity
-            style={[styles.button, styles.incorrectButton]}
-            onPress={() => handleAnswer(false)}
+            style={[styles.button, styles.buttonQuality2]}
+            onPress={() => handleAnswer(2)}
           >
             <AppText variant="bold" style={styles.buttonText}>
               Errei
             </AppText>
           </TouchableOpacity>
+          {/* Quality 3: Correct, but hard */}
           <TouchableOpacity
-            style={[styles.button, styles.correctButton]}
-            onPress={() => handleAnswer(true)}
+            style={[styles.button, styles.buttonQuality3]}
+            onPress={() => handleAnswer(3)}
           >
             <AppText variant="bold" style={styles.buttonText}>
-              Acertei!
+              Difícil
+            </AppText>
+          </TouchableOpacity>
+          {/* Quality 4: Correct, good recall */}
+          <TouchableOpacity
+            style={[styles.button, styles.buttonQuality4]}
+            onPress={() => handleAnswer(4)}
+          >
+            <AppText variant="bold" style={styles.buttonText}>
+              Bom
+            </AppText>
+          </TouchableOpacity>
+          {/* Quality 5: Correct, easy recall */}
+          <TouchableOpacity
+            style={[styles.button, styles.buttonQuality5]}
+            onPress={() => handleAnswer(5)}
+          >
+            <AppText variant="bold" style={styles.buttonText}>
+              Fácil
             </AppText>
           </TouchableOpacity>
         </View>
@@ -264,22 +286,28 @@ const styles = StyleSheet.create({
   buttonContainer: {
     flexDirection: "row",
     marginTop: 40,
-    width: "100%",
-    justifyContent: "space-between",
+    width: "105%", // A bit wider to accommodate spacing
+    justifyContent: "center",
   },
   button: {
     flex: 1,
-    marginHorizontal: 8,
+    marginHorizontal: 5,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
-  incorrectButton: {
+  buttonQuality2: {
     backgroundColor: theme.colors.danger,
   },
-  correctButton: {
+  buttonQuality3: {
+    backgroundColor: theme.colors.challenge,
+  },
+  buttonQuality4: {
     backgroundColor: theme.colors.success,
+  },
+  buttonQuality5: {
+    backgroundColor: theme.colors.successMedium,
   },
   buttonText: {
     color: theme.colors.surface,

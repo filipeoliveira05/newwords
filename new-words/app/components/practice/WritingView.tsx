@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
@@ -27,12 +28,15 @@ export default function WritingView() {
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(
     null
   );
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [revealedAnswer, setRevealedAnswer] = useState("");
   const inputRef = useRef<TextInput>(null);
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
 
   // --- Effects ---
   useEffect(() => {
+    if (!currentWord) return;
     // Reset state for the new word
     setAnswer("");
     setFeedback(null);
@@ -41,6 +45,10 @@ export default function WritingView() {
     translateX.value = 0;
     opacity.value = 0;
     opacity.value = withTiming(1, { duration: 300 });
+
+    // Reset hints
+    setHintsUsed(0);
+    setRevealedAnswer("_ ".repeat(currentWord.name.length).trim());
 
     // Focus the input automatically for a smoother experience
     setTimeout(() => inputRef.current?.focus(), 400);
@@ -59,18 +67,27 @@ export default function WritingView() {
 
     Keyboard.dismiss();
 
-    const isCorrect =
+    const perfectMatch = answer.trim() === currentWord.name;
+    const caseInsensitiveMatch =
+      !perfectMatch &&
       answer.trim().toLowerCase() === currentWord.name.toLowerCase();
 
+    // Infer quality based on the type of match and hints used
+    let quality = 1; // Default to incorrect
+    if (perfectMatch || caseInsensitiveMatch) {
+      const baseQuality = perfectMatch ? 5 : 4;
+      quality = Math.max(3, baseQuality - hintsUsed); // Correct answer quality is at least 3
+    }
+    const isCorrect = quality >= 3;
+
     if (isCorrect) {
-      setFeedback("correct");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } else {
-      setFeedback("incorrect");
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
     }
+    setFeedback(isCorrect ? "correct" : "incorrect");
 
-    recordAnswer(currentWord.id, isCorrect);
+    recordAnswer(currentWord.id, quality);
 
     // Wait for a moment to show feedback, then move to the next word
     setTimeout(
@@ -89,6 +106,24 @@ export default function WritingView() {
       },
       isCorrect ? 1200 : 2500
     ); // Give more time to see the correct answer if wrong
+  };
+
+  const handleHint = () => {
+    if (!currentWord || feedback) return;
+
+    const newHintsUsed = hintsUsed + 1;
+    if (newHintsUsed > currentWord.name.length) return; // No more hints to give
+
+    setHintsUsed(newHintsUsed);
+
+    // Reveal letters
+    const revealed = currentWord.name
+      .split("")
+      .map((char, index) => (index < newHintsUsed ? char : "_"))
+      .join(" "); // Add spaces for better readability
+
+    setRevealedAnswer(revealed);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   // --- Render ---
@@ -139,6 +174,27 @@ export default function WritingView() {
         </View>
       </View>
 
+      {hintsUsed > 0 && (
+        <View style={styles.hintContainer}>
+          <AppText style={styles.hintText}>{revealedAnswer}</AppText>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[
+          styles.hintButton,
+          (feedback || hintsUsed >= currentWord.name.length) &&
+            styles.disabledButton,
+        ]}
+        onPress={handleHint}
+        disabled={!!feedback || hintsUsed >= currentWord.name.length}
+      >
+        <Ionicons name="bulb-outline" size={20} color={theme.colors.surface} />
+        <AppText variant="bold" style={styles.hintButtonText}>
+          Dica
+        </AppText>
+      </TouchableOpacity>
+
       <View style={styles.answerContainer}>
         <TextInput
           ref={inputRef}
@@ -181,7 +237,7 @@ const styles = StyleSheet.create({
     padding: 25,
     borderRadius: 20,
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 24,
     // A sombra foi removida para evitar artefactos visuais durante a animação de deslize.
     borderWidth: 2,
     borderColor: theme.colors.border,
@@ -207,7 +263,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.bold,
     textTransform: "uppercase",
   },
-  answerContainer: { width: "100%", marginBottom: 24 },
+  answerContainer: { width: "100%", marginTop: 24, marginBottom: 24 },
   input: {
     backgroundColor: theme.colors.surface,
     paddingVertical: 16,
@@ -238,5 +294,30 @@ const styles = StyleSheet.create({
   buttonText: {
     color: theme.colors.surface,
     fontSize: theme.fontSizes.lg,
+  },
+  hintContainer: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 8,
+  },
+  hintText: {
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
+    letterSpacing: 4, // Spread out the letters and underscores
+    textAlign: "center",
+    fontFamily: theme.fonts.bold,
+  },
+  hintButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: theme.colors.challenge,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+  },
+  hintButtonText: {
+    color: theme.colors.surface,
+    marginLeft: 8,
   },
 });

@@ -39,7 +39,7 @@ interface PracticeState {
   ) => void;
   startNextRound: () => void;
   startMistakesRound: (mistakeWords: PracticeWord[]) => void;
-  recordAnswer: (wordId: number, isCorrect: boolean) => void;
+  recordAnswer: (wordId: number, quality: number) => void;
   completeRound: () => void;
   nextWord: () => void;
   endSession: () => void;
@@ -129,18 +129,18 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     }));
   },
 
-  recordAnswer: (wordId, isCorrect) => {
+  recordAnswer: (wordId, quality) => {
     const { correctAnswers, incorrectAnswers } = get();
+    const isCorrect = quality >= 3;
 
-    // Se a palavra já foi respondida nesta ronda (certa ou errada),
-    // não atualizamos as estatísticas da DB novamente.
-    // Isto previne que uma correção no modo "Combine Lists" sobreponha o erro inicial.
+    // Prevent re-recording answer in the same round
     if (correctAnswers.includes(wordId) || incorrectAnswers.includes(wordId)) {
       return;
     }
 
-    // Update the database immediately
-    useWordStore.getState().updateStatsAfterAnswer(wordId, isCorrect);
+    // Update the database with the new SM-2 logic
+    useWordStore.getState().updateStatsAfterAnswer(wordId, quality);
+
     set((state) => ({
       correctAnswers:
         isCorrect && !state.correctAnswers.includes(wordId)
@@ -150,8 +150,6 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         !isCorrect && !state.incorrectAnswers.includes(wordId)
           ? [...state.incorrectAnswers, wordId]
           : state.incorrectAnswers,
-      // Add to session-wide practiced set. For combine-lists, only correct answers
-      // should advance the progress bar. For other modes, any attempt counts.
       wordsPracticedInSession:
         state.gameMode !== "combine-lists" || isCorrect
           ? new Set(state.wordsPracticedInSession).add(wordId)

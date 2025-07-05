@@ -1,6 +1,8 @@
 import * as SQLite from "expo-sqlite";
 import { Deck, Word } from "@/types/database";
-import { startOfDay, isYesterday, isToday, format } from "date-fns";
+import * as FileSystem from "expo-file-system";
+import { startOfDay, isYesterday, isToday, format, addDays } from "date-fns";
+import { calculateSm2Factors } from "../utils/sm2";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
@@ -31,49 +33,17 @@ export const initializeDB = async () => {
             masteryLevel TEXT NOT NULL DEFAULT 'new',
             nextReviewDate TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            category TEXT,
+            synonyms TEXT,
+            antonyms TEXT,
+            sentences TEXT,
+            isFavorite INTEGER NOT NULL DEFAULT 0,
+            easinessFactor REAL NOT NULL DEFAULT 2.5,
+            interval INTEGER NOT NULL DEFAULT 0,
+            repetitions INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (deckId) REFERENCES decks(id) ON DELETE CASCADE
         );
       `);
-
-      // Schema Migration for existing users
-      const columns = await db.getAllAsync<{ name: string }>(
-        "PRAGMA table_info(words);"
-      );
-      const columnNames = columns.map((c) => c.name);
-
-      // Columns with constant defaults, which are safe to add directly.
-      const safeColumnsToAdd = [
-        { name: "timesTrained", type: "INTEGER NOT NULL DEFAULT 0" },
-        { name: "timesCorrect", type: "INTEGER NOT NULL DEFAULT 0" },
-        { name: "timesIncorrect", type: "INTEGER NOT NULL DEFAULT 0" },
-        { name: "lastTrained", type: "TEXT" },
-        { name: "lastAnswerCorrect", type: "INTEGER" },
-        { name: "masteryLevel", type: "TEXT NOT NULL DEFAULT 'new'" },
-        { name: "category", type: "TEXT" },
-        { name: "synonyms", type: "TEXT" }, // JSON array as string
-        { name: "antonyms", type: "TEXT" }, // JSON array as string
-        { name: "sentences", type: "TEXT" }, // JSON array as string
-        { name: "isFavorite", type: "INTEGER NOT NULL DEFAULT 0" },
-      ];
-
-      for (const col of safeColumnsToAdd) {
-        if (!columnNames.includes(col.name)) {
-          await db.runAsync(
-            `ALTER TABLE words ADD COLUMN ${col.name} ${col.type};`
-          );
-        }
-      }
-
-      // Handle the column with a non-constant default separately.
-      // This is because older SQLite versions don't support non-constant defaults on ALTER TABLE.
-      if (!columnNames.includes("nextReviewDate")) {
-        // 1. Add the column allowing NULL values.
-        await db.runAsync("ALTER TABLE words ADD COLUMN nextReviewDate TEXT;");
-        // 2. Update existing rows to set a valid default value.
-        await db.runAsync(
-          "UPDATE words SET nextReviewDate = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE nextReviewDate IS NULL;"
-        );
-      }
 
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS user_metadata (
@@ -105,6 +75,55 @@ export const initializeDB = async () => {
     throw e;
   }
 };
+
+export const deleteDatabase = async (): Promise<void> => {
+  try {
+    // Fecha a conexão com a base de dados se estiver aberta
+    await db.closeAsync();
+
+    const dbFilePath = `${FileSystem.documentDirectory}SQLite/flashcards.db`;
+    const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
+
+    if (fileInfo.exists) {
+      await FileSystem.deleteAsync(dbFilePath);
+      console.log("Base de dados apagada com sucesso.");
+    }
+  } catch (error) {
+    console.error("Erro ao apagar a base de dados:", error);
+  }
+};
+
+// --- Metadata Helper Functions ---
+
+// A helper to get a single metadata value
+export async function getMetaValue(
+  key: string,
+  defaultValue: string | null = null
+): Promise<string | null> {
+  try {
+    const result = await db.getFirstAsync<{ value: string }>(
+      "SELECT value FROM user_metadata WHERE key = ?",
+      [key]
+    );
+    return result?.value ?? defaultValue;
+  } catch (e) {
+    console.error(`Erro ao obter metadado '${key}':`, e);
+    throw e;
+  }
+}
+
+// A helper to set a single metadata value
+export async function setMetaValue(key: string, value: string): Promise<void> {
+  try {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO user_metadata (key, value) VALUES (?, ?)",
+      [key, value]
+    );
+  } catch (e) {
+    console.error(`Erro ao definir metadado '${key}':`, e);
+    throw e;
+  }
+}
 
 // --- Deck Functions
 
@@ -481,13 +500,6 @@ export async function countFavoriteWords(): Promise<number> {
   }
 }
 
-const getNextReviewDate = (level: Word["masteryLevel"]): string => {
-  const date = new Date();
-  if (level === "learning") date.setDate(date.getDate() + 1); // Review tomorrow
-  else if (level === "mastered") date.setDate(date.getDate() + 3); // Review in 3 days
-  return date.toISOString();
-};
-
 export async function getTotalWordCount(): Promise<number> {
   try {
     const result = await db.getFirstAsync<{ count: number }>(
@@ -500,60 +512,62 @@ export async function getTotalWordCount(): Promise<number> {
   }
 }
 
-export async function updateWordStats(
+export async function updateWordStatsWithQuality(
   wordId: number,
-  wasCorrect: boolean
+  quality: number
 ): Promise<Word | null> {
   try {
-    await db.withTransactionAsync(async () => {
-      const word = await db.getFirstAsync<Word>(
-        "SELECT * FROM words WHERE id = ?",
-        [wordId]
-      );
-      // Se a palavra não for encontrada, a transação simplesmente termina sem fazer nada.
-      if (!word) {
-        return;
-      }
+    const word = await getWordById(wordId);
+    if (!word) {
+      console.warn(`Word with id ${wordId} not found for stat update.`);
+      return null;
+    }
 
-      let newMasteryLevel = word.masteryLevel;
-      if (wasCorrect) {
-        if (word.masteryLevel === "new") newMasteryLevel = "learning";
-        else if (word.masteryLevel === "learning") newMasteryLevel = "mastered";
-      } else {
-        newMasteryLevel = "learning";
-      }
+    const { newEasinessFactor, newInterval, newRepetitions } =
+      calculateSm2Factors(word, quality);
 
-      const nextReviewDate = getNextReviewDate(newMasteryLevel);
+    const now = new Date();
+    const nextReviewDate = addDays(now, newInterval);
 
-      // A transação apenas executa a atualização.
-      await db.runAsync(
-        `UPDATE words SET
-          timesTrained = timesTrained + 1,
-          timesCorrect = timesCorrect + ?,
-          timesIncorrect = timesIncorrect + ?,
-          lastTrained = strftime('%Y-%m-%dT%H:%M:%fZ', 'now'),
-          lastAnswerCorrect = ?,
-          masteryLevel = ?,
-          nextReviewDate = ?
-         WHERE id = ?;`,
-        [
-          wasCorrect ? 1 : 0,
-          wasCorrect ? 0 : 1,
-          wasCorrect ? 1 : 0,
-          newMasteryLevel,
-          nextReviewDate,
-          wordId,
-        ]
-      );
-    });
-    // Após a transação ser bem-sucedida, buscamos a palavra atualizada para a retornar.
-    const updatedWord = await db.getFirstAsync<Word>(
-      "SELECT * FROM words WHERE id = ?",
-      [wordId]
+    // Determine mastery level based on repetitions
+    let newMasteryLevel: Word["masteryLevel"] = "new";
+    if (newRepetitions > 0 && newRepetitions <= 2) {
+      newMasteryLevel = "learning";
+    } else if (newRepetitions > 2) {
+      newMasteryLevel = "mastered";
+    }
+
+    await db.runAsync(
+      `UPDATE words SET
+        timesTrained = timesTrained + 1,
+        timesCorrect = timesCorrect + ?,
+        timesIncorrect = timesIncorrect + ?,
+        lastTrained = ?,
+        lastAnswerCorrect = ?,
+        easinessFactor = ?,
+        interval = ?,
+        repetitions = ?,
+        nextReviewDate = ?,
+        masteryLevel = ?
+       WHERE id = ?;`,
+      [
+        quality >= 3 ? 1 : 0,
+        quality < 3 ? 1 : 0,
+        now.toISOString(),
+        quality >= 3 ? 1 : 0,
+        newEasinessFactor,
+        newInterval,
+        newRepetitions,
+        nextReviewDate.toISOString(),
+        newMasteryLevel,
+        wordId,
+      ]
     );
-    return updatedWord;
+
+    // Return the updated word
+    return await getWordById(wordId);
   } catch (e) {
-    console.error("Erro ao atualizar estatísticas da palavra:", e);
+    console.error("Erro ao atualizar estatísticas da palavra com SM-2:", e);
     throw e;
   }
 }
@@ -608,26 +622,6 @@ export type UserPracticeMetrics = {
   consecutiveDays: number;
 };
 
-// A helper to get a single metadata value
-async function getMetaValue(
-  key: string,
-  defaultValue: string
-): Promise<string> {
-  const result = await db.getFirstAsync<{ value: string }>(
-    "SELECT value FROM user_metadata WHERE key = ?",
-    [key]
-  );
-  return result?.value ?? defaultValue;
-}
-
-// A helper to set a single metadata value
-async function setMetaValue(key: string, value: string): Promise<void> {
-  await db.runAsync(
-    "INSERT OR REPLACE INTO user_metadata (key, value) VALUES (?, ?)",
-    [key, value]
-  );
-}
-
 export async function getUserPracticeMetrics(): Promise<UserPracticeMetrics> {
   try {
     const [longestStreak, consecutiveDays] = await Promise.all([
@@ -636,8 +630,8 @@ export async function getUserPracticeMetrics(): Promise<UserPracticeMetrics> {
     ]);
 
     return {
-      longestStreak: parseInt(longestStreak, 10),
-      consecutiveDays: parseInt(consecutiveDays, 10),
+      longestStreak: parseInt(longestStreak ?? "0", 10),
+      consecutiveDays: parseInt(consecutiveDays ?? "0", 10),
     };
   } catch (e) {
     console.error("Erro ao obter métricas de prática do utilizador:", e);
@@ -671,11 +665,11 @@ export async function updateUserPracticeMetrics(
 
   try {
     const currentLongestStreak = parseInt(
-      await getMetaValue("longest_streak", "0"),
+      (await getMetaValue("longest_streak", "0")) ?? "0",
       10
     );
     const currentConsecutiveDays = parseInt(
-      await getMetaValue("consecutive_days", "0"),
+      (await getMetaValue("consecutive_days", "0")) ?? "0",
       10
     );
     const lastPracticeDateStr = await getMetaValue("last_practice_date", "");

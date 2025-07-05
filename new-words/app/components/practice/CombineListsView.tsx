@@ -188,7 +188,10 @@ export default function CombineListsView() {
     secondItemType: "word" | "meaning"
   ) => {
     const isCorrect = firstSelection.id === secondItem.id;
-    recordAnswer(firstSelection.id, isCorrect);
+
+    // Infer quality: 4 for correct (good), 1 for incorrect.
+    const quality = isCorrect ? 4 : 1;
+    recordAnswer(firstSelection.id, quality);
 
     if (isCorrect) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

@@ -554,6 +554,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           keyboardHeight={keyboardPadding}
         />
 
+        {/* Secção Estatísticas */}
         <View style={styles.section}>
           <AppText variant="bold" style={styles.label}>
             Estatísticas
@@ -605,6 +606,34 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
               <AppText style={styles.statLabel}>Próxima Prática</AppText>
               <AppText variant="medium" style={styles.statValue}>
                 {formatNullableDate(wordDetails.nextReviewDate)}
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        {/* Secção Repetição Espaçada SRS (SM-2) */}
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.label}>
+            Repetição Espaçada (SM-2)
+          </AppText>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <AppText style={styles.statLabel}>Fator de Facilidade</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.easinessFactor.toFixed(2)}
+              </AppText>
+            </View>
+            <View style={styles.statItem}>
+              <AppText style={styles.statLabel}>Próximo Intervalo</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.interval}{" "}
+                {wordDetails.interval === 1 ? "dia" : "dias"}
+              </AppText>
+            </View>
+            <View style={[styles.statItem, { borderBottomWidth: 0 }]}>
+              <AppText style={styles.statLabel}>Repetições Corretas</AppText>
+              <AppText variant="medium" style={styles.statValue}>
+                {wordDetails.repetitions}
               </AppText>
             </View>
           </View>
