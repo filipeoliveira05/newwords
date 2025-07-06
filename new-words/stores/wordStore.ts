@@ -22,7 +22,10 @@ import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
 
 interface WordState {
-  words: { [deckId: number]: Word[] };
+  words: {
+    byId: { [wordId: number]: Word };
+    byDeckId: { [deckId: number]: number[] };
+  };
   loading: boolean;
   fetchWordsOfDeck: (deckId: number) => Promise<void>;
   fetchAllWords: () => Promise<void>;
@@ -64,24 +67,31 @@ interface WordState {
 }
 
 export const useWordStore = create<WordState>((set, get) => ({
-  words: {},
+  words: { byId: {}, byDeckId: {} },
   wrongWordsCount: 0,
   favoriteWordsCount: 0,
   urgentWordsCount: 0,
   loading: false,
 
   fetchWordsOfDeck: async (deckId) => {
-    if (get().words[deckId]) {
-      return;
-    }
-
     set({ loading: true });
     try {
       const data = await dbGetWordsOfDeck(deckId);
+      const newWordsById: { [wordId: number]: Word } = {};
+      const wordIdsForDeck: number[] = [];
+
+      data.forEach((word) => {
+        newWordsById[word.id] = word;
+        wordIdsForDeck.push(word.id);
+      });
+
       set((state) => ({
         words: {
-          ...state.words,
-          [deckId]: data,
+          byId: { ...state.words.byId, ...newWordsById },
+          byDeckId: {
+            ...state.words.byDeckId,
+            [deckId]: wordIdsForDeck,
+          },
         },
         loading: false,
       }));
@@ -96,17 +106,21 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const allWords = await dbGetAllWords();
 
-      // Agrupa as palavras por deckId
-      const wordsByDeck = allWords.reduce((acc, word) => {
-        const deckKey = word.deckId;
-        if (!acc[deckKey]) {
-          acc[deckKey] = [];
-        }
-        acc[deckKey].push(word);
-        return acc;
-      }, {} as { [deckId: number]: Word[] });
+      const wordsById: { [wordId: number]: Word } = {};
+      const wordsByDeckId: { [deckId: number]: number[] } = {};
 
-      set({ words: wordsByDeck, loading: false });
+      allWords.forEach((word) => {
+        wordsById[word.id] = word;
+        if (!wordsByDeckId[word.deckId]) {
+          wordsByDeckId[word.deckId] = [];
+        }
+        wordsByDeckId[word.deckId].push(word.id);
+      });
+
+      set({
+        words: { byId: wordsById, byDeckId: wordsByDeckId },
+        loading: false,
+      });
     } catch (error) {
       console.error("Erro ao obter todas as palavras no store", error);
       set({ loading: false });
@@ -268,11 +282,14 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const newWord = await dbAddWord(deckId, name, meaning);
       set((state) => {
-        const currentWordsForDeck = state.words[deckId] || [];
+        const currentIds = state.words.byDeckId[deckId] || [];
         return {
           words: {
-            ...state.words,
-            [deckId]: [...currentWordsForDeck, newWord],
+            byId: { ...state.words.byId, [newWord.id]: newWord },
+            byDeckId: {
+              ...state.words.byDeckId,
+              [deckId]: [...currentIds, newWord.id],
+            },
           },
         };
       });
@@ -289,22 +306,14 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       await dbUpdateWord(id, name, meaning);
       set((state) => {
-        const wordToUpdate = Object.values(state.words)
-          .flat()
-          .find((w) => w.id === id);
-
-        if (!wordToUpdate) return state;
-
-        const { deckId } = wordToUpdate;
-
-        const updatedWordsForDeck = state.words[deckId].map((word) =>
-          word.id === id ? { ...word, name, meaning } : word
-        );
-
+        if (!state.words.byId[id]) {
+          return state;
+        }
+        const updatedWord = { ...state.words.byId[id], name, meaning };
         return {
           words: {
-            ...state.words,
-            [deckId]: updatedWordsForDeck,
+            ...state.words, // Mantém byDeckId inalterado
+            byId: { ...state.words.byId, [id]: updatedWord },
           },
         };
       });
@@ -318,30 +327,20 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       await dbUpdateWordDetails(id, category, synonyms, antonyms, sentences);
       set((state) => {
-        const wordToUpdate = Object.values(state.words)
-          .flat()
-          .find((w) => w.id === id);
-
-        if (!wordToUpdate) return state;
-
-        const { deckId } = wordToUpdate;
-
-        const updatedWordsForDeck = state.words[deckId].map((word) =>
-          word.id === id
-            ? {
-                ...word,
-                category,
-                synonyms: JSON.stringify(synonyms),
-                antonyms: JSON.stringify(antonyms),
-                sentences: JSON.stringify(sentences),
-              }
-            : word
-        );
-
+        if (!state.words.byId[id]) {
+          return state;
+        }
+        const updatedWord = {
+          ...state.words.byId[id],
+          category,
+          synonyms: JSON.stringify(synonyms),
+          antonyms: JSON.stringify(antonyms),
+          sentences: JSON.stringify(sentences),
+        };
         return {
           words: {
-            ...state.words,
-            [deckId]: updatedWordsForDeck,
+            ...state.words, // Mantém byDeckId inalterado
+            byId: { ...state.words.byId, [id]: updatedWord },
           },
         };
       });
@@ -353,26 +352,25 @@ export const useWordStore = create<WordState>((set, get) => ({
 
   deleteWord: async (id) => {
     try {
-      const wordToDelete = Object.values(get().words)
-        .flat()
-        .find((w) => w.id === id);
+      const wordToDelete = get().words.byId[id];
 
       if (!wordToDelete) {
         throw new Error("Palavra não encontrada na store para apagar.");
       }
 
       const { deckId } = wordToDelete;
-
       await dbDeleteWord(id);
       set((state) => {
-        const filteredWords = state.words[deckId].filter(
-          (word) => word.id !== id
-        );
+        const newById = { ...state.words.byId };
+        delete newById[id];
+        const newByDeckId = { ...state.words.byDeckId };
+        if (newByDeckId[deckId]) {
+          newByDeckId[deckId] = newByDeckId[deckId].filter(
+            (wordId) => wordId !== id
+          );
+        }
         return {
-          words: {
-            ...state.words,
-            [deckId]: filteredWords,
-          },
+          words: { byId: newById, byDeckId: newByDeckId },
         };
       });
       // Publica um evento para que o deckStore possa atualizar a contagem.
@@ -388,17 +386,14 @@ export const useWordStore = create<WordState>((set, get) => ({
       const updatedWord = await dbToggleWordFavoriteStatus(id);
       if (updatedWord) {
         set((state) => {
-          const { deckId } = updatedWord;
-          if (!state.words[deckId]) {
-            return state; // Safety check, should not happen
+          if (!state.words.byId[updatedWord.id]) {
+            return state;
           }
-
-          const updatedWordsForDeck = state.words[deckId].map((word) =>
-            word.id === updatedWord.id ? updatedWord : word
-          );
-
           return {
-            words: { ...state.words, [deckId]: updatedWordsForDeck },
+            words: {
+              ...state.words,
+              byId: { ...state.words.byId, [updatedWord.id]: updatedWord },
+            },
           };
         });
       }
@@ -414,15 +409,19 @@ export const useWordStore = create<WordState>((set, get) => ({
 
   clearWordsForDeck: (deckId) => {
     set((state) => {
-      const newWords = { ...state.words };
-      // Remove a entrada para o deckId do objeto de palavras.
-      delete newWords[deckId];
-      return { words: newWords };
+      const newById = { ...state.words.byId };
+      const newByDeckId = { ...state.words.byDeckId };
+      const idsToDelete = newByDeckId[deckId] || [];
+
+      idsToDelete.forEach((id) => delete newById[id]);
+      delete newByDeckId[deckId];
+
+      return { words: { byId: newById, byDeckId: newByDeckId } };
     });
   },
 
   clearWords: () => {
-    set({ words: {}, loading: false });
+    set({ words: { byId: {}, byDeckId: {} }, loading: false });
   },
 
   updateStatsAfterAnswer: async (wordId, quality) => {
@@ -431,21 +430,15 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       if (!updatedWord) return;
 
-      // Also update the local state to keep the UI consistent
+      // Atualiza diretamente a palavra no estado normalizado.
       set((state) => {
-        const { deckId } = updatedWord;
-        const wordsForDeck = state.words[deckId] || [];
-        const wordIndex = wordsForDeck.findIndex((w) => w.id === wordId);
-        const newWordsForDeck = [...wordsForDeck];
-
-        if (wordIndex > -1) {
-          newWordsForDeck[wordIndex] = updatedWord;
-        } else {
-          // This case is unlikely but safe to handle
-          newWordsForDeck.push(updatedWord);
-        }
-
-        return { words: { ...state.words, [deckId]: newWordsForDeck } };
+        if (!state.words.byId[wordId]) return state;
+        return {
+          words: {
+            ...state.words,
+            byId: { ...state.words.byId, [wordId]: updatedWord },
+          },
+        };
       });
     } catch (error) {
       console.error(

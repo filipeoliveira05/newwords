@@ -24,7 +24,8 @@ import WordEditModal from "../components/WordEditModal";
 import AppText from "../components/AppText";
 import { theme } from "../../config/theme";
 
-const EMPTY_WORDS_ARRAY: Word[] = [];
+// A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
+const EMPTY_ARRAY: number[] = [];
 
 type SortCriterion =
   | "createdAt"
@@ -118,9 +119,21 @@ const sortOptions: {
 export default function DeckDetailScreen({ navigation, route }: Props) {
   const { deckId, title, author, openAddWordModal } = route.params;
 
-  const wordsForCurrentDeck = useWordStore(
-    (state) => state.words[deckId] || EMPTY_WORDS_ARRAY
+  // Seletores otimizados para a nova estrutura de dados do wordStore.
+  // 1. Selecionamos a lista de IDs para o deck atual. Esta lista só muda
+  //    quando uma palavra é adicionada ou removida, evitando re-renderizações.
+  const wordIdsForDeck = useWordStore(
+    (state) => state.words.byDeckId[deckId] || EMPTY_ARRAY
   );
+  // 2. Selecionamos o objeto que contém todas as palavras por ID.
+  const allWordsById = useWordStore((state) => state.words.byId);
+
+  // 3. Usamos `useMemo` para criar o array final de palavras. Este array só é
+  //    recalculado se a lista de IDs ou os dados das palavras mudarem.
+  const wordsForCurrentDeck = useMemo(() => {
+    return wordIdsForDeck.map((id) => allWordsById[id]).filter(Boolean);
+  }, [wordIdsForDeck, allWordsById]);
+
   const loading = useWordStore((state) => state.loading);
   const {
     fetchWordsOfDeck,
