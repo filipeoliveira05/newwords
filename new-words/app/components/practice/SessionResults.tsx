@@ -15,6 +15,7 @@ import {
   updateUserPracticeMetrics,
   countWordsForPractice,
 } from "../../../services/storage";
+import { eventStore } from "../../../stores/eventStore";
 import { RootTabParamList } from "../../../types/navigation";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -66,10 +67,9 @@ export default function SessionResults({
         // Only save if there are results to save
         if (wordsTrainedCount > 0) {
           // Também atualiza as métricas do utilizador com a maior streak da ronda
-          await updateUserPracticeMetrics(
-            highestStreakThisRound,
-            wordsTrainedCount
-          );
+          await updateUserPracticeMetrics(highestStreakThisRound);
+          // Publish an event to notify other parts of the app that stats have changed.
+          eventStore.getState().publish("practiceSessionCompleted", {});
         }
         // Após guardar, verifica quantas palavras urgentes ainda restam.
         // Isto é importante para mostrar a mensagem correta de conclusão.

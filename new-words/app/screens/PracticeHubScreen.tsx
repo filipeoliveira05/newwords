@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useFocusEffect } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
@@ -15,6 +14,7 @@ import { PracticeStackParamList } from "../../types/navigation";
 
 import AppText from "../components/AppText";
 import { theme } from "../../config/theme";
+import { eventStore } from "@/stores/eventStore";
 
 type Props = NativeStackScreenProps<PracticeStackParamList, "PracticeHub">;
 
@@ -22,9 +22,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
   const {
     fetchUrgentWordCount,
     fetchWrongWordsCount,
-    fetchWrongWords,
     fetchFavoriteWordsCount,
-    fetchFavoriteWords,
   } = useWordStore.getState();
   const urgentWordsCount = useWordStore((state) => state.urgentWordsCount);
   const wrongWordsCount = useWordStore((state) => state.wrongWordsCount);
@@ -32,13 +30,41 @@ export default function PracticeHubScreen({ navigation }: Props) {
   const loading = useWordStore((state) => state.loading);
   const { showAlert } = useAlertStore.getState();
 
-  useFocusEffect(
-    useCallback(() => {
+  useEffect(() => {
+    const loadData = () => {
       fetchUrgentWordCount();
       fetchWrongWordsCount();
       fetchFavoriteWordsCount();
-    }, [fetchUrgentWordCount, fetchWrongWordsCount, fetchFavoriteWordsCount])
-  );
+    };
+
+    // Load data initially when the component mounts
+    loadData();
+
+    // Subscribe to all relevant events that might change the counts
+    const unsubPractice = eventStore
+      .getState()
+      .subscribe("practiceSessionCompleted", loadData);
+    const unsubWordAdded = eventStore
+      .getState()
+      .subscribe("wordAdded", loadData);
+    // This event is fired after any answer in a practice session,
+    // ensuring the counts are updated even if the user exits mid-session.
+    const unsubWordUpdated = eventStore
+      .getState()
+      .subscribe("wordUpdated", loadData);
+    // This event is fired when a deck is deleted, which might affect counts.
+    const unsubDeckDeleted = eventStore
+      .getState()
+      .subscribe("deckDeleted", loadData);
+
+    // Return a cleanup function to unsubscribe from all events
+    return () => {
+      unsubPractice();
+      unsubWordAdded();
+      unsubWordUpdated();
+      unsubDeckDeleted();
+    };
+  }, [fetchUrgentWordCount, fetchWrongWordsCount, fetchFavoriteWordsCount]);
 
   const handleStartGame = useCallback(
     (
@@ -55,12 +81,10 @@ export default function PracticeHubScreen({ navigation }: Props) {
   );
 
   const handleStartWrongPractice = useCallback(async () => {
-    const wordsToPractice = await fetchWrongWords();
-    if (wordsToPractice.length > 0) {
+    if (wrongWordsCount > 0) {
       navigation.navigate("PracticeGame", {
         mode: "multiple-choice", // Um bom modo para focar em erros
-        sessionType: "free", // Sessões de palavras específicas são 'free'
-        words: wordsToPractice,
+        sessionType: "wrong",
       });
     } else {
       showAlert({
@@ -71,15 +95,13 @@ export default function PracticeHubScreen({ navigation }: Props) {
       // Atualiza a contagem caso tenha sido corrigido noutro local
       fetchWrongWordsCount();
     }
-  }, [navigation, fetchWrongWords, fetchWrongWordsCount, showAlert]);
+  }, [navigation, wrongWordsCount, showAlert, fetchWrongWordsCount]);
 
   const handleStartFavoritePractice = useCallback(async () => {
-    const wordsToPractice = await fetchFavoriteWords();
-    if (wordsToPractice.length > 0) {
+    if (favoriteWordsCount > 0) {
       navigation.navigate("PracticeGame", {
         mode: "flashcard", // Flashcard seems good for favorites
-        sessionType: "free",
-        words: wordsToPractice,
+        sessionType: "favorite",
       });
     } else {
       showAlert({
@@ -90,7 +112,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
       // Atualiza a contagem caso tenha sido corrigido noutro local
       fetchFavoriteWordsCount();
     }
-  }, [navigation, fetchFavoriteWords, fetchFavoriteWordsCount, showAlert]);
+  }, [navigation, favoriteWordsCount, showAlert, fetchFavoriteWordsCount]);
 
   if (loading) {
     return (

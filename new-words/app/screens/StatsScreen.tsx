@@ -15,7 +15,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from "react-native-reanimated";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { format, parseISO } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,6 +41,7 @@ import {
   PracticeHistory,
 } from "../../services/storage";
 import { RootTabParamList } from "../../types/navigation";
+import { eventStore } from "@/stores/eventStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { pt } from "date-fns/locale";
 import { allPossibleDailyGoals, DailyGoal } from "../../config/dailyGoals";
@@ -161,109 +162,131 @@ export default function StatsScreen() {
     };
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchStats = async () => {
-        try {
-          setLoading(true);
-          const [
-            globalStats,
-            challenging,
-            metrics,
-            history,
-            unlockedIds,
-            totalWords,
-            todaysPractice,
-            todaysActiveGoalIds,
-          ] = await Promise.all([
-            getGlobalStats(),
-            getChallengingWords(),
-            getUserPracticeMetrics(),
-            getPracticeHistory(),
-            getUnlockedAchievementIds(),
-            getTotalWordCount(),
-            getTodaysPracticeStats(),
-            getTodaysActiveGoalIds(),
-          ]);
-          setStats(globalStats);
-          setChallengingWords(challenging);
-          setUserMetrics(metrics);
-          setPracticeHistory(history);
-          setTodaysStats(todaysPractice);
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const [
+          globalStats,
+          challenging,
+          metrics,
+          history,
+          unlockedIds,
+          totalWords,
+          todaysPractice,
+          todaysActiveGoalIds,
+        ] = await Promise.all([
+          getGlobalStats(),
+          getChallengingWords(),
+          getUserPracticeMetrics(),
+          getPracticeHistory(),
+          getUnlockedAchievementIds(),
+          getTotalWordCount(),
+          getTodaysPracticeStats(),
+          getTodaysActiveGoalIds(),
+        ]);
+        setStats(globalStats);
+        setChallengingWords(challenging);
+        setUserMetrics(metrics);
+        setPracticeHistory(history);
+        setTodaysStats(todaysPractice);
 
-          // --- Daily Goals Logic ---
-          let finalGoals: DailyGoal[] = [];
-          if (todaysActiveGoalIds) {
-            // Goals for today already exist, find them in the config
-            const goalMap = new Map(
-              allPossibleDailyGoals.map((g) => [g.id, g])
-            );
-            finalGoals = todaysActiveGoalIds
-              .map((id) => goalMap.get(id))
-              .filter((g): g is DailyGoal => !!g);
-          } else {
-            // First time today, shuffle and pick 3 new goals
-            finalGoals = shuffle([...allPossibleDailyGoals]).slice(0, 3);
-            await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
-          }
-          setActiveDailyGoals(finalGoals);
+        // --- Daily Goals Logic ---
+        let finalGoals: DailyGoal[] = [];
+        if (todaysActiveGoalIds) {
+          // Goals for today already exist, find them in the config
+          const goalMap = new Map(allPossibleDailyGoals.map((g) => [g.id, g]));
+          finalGoals = todaysActiveGoalIds
+            .map((id) => goalMap.get(id))
+            .filter((g): g is DailyGoal => !!g);
+        } else {
+          // First time today, shuffle and pick 3 new goals
+          finalGoals = shuffle([...allPossibleDailyGoals]).slice(0, 3);
+          await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
+        }
+        setActiveDailyGoals(finalGoals);
 
-          // Lógica de verificação de conquistas otimizada
-          if (globalStats && metrics && history && totalWords !== undefined) {
-            const unlockedIdsSet = new Set(unlockedIds);
-            const newlyUnlocked: Achievement[] = [];
+        // Lógica de verificação de conquistas otimizada
+        if (globalStats && metrics && history && totalWords !== undefined) {
+          const unlockedIdsSet = new Set(unlockedIds);
+          const newlyUnlocked: Achievement[] = [];
 
-            const checkedAchievements = achievements.map((ach) => {
-              const isAlreadyUnlocked = unlockedIdsSet.has(ach.id);
-              if (isAlreadyUnlocked) {
-                return { ...ach, unlocked: true, isNew: false };
-              }
-
-              // Se não estiver desbloqueada, verifica agora
-              const isNowUnlocked = ach.check({
-                global: globalStats,
-                user: metrics,
-                history: history,
-                totalWords: totalWords,
-              });
-
-              if (isNowUnlocked) {
-                newlyUnlocked.push(ach);
-              }
-
-              return { ...ach, unlocked: isNowUnlocked, isNew: isNowUnlocked };
-            });
-
-            // Se houver novas conquistas, guarda-as na DB
-            if (newlyUnlocked.length > 0) {
-              const newIds = newlyUnlocked.map((ach) => ach.id);
-              await unlockAchievements(newIds);
-              // Mostra uma notificação para cada nova conquista!
-              newlyUnlocked.forEach((ach, index) => {
-                // Adiciona um pequeno delay para não sobrepor as notificações
-                setTimeout(() => {
-                  Toast.show({
-                    type: "success",
-                    text1: "Conquista Desbloqueada! 🎉",
-                    text2: ach.title,
-                    visibilityTime: 4000,
-                  });
-                }, index * 600);
-              });
+          const checkedAchievements = achievements.map((ach) => {
+            const isAlreadyUnlocked = unlockedIdsSet.has(ach.id);
+            if (isAlreadyUnlocked) {
+              return { ...ach, unlocked: true, isNew: false };
             }
 
-            setProcessedAchievements(checkedAchievements);
-          }
-        } catch (error) {
-          console.error("Failed to fetch stats:", error);
-        } finally {
-          setLoading(false);
-        }
-      };
+            // Se não estiver desbloqueada, verifica agora
+            const isNowUnlocked = ach.check({
+              global: globalStats,
+              user: metrics,
+              history: history,
+              totalWords: totalWords,
+            });
 
-      fetchStats();
-    }, [])
-  );
+            if (isNowUnlocked) {
+              newlyUnlocked.push(ach);
+            }
+
+            return { ...ach, unlocked: isNowUnlocked, isNew: isNowUnlocked };
+          });
+
+          // Se houver novas conquistas, guarda-as na DB
+          if (newlyUnlocked.length > 0) {
+            const newIds = newlyUnlocked.map((ach) => ach.id);
+            await unlockAchievements(newIds);
+            // Mostra uma notificação para cada nova conquista!
+            newlyUnlocked.forEach((ach, index) => {
+              // Adiciona um pequeno delay para não sobrepor as notificações
+              setTimeout(() => {
+                Toast.show({
+                  type: "success",
+                  text1: "Conquista Desbloqueada! 🎉",
+                  text2: ach.title,
+                  visibilityTime: 4000,
+                });
+              }, index * 600);
+            });
+          }
+
+          setProcessedAchievements(checkedAchievements);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+
+    // Subscribe to multiple events to keep stats fresh.
+    const unsubscribePractice = eventStore
+      .getState()
+      .subscribe("practiceSessionCompleted", fetchStats);
+    const unsubscribeWordAdded = eventStore
+      .getState()
+      .subscribe("wordAdded", fetchStats);
+    const unsubscribeWordDeleted = eventStore
+      .getState()
+      .subscribe("wordDeleted", fetchStats);
+    const unsubscribeWordUpdated = eventStore
+      .getState()
+      .subscribe("wordUpdated", fetchStats);
+    const unsubscribeDeckDeleted = eventStore
+      .getState()
+      .subscribe("deckDeleted", fetchStats);
+
+    // Cleanup function to unsubscribe from all events when the component unmounts.
+    return () => {
+      unsubscribePractice();
+      unsubscribeWordAdded();
+      unsubscribeWordDeleted();
+      unsubscribeWordUpdated();
+      unsubscribeDeckDeleted();
+    };
+  }, []);
 
   const markedDates: MarkedDates = useMemo(() => {
     const getHeatmapColor = (count: number) => {

@@ -60,10 +60,6 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-- [ ] **Performance Optimization:** Search for any aspect of the app that could be optimized, from database writes to animations, ensuring a smooth experience on all devices.
-
-### 🔮 Future Features (Next Levels)
-
 #### Level 1: Core Experience & Polish (High-Impact)
 
 - [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.

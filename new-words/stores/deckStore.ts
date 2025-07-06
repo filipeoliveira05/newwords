@@ -106,11 +106,18 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
 // --- Subscrições de Eventos ---
 // O deckStore "ouve" eventos de outros stores para se manter atualizado.
+// Como o store é um singleton global, as subscrições devem durar por toda a vida da app,
+// então não precisamos de guardar a função de `unsubscribe`.
+// Adicionamos o tipo explícito para maior segurança.
 
-eventStore.getState().subscribe("wordAdded", ({ deckId }) => {
-  useDeckStore.getState().incrementWordCount(deckId);
-});
+eventStore
+  .getState()
+  .subscribe<{ deckId: number }>("wordAdded", ({ deckId }) => {
+    useDeckStore.getState().incrementWordCount(deckId);
+  });
 
-eventStore.getState().subscribe("wordDeleted", ({ deckId }) => {
-  useDeckStore.getState().decrementWordCount(deckId);
-});
+eventStore
+  .getState()
+  .subscribe<{ deckId: number }>("wordDeleted", ({ deckId }) => {
+    useDeckStore.getState().decrementWordCount(deckId);
+  });

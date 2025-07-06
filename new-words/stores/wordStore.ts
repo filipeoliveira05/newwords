@@ -317,6 +317,7 @@ export const useWordStore = create<WordState>((set, get) => ({
           },
         };
       });
+      eventStore.getState().publish("wordUpdated", { wordId: id });
     } catch (error) {
       console.error("Erro ao atualizar palavra no store", error);
       throw error;
@@ -344,6 +345,7 @@ export const useWordStore = create<WordState>((set, get) => ({
           },
         };
       });
+      eventStore.getState().publish("wordUpdated", { wordId: id });
     } catch (error) {
       console.error("Erro ao atualizar detalhes da palavra no store", error);
       throw error;
@@ -396,6 +398,7 @@ export const useWordStore = create<WordState>((set, get) => ({
             },
           };
         });
+        eventStore.getState().publish("wordUpdated", { wordId: id });
       }
       return updatedWord;
     } catch (error) {
@@ -440,6 +443,7 @@ export const useWordStore = create<WordState>((set, get) => ({
           },
         };
       });
+      eventStore.getState().publish("wordUpdated", { wordId: wordId });
     } catch (error) {
       console.error(
         "Erro ao atualizar estatísticas da palavra com SM-2 no store",
@@ -452,6 +456,11 @@ export const useWordStore = create<WordState>((set, get) => ({
 
 // --- Subscrições de Eventos ---
 // O wordStore "ouve" eventos de outros stores para se manter atualizado.
-eventStore.getState().subscribe("deckDeleted", ({ deckId }) => {
-  useWordStore.getState().clearWordsForDeck(deckId);
-});
+// Como o store é um singleton global, a subscrição deve durar por toda a vida da app,
+// então não precisamos de guardar a função de `unsubscribe`.
+// Adicionamos o tipo explícito para maior segurança.
+eventStore
+  .getState()
+  .subscribe<{ deckId: number }>("deckDeleted", ({ deckId }) => {
+    useWordStore.getState().clearWordsForDeck(deckId);
+  });

@@ -5,7 +5,6 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
@@ -20,6 +19,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import Toast from "react-native-toast-message";
+import { eventStore } from "@/stores/eventStore";
 
 import { getWordById } from "../../services/storage";
 import { Word } from "../../types/database";
@@ -168,11 +168,26 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     };
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchWord();
-    }, [fetchWord])
-  );
+  useEffect(() => {
+    fetchWord(); // Fetch on initial mount
+
+    // Subscribe to updates for this specific word. This is more efficient
+    // than refetching on every focus, as it only triggers when the data
+    // for this word actually changes (e.g., after a practice session or an edit).
+    const unsubscribe = eventStore
+      .getState()
+      .subscribe<{ wordId: number }>(
+        "wordUpdated",
+        ({ wordId: updatedWordId }) => {
+          if (updatedWordId === wordId) {
+            fetchWord();
+          }
+        }
+      );
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [wordId, fetchWord]); // Rerun if wordId from route params changes
 
   // Effect to check for changes and set the dirty state
   useEffect(() => {
