@@ -271,17 +271,16 @@ export async function getWordById(id: number): Promise<Word | null> {
 export async function addWord(
   deckId: number,
   name: string,
-  meaning: string
+  meaning: string,
+  category: string | null
 ): Promise<Word> {
   if (!name.trim() || !meaning.trim()) {
     throw new Error("Nome e significado são obrigatórios.");
   }
   try {
     const result = await db.getFirstAsync<Word>(
-      // Define explicitamente a nextReviewDate para 'agora' no momento da inserção.
-      // Isto garante que palavras novas são imediatamente elegíveis para prática.
-      "INSERT INTO words (deckId, name, meaning, nextReviewDate) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) RETURNING *",
-      [deckId, name, meaning] // O valor da data é definido diretamente no SQL.
+      "INSERT INTO words (deckId, name, meaning, category, nextReviewDate) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) RETURNING *",
+      [deckId, name, meaning, category]
     );
     if (!result) {
       throw new Error("Falha ao adicionar palavra e obter o resultado.");
@@ -296,17 +295,17 @@ export async function addWord(
 export async function updateWord(
   id: number,
   name: string,
-  meaning: string
+  meaning: string,
+  category: string | null
 ): Promise<void> {
   if (!name.trim() || !meaning.trim()) {
     throw new Error("Nome e significado são obrigatórios.");
   }
   try {
-    await db.runAsync("UPDATE words SET name = ?, meaning = ? WHERE id = ?", [
-      name,
-      meaning,
-      id,
-    ]);
+    await db.runAsync(
+      "UPDATE words SET name = ?, meaning = ?, category = ? WHERE id = ?",
+      [name, meaning, category, id]
+    );
   } catch (e) {
     console.error("Erro ao atualizar palavra:", e);
     throw e;

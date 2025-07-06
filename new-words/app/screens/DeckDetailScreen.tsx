@@ -350,7 +350,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleSaveWord = async (name: string, meaning: string) => {
+  const handleSaveWord = async (
+    name: string,
+    meaning: string,
+    category: string | null
+  ) => {
     if (!name.trim() || !meaning.trim()) {
       showAlert({
         title: "Erro",
@@ -363,9 +367,9 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     setIsSaving(true);
     try {
       if (editingWord) {
-        await updateWord(editingWord.id, name.trim(), meaning.trim());
+        await updateWord(editingWord.id, name.trim(), meaning.trim(), category);
       } else {
-        await addWord(deckId, name.trim(), meaning.trim());
+        await addWord(deckId, name.trim(), meaning.trim(), category);
       }
       closeModal();
     } catch (error) {

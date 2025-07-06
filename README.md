@@ -62,10 +62,10 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 1: Core Experience & Polish (High-Impact)
 
-- [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
+- [x] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
 - [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place (e.g., the main screen's header) to constantly motivate the user.
 - [ ] 🌙 **Dark Mode:** Implement a full dark theme for the application.
-- [ ] 🗂️ **Category on Creation:** Allow users to select a word's grammatical category directly from the creation/edit modal.
+- [x] 🗂️ **Category on Creation:** Allow users to select a word's grammatical category directly from the creation/edit modal.
 - [ ] 🎨 **UI/UX Enhancements:**
   - [ ] Improve the design of the "Combine Lists" game mode to be more intuitive and visually appealing, similar to Duolingo's interface.
   - [ ] Refine screen transitions to use a consistent slide-right for forward navigation and slide-left for backward navigation.

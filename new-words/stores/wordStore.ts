@@ -50,8 +50,18 @@ interface WordState {
   fetchAllLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
   countWordsForPractice: (deckId?: number) => Promise<number>;
   getTotalWordCount: () => Promise<number>;
-  addWord: (deckId: number, name: string, meaning: string) => Promise<void>;
-  updateWord: (id: number, name: string, meaning: string) => Promise<void>;
+  addWord: (
+    deckId: number,
+    name: string,
+    meaning: string,
+    category: string | null
+  ) => Promise<void>;
+  updateWord: (
+    id: number,
+    name: string,
+    meaning: string,
+    category: string | null
+  ) => Promise<void>;
   deleteWord: (id: number) => Promise<void>;
   updateWordDetails: (
     id: number,
@@ -278,9 +288,9 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  addWord: async (deckId, name, meaning) => {
+  addWord: async (deckId, name, meaning, category) => {
     try {
-      const newWord = await dbAddWord(deckId, name, meaning);
+      const newWord = await dbAddWord(deckId, name, meaning, category);
       set((state) => {
         const currentIds = state.words.byDeckId[deckId] || [];
         return {
@@ -302,14 +312,19 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  updateWord: async (id, name, meaning) => {
+  updateWord: async (id, name, meaning, category) => {
     try {
-      await dbUpdateWord(id, name, meaning);
+      await dbUpdateWord(id, name, meaning, category);
       set((state) => {
         if (!state.words.byId[id]) {
           return state;
         }
-        const updatedWord = { ...state.words.byId[id], name, meaning };
+        const updatedWord = {
+          ...state.words.byId[id],
+          name,
+          meaning,
+          category,
+        };
         return {
           words: {
             ...state.words, // Mantém byDeckId inalterado

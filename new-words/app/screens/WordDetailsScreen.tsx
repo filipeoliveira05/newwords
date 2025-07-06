@@ -77,6 +77,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   const [editingWordDetails, setEditingWordDetails] = useState<{
     name: string;
     meaning: string;
+    category: string | null;
   } | null>(null);
 
   // State to track if there are unsaved changes
@@ -267,12 +268,13 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     setEditingWordDetails({
       name: wordDetails.name,
       meaning: wordDetails.meaning,
+      category: wordDetails.category,
     });
     setIsEditModalVisible(true);
   }, [wordDetails]);
 
   const handleSaveWordEdit = useCallback(
-    async (name: string, meaning: string) => {
+    async (name: string, meaning: string, category: string | null) => {
       if (!name.trim() || !meaning.trim()) {
         showAlert({
           title: "Erro",
@@ -285,7 +287,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
 
       setIsSavingEdit(true);
       try {
-        await updateWord(wordDetails.id, name.trim(), meaning.trim());
+        await updateWord(wordDetails.id, name.trim(), meaning.trim(), category);
 
         setWordDetails((prev) => {
           if (!prev) return null;
@@ -293,6 +295,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
             ...prev,
             name: name.trim(),
             meaning: meaning.trim(),
+            category: category,
           };
         });
 
