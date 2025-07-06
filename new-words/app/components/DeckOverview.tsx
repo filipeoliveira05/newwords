@@ -1,4 +1,4 @@
-import React from "react";
+import React, { memo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -20,7 +20,7 @@ type DeckOverviewProps = {
   onDelete?: () => void;
 };
 
-export default function DeckOverview({
+const DeckOverview = ({
   title,
   author,
   totalWords,
@@ -28,7 +28,7 @@ export default function DeckOverview({
   onEdit,
   onAddWord,
   onDelete,
-}: DeckOverviewProps) {
+}: DeckOverviewProps) => {
   return (
     <TouchableOpacity
       style={styles.container}
@@ -103,7 +103,9 @@ export default function DeckOverview({
       </View>
     </TouchableOpacity>
   );
-}
+};
+
+export default memo(DeckOverview);
 
 const styles = StyleSheet.create({
   container: {

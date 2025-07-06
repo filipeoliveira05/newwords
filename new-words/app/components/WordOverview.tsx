@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, memo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -28,7 +28,7 @@ type WordOverviewProps = {
   };
 };
 
-export default function WordOverview({
+const WordOverview = ({
   name,
   meaning,
   masteryLevel,
@@ -40,7 +40,7 @@ export default function WordOverview({
   displayValue,
   displayLabel,
   displayIcon,
-}: WordOverviewProps) {
+}: WordOverviewProps) => {
   const swipeableRef = useRef<Swipeable>(null);
 
   const handleEditPress = () => {
@@ -192,7 +192,9 @@ export default function WordOverview({
       </View>
     </Swipeable>
   );
-}
+};
+
+export default memo(WordOverview);
 
 const styles = StyleSheet.create({
   container: {
