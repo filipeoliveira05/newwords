@@ -82,8 +82,12 @@ export default function PracticeGameScreen({ route }: Props) {
   const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
-  const { fetchWordsForPractice, fetchLeastPracticedWords } =
-    useWordStore.getState();
+  const {
+    fetchWordsForPractice,
+    fetchLeastPracticedWords,
+    fetchWrongWords,
+    fetchFavoriteWords,
+  } = useWordStore.getState();
   const initializeSession = usePracticeStore(
     (state) => state.initializeSession
   );
@@ -109,6 +113,10 @@ export default function PracticeGameScreen({ route }: Props) {
           } else if (sessionType === "urgent") {
             // Busca até 20 palavras urgentes, priorizadas pela data de revisão mais antiga.
             fullWordPool = await fetchWordsForPractice(deckId, SESSION_LIMIT);
+          } else if (sessionType === "wrong") {
+            fullWordPool = await fetchWrongWords();
+          } else if (sessionType === "favorite") {
+            fullWordPool = await fetchFavoriteWords();
           } else {
             // Para uma sessão livre, busca as 20 palavras mais desafiadoras
             // (menor 'easinessFactor') ou as menos praticadas.
@@ -160,6 +168,8 @@ export default function PracticeGameScreen({ route }: Props) {
       wordsFromRoute,
       fetchWordsForPractice,
       fetchLeastPracticedWords,
+      fetchWrongWords,
+      fetchFavoriteWords,
       showAlert,
       navigation,
       initializeSession,

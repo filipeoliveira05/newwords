@@ -17,9 +17,10 @@ export type PracticeStackParamList = {
   PracticeHub: undefined;
   PracticeGame: {
     mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists";
-    deckId?: number;
-    sessionType: "urgent" | "free";
-    words?: Word[]; // Passamos uma lista específica de palavras para praticar (ex: palavras difíceis)
+    deckId?: number; // For deck-specific free practice
+    sessionType: "urgent" | "free" | "wrong" | "favorite";
+    // Para casos especiais onde a lista de palavras já é pré-calculada (ex: "palavras desafiadoras" do ecrã de estatísticas)
+    words?: Word[];
     origin?: "DeckDetail" | "Stats"; // De onde a prática foi iniciada
   };
 };

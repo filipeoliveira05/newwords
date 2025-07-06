@@ -10,7 +10,7 @@ interface PracticeWord {
 }
 
 type GameMode = "flashcard" | "multiple-choice" | "writing" | "combine-lists";
-type SessionType = "urgent" | "free";
+type SessionType = "urgent" | "free" | "wrong" | "favorite";
 
 interface PracticeState {
   sessionState: "not-started" | "in-progress" | "finished";
