@@ -39,15 +39,16 @@ export function calculateSm2Factors(
     } else {
       interval = Math.ceil(interval * easinessFactor);
     }
+  }
 
-    // Calculate new easiness factor
-    easinessFactor =
-      easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+  // 3. Calculate new easiness factor for ALL responses.
+  // The formula naturally decreases EF for q < 4 and increases for q > 4.
+  easinessFactor =
+    easinessFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
 
-    // The easiness factor cannot be less than 1.3
-    if (easinessFactor < 1.3) {
-      easinessFactor = 1.3;
-    }
+  // The easiness factor cannot be less than 1.3
+  if (easinessFactor < 1.3) {
+    easinessFactor = 1.3;
   }
 
   return {
