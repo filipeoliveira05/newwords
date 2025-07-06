@@ -48,7 +48,8 @@
     "sentry-expo": "~7.0.0",
     "zustand": "^5.0.5",
     "expo-dev-client": "~5.2.4",
-    "expo-updates": "~0.28.16"
+    "expo-updates": "~0.28.16",
+    "expo-speech": "~13.1.7"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -19,6 +19,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import Toast from "react-native-toast-message";
+// import * as Speech from "expo-speech"; // Descomentar quando for gerada uma nova build de desenvolvimento
 import { eventStore } from "@/stores/eventStore";
 
 import { getWordById } from "../../services/storage";
@@ -86,7 +87,17 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     antonyms: [] as string[],
     sentences: [] as string[],
   });
-  // Local state for editable fields
+
+  /* --- Funcionalidade Text-to-Speech (Comentada para evitar crash sem nova build) ---
+  const handleSpeak = (text: string) => {
+    // Opcionalmente, pode-se adicionar a língua para uma pronúncia mais correta.
+    // 'en-US' para inglês, 'pt-BR' para português, etc.
+    Speech.speak(text, {
+      language: "en-US",
+    });
+  };
+  */
+
   const [category, setCategory] = useState<string | null>(null);
   const [synonyms, setSynonyms] = useState<string[]>([]);
   const [antonyms, setAntonyms] = useState<string[]>([]);
@@ -496,9 +507,23 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         scrollEventThrottle={16}
       >
         <View style={styles.wordHeader}>
+          {/* O código abaixo foi temporariamente revertido.
+              Quando o Text-to-Speech for reativado, descomente o bloco
+              e o estilo 'wordTitleContainer' e 'speakButton'. */}
           <AppText variant="bold" style={styles.wordName}>
             {wordDetails.name}
           </AppText>
+          {/* <View style={styles.wordTitleContainer}>
+              <AppText variant="bold" style={styles.wordName}>
+                {wordDetails.name}
+              </AppText>
+              <TouchableOpacity
+                onPress={() => handleSpeak(wordDetails.name)}
+                style={styles.speakButton}
+              >
+                <Ionicons name="volume-medium-outline" size={28} color={theme.colors.primary} />
+              </TouchableOpacity>
+            </View> */}
           <AppText style={styles.sectionContent}>{wordDetails.meaning}</AppText>
         </View>
 
@@ -742,10 +767,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
   },
+  /*
+  wordTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  */
   wordName: {
     fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     marginBottom: 10,
+    // flex: 1, // Descomentar quando o botão de TTS for reativado
   },
   section: {
     marginBottom: 24,
@@ -755,6 +789,11 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: theme.colors.textMedium,
   },
+  /*
+  speakButton: {
+    paddingLeft: 16, // Espaço entre o texto e o botão
+  },
+  */
   label: {
     fontSize: theme.fontSizes.base,
     color: theme.colors.textMuted,
