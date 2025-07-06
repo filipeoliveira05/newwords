@@ -69,6 +69,24 @@ export const initializeDB = async () => {
             goal_ids TEXT NOT NULL
         );
       `);
+
+      // --- INDEXES FOR PERFORMANCE ---
+      // Index to quickly fetch words for a specific deck.
+      await db.runAsync(
+        `CREATE INDEX IF NOT EXISTS idx_words_deckId ON words(deckId);`
+      );
+      // Index for the most common query: finding words that are due for practice.
+      await db.runAsync(
+        `CREATE INDEX IF NOT EXISTS idx_words_nextReviewDate ON words(nextReviewDate);`
+      );
+      // Composite index for finding fallback words for practice (least practiced/easiest).
+      await db.runAsync(
+        `CREATE INDEX IF NOT EXISTS idx_words_practice_order ON words(easinessFactor ASC, lastTrained ASC);`
+      );
+      // Index to quickly find words answered incorrectly.
+      await db.runAsync(
+        `CREATE INDEX IF NOT EXISTS idx_words_lastAnswerCorrect ON words(lastAnswerCorrect);`
+      );
     });
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
