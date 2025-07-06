@@ -555,6 +555,14 @@ export async function updateWordStatsWithQuality(
       newMasteryLevel = "mastered";
     }
 
+    // Incrementa o contador de palavras praticadas para o dia atual.
+    // Isto garante que a contagem é atualizada em tempo real, mesmo se o utilizador sair a meio da sessão.
+    const todayStr = format(now, "yyyy-MM-dd");
+    await db.runAsync(
+      "INSERT INTO practice_history (date, words_trained) VALUES (?, 1) ON CONFLICT(date) DO UPDATE SET words_trained = words_trained + 1",
+      [todayStr]
+    );
+
     await db.runAsync(
       `UPDATE words SET
         timesTrained = timesTrained + 1,
@@ -674,13 +682,8 @@ export async function getPracticeHistory(): Promise<PracticeHistory[]> {
 }
 
 export async function updateUserPracticeMetrics(
-  sessionStreak: number,
-  wordsTrainedInSession: number
+  sessionStreak: number
 ): Promise<void> {
-  if (wordsTrainedInSession === 0) {
-    return;
-  }
-
   try {
     const currentLongestStreak = parseInt(
       (await getMetaValue("longest_streak", "0")) ?? "0",
@@ -706,13 +709,6 @@ export async function updateUserPracticeMetrics(
       : 1;
 
     const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
-
-    // Atualiza o histórico de prática
-    const todayStr = format(today, "yyyy-MM-dd");
-    await db.runAsync(
-      "INSERT INTO practice_history (date, words_trained) VALUES (?, ?) ON CONFLICT(date) DO UPDATE SET words_trained = words_trained + excluded.words_trained",
-      [todayStr, wordsTrainedInSession]
-    );
 
     await Promise.all([
       setMetaValue("longest_streak", newLongestStreak.toString()),
