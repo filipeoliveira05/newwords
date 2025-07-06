@@ -32,7 +32,7 @@ interface WordState {
   fetchFavoriteWordsCount: () => Promise<void>;
   urgentWordsCount: number;
   fetchUrgentWordCount: () => Promise<void>;
-  fetchWordsForPractice: (deckId?: number) => Promise<Word[]>;
+  fetchWordsForPractice: (deckId?: number, limit?: number) => Promise<Word[]>;
   fetchLeastPracticedWords: (
     deckId?: number,
     limit?: number,
@@ -146,10 +146,10 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  fetchWordsForPractice: async (deckId?: number) => {
+  fetchWordsForPractice: async (deckId?: number, limit?: number) => {
     set({ loading: true });
     try {
-      const practiceWords = await dbGetWordsForPractice(deckId);
+      const practiceWords = await dbGetWordsForPractice(deckId, limit);
       set({ loading: false });
       return practiceWords;
     } catch (error) {

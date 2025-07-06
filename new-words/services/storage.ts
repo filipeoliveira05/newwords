@@ -350,24 +350,24 @@ export async function deleteWord(id: number): Promise<void> {
   }
 }
 
-export async function getWordsForPractice(deckId?: number): Promise<Word[]> {
+export async function getWordsForPractice(
+  deckId?: number,
+  limit?: number
+): Promise<Word[]> {
   try {
     // Seleciona palavras cuja data de revisão já passou
-    // e ordena por prioridade: novas > em aprendizagem > dominadas,
-    // e depois pela data de treino mais antiga.
+    // e ordena pela data de revisão mais antiga para priorizar as mais urgentes.
     const query = `
       SELECT * FROM words
       WHERE nextReviewDate <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
       ${deckId ? "AND deckId = ?" : ""}
-      ORDER BY
-        CASE masteryLevel
-          WHEN 'new' THEN 1
-          WHEN 'learning' THEN 2
-          WHEN 'mastered' THEN 3
-        END,
-        lastTrained ASC;
+      ORDER BY nextReviewDate ASC
+      ${limit ? "LIMIT ?" : ""};
     `;
-    const params = deckId ? [deckId] : [];
+    const params: (string | number)[] = deckId ? [deckId] : [];
+    if (limit) {
+      params.push(limit);
+    }
     return await db.getAllAsync<Word>(query, params);
   } catch (e) {
     console.error("Erro ao obter palavras para praticar:", e);
@@ -406,7 +406,7 @@ export async function getLeastPracticedWords(
     const query = `
       SELECT * FROM words
       ${whereClause}
-      ORDER BY lastTrained ASC, createdAt ASC
+      ORDER BY easinessFactor ASC, lastTrained ASC
       ${limit ? "LIMIT ?" : ""};
     `;
     const params: (string | number)[] = deckId ? [deckId] : [];

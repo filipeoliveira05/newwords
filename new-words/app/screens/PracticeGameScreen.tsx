@@ -82,7 +82,7 @@ export default function PracticeGameScreen({ route }: Props) {
   const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
-  const { fetchWordsForPractice, fetchAllLeastPracticedWords } =
+  const { fetchWordsForPractice, fetchLeastPracticedWords } =
     useWordStore.getState();
   const initializeSession = usePracticeStore(
     (state) => state.initializeSession
@@ -100,17 +100,22 @@ export default function PracticeGameScreen({ route }: Props) {
       const loadSessionData = async () => {
         try {
           setIsLoading(true);
+          const SESSION_LIMIT = 20; // Limite para qualquer tipo de sessão
           let fullWordPool: Word[];
 
           if (wordsFromRoute && wordsFromRoute.length > 0) {
             // Use a lista de palavras passada diretamente (ex: palavras desafiadoras).
             fullWordPool = wordsFromRoute;
           } else if (sessionType === "urgent") {
-            // Busca todas as palavras urgentes.
-            fullWordPool = await fetchWordsForPractice(deckId);
+            // Busca até 20 palavras urgentes, priorizadas pela data de revisão mais antiga.
+            fullWordPool = await fetchWordsForPractice(deckId, SESSION_LIMIT);
           } else {
-            // Busca TODAS as palavras para uma sessão de prática livre.
-            fullWordPool = await fetchAllLeastPracticedWords(deckId);
+            // Para uma sessão livre, busca as 20 palavras mais desafiadoras
+            // (menor 'easinessFactor') ou as menos praticadas.
+            fullWordPool = await fetchLeastPracticedWords(
+              deckId,
+              SESSION_LIMIT
+            );
           }
 
           if (fullWordPool.length === 0) {
@@ -154,7 +159,7 @@ export default function PracticeGameScreen({ route }: Props) {
       sessionType,
       wordsFromRoute,
       fetchWordsForPractice,
-      fetchAllLeastPracticedWords,
+      fetchLeastPracticedWords,
       showAlert,
       navigation,
       initializeSession,
@@ -183,17 +188,17 @@ export default function PracticeGameScreen({ route }: Props) {
               style: "destructive",
               onPress: () => {
                 hasConfirmedExit.current = true;
-                // Primeiro, volta um passo na pilha de prática para a limpar.
-                // Isto remove o ecrã de jogo e deixa o 'PracticeHub' como o ecrã ativo.
-                navigation.goBack();
 
-                // De seguida, navega para o separador de destino correto.
                 if (origin === "DeckDetail") {
-                  navigation.navigate("HomeDecks");
+                  // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Home.
+                  navigation.goBack();
+                  navigation.navigate("HomeDecks"); // O stack do HomeDecks irá mostrar o DeckDetail
                 } else if (origin === "Stats") {
+                  // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Stats.
+                  navigation.goBack();
                   navigation.navigate("Stats");
                 } else {
-                  // Comportamento padrão: voltar para o hub de prática
+                  // Comportamento padrão (vindo do PracticeHub): apenas executa a ação de voltar original.
                   navigation.dispatch(e.data.action);
                 }
               },

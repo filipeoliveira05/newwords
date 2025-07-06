@@ -1,11 +1,20 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 // import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "@/stores/usePracticeStore";
-import { updateUserPracticeMetrics } from "../../../services/storage";
+import {
+  updateUserPracticeMetrics,
+  countWordsForPractice,
+} from "../../../services/storage";
 import { RootTabParamList } from "../../../types/navigation";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -42,6 +51,8 @@ export default function SessionResults({
   const highestStreakThisRound = usePracticeStore(
     (state) => state.highestStreakThisRound
   );
+  const [remainingUrgent, setRemainingUrgent] = useState(0);
+  const [isCheckingStats, setIsCheckingStats] = useState(true);
 
   // Use an effect to save the stats to the database when results are shown
   useEffect(() => {
@@ -50,6 +61,7 @@ export default function SessionResults({
         ...correctAnswers,
         ...incorrectAnswers,
       ]).size;
+      setIsCheckingStats(true);
       try {
         // Only save if there are results to save
         if (wordsTrainedCount > 0) {
@@ -59,12 +71,20 @@ export default function SessionResults({
             wordsTrainedCount
           );
         }
+        // Após guardar, verifica quantas palavras urgentes ainda restam.
+        // Isto é importante para mostrar a mensagem correta de conclusão.
+        const remainingCount = await countWordsForPractice(deckId);
+        setRemainingUrgent(remainingCount);
       } catch (error) {
         console.error("Falha ao guardar as estatísticas da sessão:", error);
+      } finally {
+        setIsCheckingStats(false);
       }
     };
     saveStats();
-  }, [correctAnswers, incorrectAnswers, highestStreakThisRound]);
+    // A dependência `deckId` é importante para que a contagem seja correta.
+    // As outras dependências garantem que isto só corre uma vez por resultado.
+  }, [correctAnswers, incorrectAnswers, highestStreakThisRound, deckId]);
 
   // Calculate the statistics
   const totalWordsInRound = currentRoundWords.length;
@@ -88,13 +108,16 @@ export default function SessionResults({
   );
 
   const isSessionComplete = currentPoolIndex >= fullSessionWordPool.length;
-  const isUrgentSessionComplete = sessionType === "urgent" && isSessionComplete;
+  // A sessão de revisão só está verdadeiramente completa se não houver mais
+  // palavras urgentes na base de dados após esta ronda.
+  const isUrgentSessionTrulyComplete =
+    sessionType === "urgent" && remainingUrgent === 0 && !isCheckingStats;
 
   const handleExit = () => {
     onExit(); // Limpa o estado da sessão antes de navegar
 
     // Se todas as palavras urgentes foram feitas, força a atualização do PracticeHub
-    if (isUrgentSessionComplete) {
+    if (isUrgentSessionTrulyComplete) {
       navigation.navigate("Practice", { screen: "PracticeHub" });
       return;
     }
@@ -112,6 +135,16 @@ export default function SessionResults({
     }
   };
 
+  if (isCheckingStats) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <AppText variant="bold" style={styles.loadingText}>
+          A guardar o seu progresso...
+        </AppText>
+      </View>
+    );
+  }
   return (
     <View style={styles.container}>
       {/* Confetti for perfect rounds! */}
@@ -128,7 +161,7 @@ export default function SessionResults({
         {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
       </AppText>
 
-      {isUrgentSessionComplete ? (
+      {isUrgentSessionTrulyComplete ? (
         <View style={styles.summaryCard}>
           <Ionicons
             name="checkmark-done-circle"
@@ -228,6 +261,11 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 60,
     width: "100%",
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
   },
   title: {
     fontSize: theme.fontSizes["3xl"],
