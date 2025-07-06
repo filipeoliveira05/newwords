@@ -60,48 +60,46 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 ### 🎯 Current Priorities
 
-- [ ] **Delay and Lag:** Search for every aspect of the app that could be optimized. Search for ways to animate the app without compromising performance. Database Writes: No SessionResults, a função updateUserPracticeMetrics é assíncrona. Embora não deva bloquear a UI, qualquer lógica complexa que dependa dela pode parecer lenta.
+- [ ] **Performance Optimization:** Search for any aspect of the app that could be optimized, from database writes to animations, ensuring a smooth experience on all devices.
 
 ### 🔮 Future Features (Next Levels)
 
-#### Level 1: Core Gameplay & Learning Loop (High-Impact)
+#### Level 1: Core Experience & Polish (High-Impact)
 
-- [ ] 🧠 **Spaced Repetition System (SRS Core):** Review current algorithm and compare to open source or other known methods.
 - [ ] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
-- [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place, like the main screen's header, to constantly motivate the user.
-- [ ] 🌙 **Dark Mode**
+- [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place (e.g., the main screen's header) to constantly motivate the user.
+- [ ] 🌙 **Dark Mode:** Implement a full dark theme for the application.
+- [ ] 🗂️ **Category on Creation:** Allow users to select a word's grammatical category directly from the creation/edit modal.
+- [ ] 🎨 **UI/UX Enhancements:**
+  - [ ] Improve the design of the "Combine Lists" game mode to be more intuitive and visually appealing, similar to Duolingo's interface.
+  - [ ] Refine screen transitions to use a consistent slide-right for forward navigation and slide-left for backward navigation.
+- [ ] 🧠 **Refined Mastery System:** Improve the logic for `masteryLevel`. For example, a word might only be considered "mastered" after being answered correctly 5 times in a row.
 
 #### Level 2: The Habit Hook (Getting the User to Come Back)
 
 - [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
+- [ ] 📖 **"All Words" Library:** Create a dedicated screen where users can view and search all words in the database, regardless of deck, and tap to see their details.
 - [ ] 🎲 **New Game Modes:**
-
   - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
   - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
-  - [ ] **Matching Game:** A classic mode where users match words to their definitions from two columns.
-  - [ ] **Combine Lists variant:** A similar mode to the normal Combine Lists but with a clock counting down (correct combinations add seconds) and combos (points multiplier that leads to higher xp in the end)
-
+  - [ ] **Combine Lists Variant:** A version of the existing mode with a countdown timer and score multipliers for combos.
 - [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.
 - [ ] ⬅️ ➡️ **Tinder-Style Review:** Implement a fast and fluid swipe-right/swipe-left interface for flashcard review, making practice sessions more engaging.
 
 #### Level 3: Content Depth & Community
 
+- [ ] 📈 **XP & Leveling System:** Implement a comprehensive XP and leveling system to reward users for all learning activities (adding words, practicing, completing goals).
 - [ ] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
 
 #### Level 4: 🤖 AI Magic
 
 - [ ] **Automatic Flashcard Creation:** Use an LLM API to assist in creating flashcards (`WordOverview` and `WordDetailsScreen`). The user writes the word, and an LLM API suggests the definition, identifies if it's an adjective, noun, verb, etc., generates 3 sentences with increasing difficulties showing how to use the word, generates synonyms and antonyms.
-
 - [ ] **Synonyms Finder:** In `WordDetailsScreen`, a button that makes the AI to find and display synonyms of that word, adding them to the word database if the user wants.
-
 - [ ] **Smart Scanner (OCR + NLP):** The user takes a photo of a text and the AI (using OCR to read the text and NLP to understand it) identifies and highlights the less common or more complex words. The user simply taps on the words they want to learn, and the app automatically creates flashcards.
-
 - [ ] **Conversational Tutor:** Option to open a chat with an AI tutor that plays out like this:
-
   - _AI Tutor:_ “Hello! Today's word is ‘resilience.’ Can you use this word in a sentence about sports?”
   - _User:_ “The athlete showed great resilience by finishing the race.”
   - _AI Tutor:_ “Perfect! Your sentence is grammatically correct and the context is ideal. Now, how about one about a personal challenge?”
-
 - [] **Contextual Story Generator:** The user selects 3 to 5 words and the AI creates a micro-story or paragraph that uses those words in a cohesive and memorable way.
 
 #### Level 5: Polish and Growth
