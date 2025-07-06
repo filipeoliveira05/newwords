@@ -80,7 +80,12 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     );
 
     set({
-      fullSessionWordPool: shuffle([...wordsWithDefaultCategory]),
+      // Para sessões 'urgent', as palavras já vêm ordenadas por prioridade.
+      // Para sessões 'free', baralhar torna a prática menos previsível.
+      fullSessionWordPool:
+        sessionType === "urgent"
+          ? wordsWithDefaultCategory
+          : shuffle([...wordsWithDefaultCategory]),
       gameMode: gameMode,
       sessionType: sessionType,
       deckId: deckId,
