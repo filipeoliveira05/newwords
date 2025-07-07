@@ -14,18 +14,18 @@ import {
   RootTabParamList,
 } from "../../types/navigation";
 
-import HomeScreen from "../screens/HomeScreen";
-import DecksScreen from "../screens/DecksScreen";
-import DeckDetailScreen from "../screens/DeckDetailScreen";
-import AddOrEditDeckScreen from "../screens/AddOrEditDeckScreen";
-import WordDetailsScreen from "../screens/WordDetailsScreen";
+import HomeScreen from "../screens/home/HomeScreen";
+import DecksScreen from "../screens/decks/DecksScreen";
+import DeckDetailScreen from "../screens/decks/DeckDetailScreen";
+import AddOrEditDeckScreen from "../screens/decks/AddOrEditDeckScreen";
+import WordDetailsScreen from "../screens/decks/WordDetailsScreen";
 
-import PracticeHubScreen from "../screens/PracticeHubScreen";
-import PracticeGameScreen from "../screens/PracticeGameScreen";
+import PracticeHubScreen from "../screens/practice/PracticeHubScreen";
+import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
 
-import StatsScreen from "../screens/StatsScreen";
-import ProfileScreen from "../screens/ProfileScreen";
-import SettingsScreen from "../screens/SettingsScreen";
+import StatsScreen from "../screens/stats/StatsScreen";
+import ProfileScreen from "../screens/profile/ProfileScreen";
+import SettingsScreen from "../screens/profile/SettingsScreen";
 
 import CustomAlert from "../components/CustomAlert";
 

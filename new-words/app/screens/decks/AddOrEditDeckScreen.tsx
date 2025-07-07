@@ -15,11 +15,11 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
-import { HomeStackParamList } from "../../types/navigation";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import { DecksStackParamList } from "../../../types/navigation";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
-type Props = NativeStackScreenProps<HomeStackParamList, "AddOrEditDeck">;
+type Props = NativeStackScreenProps<DecksStackParamList, "AddOrEditDeck">;
 
 export default function AddOrEditDeckScreen({ navigation, route }: Props) {
   const deckId = route?.params?.deckId;

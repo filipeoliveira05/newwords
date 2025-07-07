@@ -21,7 +21,7 @@ import { format, parseISO } from "date-fns";
 import { Ionicons } from "@expo/vector-icons";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import StatCard from "../components/stats/StatCard";
+import StatCard from "../../components/stats/StatCard";
 import {
   getGlobalStats,
   getChallengingWords,
@@ -39,17 +39,17 @@ import {
   ChallengingWord,
   UserPracticeMetrics,
   PracticeHistory,
-} from "../../services/storage";
-import { RootTabParamList } from "../../types/navigation";
+} from "../../../services/storage";
+import { RootTabParamList } from "../../../types/navigation";
 import { eventStore } from "@/stores/eventStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { pt } from "date-fns/locale";
-import { allPossibleDailyGoals, DailyGoal } from "../../config/dailyGoals";
-import DailyGoalProgress from "../components/stats/DailyGoalProgress";
-import { achievements, Achievement } from "../../config/achievements";
-import AchievementBadge from "../components/stats/AchievementBadge";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import { allPossibleDailyGoals, DailyGoal } from "../../../config/dailyGoals";
+import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
+import { achievements, Achievement } from "../../../config/achievements";
+import AchievementBadge from "../../components/stats/AchievementBadge";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
 // Define the type for the marked dates object locally.
 // This is necessary because the version of `react-native-calendars`

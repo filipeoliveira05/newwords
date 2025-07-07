@@ -17,12 +17,15 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
-import { Word } from "../../types/database";
-import { HomeStackParamList, RootTabParamList } from "../../types/navigation";
-import WordOverview from "../components/WordOverview";
-import WordEditModal from "../components/WordEditModal";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import { Word } from "../../../types/database";
+import {
+  DecksStackParamList,
+  RootTabParamList,
+} from "../../../types/navigation";
+import WordOverview from "../../components/WordOverview";
+import WordEditModal from "../../components/WordEditModal";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
 const EMPTY_ARRAY: number[] = [];
@@ -44,7 +47,7 @@ interface SortConfig {
   criterion: SortCriterion;
   direction: SortDirection;
 }
-type Props = NativeStackScreenProps<HomeStackParamList, "DeckDetail">;
+type Props = NativeStackScreenProps<DecksStackParamList, "DeckDetail">;
 
 const sortOptions: {
   label: string;

@@ -22,15 +22,15 @@ import Toast from "react-native-toast-message";
 // import * as Speech from "expo-speech"; // Descomentar quando for gerada uma nova build de desenvolvimento
 import { eventStore } from "@/stores/eventStore";
 
-import { getWordById } from "../../services/storage";
-import { Word } from "../../types/database";
-import { HomeStackParamList } from "../../types/navigation";
+import { getWordById } from "../../../services/storage";
+import { Word } from "../../../types/database";
+import { DecksStackParamList } from "../../../types/navigation";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
-import ChipInput from "../components/ChipInput";
-import WordEditModal from "../components/WordEditModal";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import ChipInput from "../../components/ChipInput";
+import WordEditModal from "../../components/WordEditModal";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
 const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
 
@@ -56,7 +56,7 @@ const formatLastAnswer = (answer: number | null) => {
   return answer === 1 ? "Correta" : "Incorreta";
 };
 
-type Props = NativeStackScreenProps<HomeStackParamList, "WordDetails">;
+type Props = NativeStackScreenProps<DecksStackParamList, "WordDetails">;
 
 const WordDetailsScreen = ({ navigation, route }: Props) => {
   const { wordId } = route.params;

@@ -9,12 +9,12 @@ import {
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
 
-import AppText from "../components/AppText";
+import AppText from "../../components/AppText";
 import { useDeckStore } from "@/stores/deckStore";
 import { useAlertStore } from "@/stores/useAlertStore";
-import DeckOverview from "../components/DeckOverview";
-import { seedDatabase } from "../../services/seeder";
-import { theme } from "../../config/theme";
+import DeckOverview from "../../components/DeckOverview";
+import { seedDatabase } from "../../../services/seeder";
+import { theme } from "../../../config/theme";
 
 export default function HomeDecksScreen({ navigation }: any) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();

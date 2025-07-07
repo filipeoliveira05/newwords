@@ -2,9 +2,9 @@ import React, { useLayoutEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ProfileStackParamList } from "../../types/navigation";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import { ProfileStackParamList } from "../../../types/navigation";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "ProfileMain">;
 

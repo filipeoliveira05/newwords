@@ -8,12 +8,12 @@ import {
 } from "react-native";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "@/stores/useUserStore";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { eventStore } from "@/stores/eventStore";
 import { RootTabParamList } from "@/types/navigation";
-import DailyGoalProgress from "../components/stats/DailyGoalProgress";
+import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
 
 type StatCardProps = {
   icon: keyof typeof Ionicons.glyphMap;

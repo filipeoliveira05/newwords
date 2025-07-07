@@ -10,10 +10,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { PracticeStackParamList } from "../../types/navigation";
+import { PracticeStackParamList } from "../../../types/navigation";
 
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 import { eventStore } from "@/stores/eventStore";
 
 type Props = NativeStackScreenProps<PracticeStackParamList, "PracticeHub">;

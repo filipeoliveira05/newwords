@@ -2,10 +2,10 @@ import React, { useLayoutEffect } from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import * as Updates from "expo-updates";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ProfileStackParamList } from "../../types/navigation";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
-import { deleteDatabase } from "../../services/storage";
+import { ProfileStackParamList } from "../../../types/navigation";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
+import { deleteDatabase } from "../../../services/storage";
 import { useAlertStore } from "@/stores/useAlertStore";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;

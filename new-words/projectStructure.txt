@@ -3,9 +3,14 @@
 ├── app
 │   ├── _layout.tsx
 │   ├── components
+│   │   ├── AppText.tsx
+│   │   ├── ChipInput.tsx
+│   │   ├── CustomAlert.tsx
 │   │   ├── DeckOverview.tsx
+│   │   ├── WordEditModal.tsx
 │   │   ├── WordOverview.tsx
 │   │   ├── practice
+│   │   │   ├── CombineListsView.tsx
 │   │   │   ├── FlashcardView.tsx
 │   │   │   ├── MultipleChoiceView.tsx
 │   │   │   ├── ProgressBar.tsx
@@ -19,32 +24,48 @@
 │   ├── navigation
 │   │   └── AppNavigator.tsx
 │   └── screens
-│       ├── AddOrEditDeckScreen.tsx
-│       ├── DeckDetailScreen.tsx
-│       ├── HomeDecksScreen.tsx
-│       ├── PracticeGameScreen.tsx
-│       ├── PracticeHubScreen.tsx
-│       └── StatsScreen.tsx
-├── app.json
+│       ├── decks
+│       │   ├── AddOrEditDeckScreen.tsx
+│       │   ├── DeckDetailScreen.tsx
+│       │   ├── DecksScreen.tsx
+│       │   └── WordDetailsScreen.tsx
+│       ├── home
+│       │   └── HomeScreen.tsx
+│       ├── practice
+│       │   ├── PracticeGameScreen.tsx
+│       │   └── PracticeHubScreen.tsx
+│       ├── profile
+│       │   ├── ProfileScreen.tsx
+│       │   └── SettingsScreen.tsx
+│       └── stats
+│           └── StatsScreen.tsx
+├── app.config.js
 ├── config
 │   ├── achievements.ts
-│   └── dailyGoals.ts
+│   ├── dailyGoals.ts
+│   └── theme.ts
+├── eas.json
 ├── eslint.config.js
 ├── expo-env.d.ts
 ├── package-lock.json
 ├── package.json
 ├── projectStructure.txt
 ├── services
+│   ├── seeder.ts
 │   └── storage.ts
 ├── stores
 │   ├── deckStore.ts
+│   ├── eventStore.ts
+│   ├── useAlertStore.ts
 │   ├── usePracticeStore.ts
+│   ├── useUserStore.ts
 │   └── wordStore.ts
 ├── tsconfig.json
 ├── types
 │   ├── database.ts
 │   └── navigation.ts
 └── utils
-    └── arrayUtils.ts
+    ├── arrayUtils.ts
+    └── sm2.ts
 
-11 directories, 36 files
+16 directories, 52 files

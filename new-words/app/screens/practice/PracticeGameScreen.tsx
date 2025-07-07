@@ -20,17 +20,17 @@ import { Word } from "@/types/database";
 import {
   PracticeStackParamList,
   RootTabParamList,
-} from "../../types/navigation";
+} from "../../../types/navigation";
 
-import StreakCounter from "../components/practice/StreakCounter";
-import ProgressBar from "../components/practice/ProgressBar";
-import FlashcardView from "../components/practice/FlashcardView";
-import MultipleChoiceView from "../components/practice/MultipleChoiceView";
-import WritingView from "../components/practice/WritingView";
-import CombineListsView from "../components/practice/CombineListsView";
-import SessionResults from "../components/practice/SessionResults";
-import AppText from "../components/AppText";
-import { theme } from "../../config/theme";
+import StreakCounter from "../../components/practice/StreakCounter";
+import ProgressBar from "../../components/practice/ProgressBar";
+import FlashcardView from "../../components/practice/FlashcardView";
+import MultipleChoiceView from "../../components/practice/MultipleChoiceView";
+import WritingView from "../../components/practice/WritingView";
+import CombineListsView from "../../components/practice/CombineListsView";
+import SessionResults from "../../components/practice/SessionResults";
+import AppText from "../../components/AppText";
+import { theme } from "../../../config/theme";
 
 type Props = {
   route: RouteProp<PracticeStackParamList, "PracticeGame">;
