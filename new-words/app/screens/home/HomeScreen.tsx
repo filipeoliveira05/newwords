@@ -6,14 +6,20 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import { CompositeScreenProps } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
-import { eventStore } from "@/stores/eventStore";
-import { RootTabParamList } from "@/types/navigation";
+import { eventStore } from "../../../stores/eventStore";
+import {
+  RootTabParamList,
+  HomeStackParamList,
+} from "../../../types/navigation";
 import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
+import LeagueWidget from "../../components/home/LeagueWidget";
 
 type StatCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
@@ -32,8 +38,10 @@ const StatCard: React.FC<StatCardProps> = ({ icon, value, label, color }) => (
   </View>
 );
 
-type Props = BottomTabScreenProps<RootTabParamList, "Home">;
-
+type Props = CompositeScreenProps<
+  NativeStackScreenProps<HomeStackParamList, "HomeDashboard">,
+  BottomTabScreenProps<RootTabParamList>
+>;
 export default function HomeScreen({ navigation }: Props) {
   const {
     xp,
@@ -111,6 +119,9 @@ export default function HomeScreen({ navigation }: Props) {
             </AppText>
           </View>
         </View>
+
+        {/* League Widget */}
+        <LeagueWidget />
 
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
@@ -303,6 +314,7 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
+    marginTop: 20,
     marginBottom: 24,
   },
   statCard: {

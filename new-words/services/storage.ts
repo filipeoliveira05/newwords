@@ -83,6 +83,15 @@ export const initializeDB = async () => {
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_practice_date', '');`
       );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('current_league', 'Bronze');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('weekly_xp', '0');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('league_start_date', '');`
+      );
 
       // --- INDEXES FOR PERFORMANCE ---
       // Index to quickly fetch words for a specific deck.
@@ -204,6 +213,47 @@ export async function updateUserXP(
   return { newXP, newLevel: currentLevel, didLevelUp };
 }
 
+export interface LeagueData {
+  currentLeague: string;
+  weeklyXP: number;
+  leagueStartDate: string | null;
+}
+
+export async function getLeagueData(): Promise<LeagueData> {
+  const [currentLeague, weeklyXP, leagueStartDate] = await Promise.all([
+    getMetaValue("current_league", "Bronze"),
+    getMetaValue("weekly_xp", "0"),
+    getMetaValue("league_start_date", null),
+  ]);
+  return {
+    currentLeague: currentLeague ?? "Bronze",
+    weeklyXP: parseInt(weeklyXP ?? "0", 10),
+    leagueStartDate: leagueStartDate,
+  };
+}
+
+export async function updateLeagueData(
+  data: Partial<LeagueData>
+): Promise<void> {
+  const promises: Promise<void>[] = [];
+  if (data.currentLeague !== undefined) {
+    promises.push(setMetaValue("current_league", data.currentLeague));
+  }
+  if (data.weeklyXP !== undefined) {
+    promises.push(setMetaValue("weekly_xp", data.weeklyXP.toString()));
+  }
+  if (data.leagueStartDate !== undefined) {
+    promises.push(
+      setMetaValue("league_start_date", data.leagueStartDate ?? "")
+    );
+  }
+  await Promise.all(promises);
+}
+
+export async function addWeeklyXP(xpToAdd: number): Promise<void> {
+  const currentXP = parseInt((await getMetaValue("weekly_xp", "0")) ?? "0", 10);
+  await setMetaValue("weekly_xp", (currentXP + xpToAdd).toString());
+}
 // A helper to set a single metadata value
 export async function setMetaValue(key: string, value: string): Promise<void> {
   try {

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
@@ -6,15 +6,19 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
+import { useLeagueStore } from "@/stores/useLeagueStore";
 
 import {
   DecksStackParamList,
   PracticeStackParamList,
+  HomeStackParamList,
   ProfileStackParamList,
   RootTabParamList,
 } from "../../types/navigation";
 
 import HomeScreen from "../screens/home/HomeScreen";
+import LeagueScreen from "../screens/home/LeagueScreen";
+
 import DecksScreen from "../screens/decks/DecksScreen";
 import DeckDetailScreen from "../screens/decks/DeckDetailScreen";
 import AddOrEditDeckScreen from "../screens/decks/AddOrEditDeckScreen";
@@ -24,12 +28,34 @@ import PracticeHubScreen from "../screens/practice/PracticeHubScreen";
 import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
 
 import StatsScreen from "../screens/stats/StatsScreen";
+
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 
 import CustomAlert from "../components/CustomAlert";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
+
+const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
+
+function HomeStack() {
+  return (
+    <HomeStackNav.Navigator
+      screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
+    >
+      <HomeStackNav.Screen
+        name="HomeDashboard"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+      <HomeStackNav.Screen
+        name="LeagueDetails"
+        component={LeagueScreen}
+        options={{ title: "Liga Semanal" }}
+      />
+    </HomeStackNav.Navigator>
+  );
+}
 
 const DecksStackNav = createNativeStackNavigator<DecksStackParamList>();
 
@@ -113,6 +139,11 @@ export default function AppNavigator() {
     "Satoshi-Bold": require("../../assets/fonts/Satoshi-Bold.otf"),
   });
 
+  useEffect(() => {
+    // Initialize league data when the app loads
+    useLeagueStore.getState().checkAndInitializeLeagues();
+  }, []);
+
   if (!fontsLoaded) {
     // Pode mostrar um ecrã de loading mais elaborado, mas por agora isto é suficiente.
     return (
@@ -148,8 +179,14 @@ export default function AppNavigator() {
       >
         <Tab.Screen
           name="Home"
-          component={HomeScreen}
+          component={HomeStack}
           options={{ tabBarLabel: "Início" }}
+          listeners={({ navigation }) => ({
+            tabPress: (e) => {
+              e.preventDefault();
+              navigation.navigate("Home", { screen: "HomeDashboard" });
+            },
+          })}
         />
         <Tab.Screen
           name="Decks"
