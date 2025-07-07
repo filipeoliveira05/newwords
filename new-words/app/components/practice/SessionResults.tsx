@@ -67,7 +67,7 @@ export default function SessionResults({
         // Only save if there are results to save
         if (wordsTrainedCount > 0) {
           // Também atualiza as métricas do utilizador com a maior streak da ronda
-          await updateUserPracticeMetrics(highestStreakThisRound);
+          await updateUserPracticeMetrics(highestStreakThisRound, deckId);
           // Publish an event to notify other parts of the app that stats have changed.
           eventStore.getState().publish("practiceSessionCompleted", {});
         }
@@ -125,7 +125,7 @@ export default function SessionResults({
     // Navegação inteligente baseada na origem
     if (origin === "DeckDetail") {
       navigation.goBack();
-      navigation.navigate("HomeDecks");
+      navigation.navigate("Decks");
     } else if (origin === "Stats") {
       navigation.navigate("Stats");
     } else {

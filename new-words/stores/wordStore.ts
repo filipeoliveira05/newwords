@@ -20,6 +20,7 @@ import {
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
+import { useUserStore } from "./useUserStore";
 
 interface WordState {
   words: {
@@ -306,6 +307,8 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       // Publica um evento para que o deckStore possa atualizar a contagem.
       eventStore.getState().publish("wordAdded", { deckId });
+      // Adiciona XP por ter adicionado uma nova palavra
+      useUserStore.getState().addXP(5);
     } catch (error) {
       console.error("Erro ao adicionar palavra no store", error);
       throw error;

@@ -202,7 +202,7 @@ export default function PracticeGameScreen({ route }: Props) {
                 if (origin === "DeckDetail") {
                   // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Home.
                   navigation.goBack();
-                  navigation.navigate("HomeDecks"); // O stack do HomeDecks irá mostrar o DeckDetail
+                  navigation.navigate("Decks"); // O stack do HomeDecks irá mostrar o DeckDetail
                 } else if (origin === "Stats") {
                   // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Stats.
                   navigation.goBack();

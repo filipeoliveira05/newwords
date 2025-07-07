@@ -1,8 +1,8 @@
 import { Word } from "@/types/database";
 import { NavigatorScreenParams } from "@react-navigation/native";
 
-export type HomeStackParamList = {
-  HomeDecksList: undefined;
+export type DecksStackParamList = {
+  DecksList: undefined;
   DeckDetail: {
     deckId: number;
     title: string;
@@ -31,7 +31,8 @@ export type ProfileStackParamList = {
 };
 
 export type RootTabParamList = {
-  HomeDecks: NavigatorScreenParams<HomeStackParamList> | undefined;
+  Home: undefined; // O novo dashboard de gamificação
+  Decks: NavigatorScreenParams<DecksStackParamList> | undefined;
   Practice: NavigatorScreenParams<PracticeStackParamList> | undefined;
   Stats: undefined;
   Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;

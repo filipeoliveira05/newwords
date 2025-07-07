@@ -8,13 +8,14 @@ import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
 
 import {
-  HomeStackParamList,
+  DecksStackParamList,
   PracticeStackParamList,
   ProfileStackParamList,
   RootTabParamList,
 } from "../../types/navigation";
 
-import HomeDecksScreen from "../screens/HomeDecksScreen";
+import HomeScreen from "../screens/HomeScreen";
+import DecksScreen from "../screens/DecksScreen";
 import DeckDetailScreen from "../screens/DeckDetailScreen";
 import AddOrEditDeckScreen from "../screens/AddOrEditDeckScreen";
 import WordDetailsScreen from "../screens/WordDetailsScreen";
@@ -30,34 +31,34 @@ import CustomAlert from "../components/CustomAlert";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-const HomeStackNav = createNativeStackNavigator<HomeStackParamList>();
+const DecksStackNav = createNativeStackNavigator<DecksStackParamList>();
 
-function HomeStack() {
+function DecksStack() {
   return (
-    <HomeStackNav.Navigator
+    <DecksStackNav.Navigator
       screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
     >
-      <HomeStackNav.Screen
-        name="HomeDecksList"
-        component={HomeDecksScreen}
+      <DecksStackNav.Screen
+        name="DecksList"
+        component={DecksScreen}
         options={{ headerShown: false }}
       />
-      <HomeStackNav.Screen
+      <DecksStackNav.Screen
         name="DeckDetail"
         component={DeckDetailScreen}
         options={{ title: "Detalhes do Conjunto" }}
       />
-      <HomeStackNav.Screen
+      <DecksStackNav.Screen
         name="WordDetails"
         component={WordDetailsScreen}
         options={{ title: "Detalhes da Palavra" }}
       />
-      <HomeStackNav.Screen
+      <DecksStackNav.Screen
         name="AddOrEditDeck"
         component={AddOrEditDeckScreen}
         options={{ title: "Novo Conjunto" }}
       />
-    </HomeStackNav.Navigator>
+    </DecksStackNav.Navigator>
   );
 }
 
@@ -98,7 +99,8 @@ function ProfileStack() {
 }
 
 const iconMapping = {
-  HomeDecks: ["home", "home-outline"],
+  Home: ["home", "home-outline"],
+  Decks: ["file-tray-stacked", "file-tray-stacked-outline"],
   Practice: ["flash", "flash-outline"],
   Stats: ["stats-chart", "stats-chart-outline"],
   Profile: ["person-circle", "person-circle-outline"],
@@ -145,13 +147,18 @@ export default function AppNavigator() {
         })}
       >
         <Tab.Screen
-          name="HomeDecks"
-          component={HomeStack}
+          name="Home"
+          component={HomeScreen}
+          options={{ tabBarLabel: "Início" }}
+        />
+        <Tab.Screen
+          name="Decks"
+          component={DecksStack}
           options={{ tabBarLabel: "Conjuntos" }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
-              navigation.navigate("HomeDecks", { screen: "HomeDecksList" });
+              navigation.navigate("Decks", { screen: "DecksList" });
             },
           })}
         />

@@ -70,6 +70,20 @@ export const initializeDB = async () => {
         );
       `);
 
+      // --- Insere valores padrão para gamificação se não existirem ---
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('user_xp', '0');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_practiced_deck_id', '');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('user_level', '1');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_practice_date', '');`
+      );
+
       // --- INDEXES FOR PERFORMANCE ---
       // Index to quickly fetch words for a specific deck.
       await db.runAsync(
@@ -128,6 +142,66 @@ export async function getMetaValue(
     console.error(`Erro ao obter metadado '${key}':`, e);
     throw e;
   }
+}
+
+// --- Gamification Functions ---
+
+export interface GamificationStats {
+  xp: number;
+  level: number;
+  xpForNextLevel: number;
+  consecutiveDays: number;
+  totalWords: number;
+}
+
+const getXPForNextLevel = (level: number) =>
+  Math.floor(100 * Math.pow(level, 1.5));
+
+export async function getGamificationStats(): Promise<GamificationStats> {
+  const [xpStr, levelStr, practiceMetrics, totalWords] = await Promise.all([
+    getMetaValue("user_xp", "0"),
+    getMetaValue("user_level", "1"),
+    getUserPracticeMetrics(),
+    getTotalWordCount(),
+  ]);
+
+  const level = parseInt(levelStr ?? "1", 10);
+
+  return {
+    xp: parseInt(xpStr ?? "0", 10),
+    level: level,
+    xpForNextLevel: getXPForNextLevel(level),
+    consecutiveDays: practiceMetrics.consecutiveDays,
+    totalWords: totalWords,
+  };
+}
+
+export async function updateUserXP(
+  xpToAdd: number
+): Promise<{ newXP: number; newLevel: number; didLevelUp: boolean }> {
+  let didLevelUp = false;
+  const currentXP = parseInt((await getMetaValue("user_xp", "0")) ?? "0", 10);
+  let currentLevel = parseInt(
+    (await getMetaValue("user_level", "1")) ?? "1",
+    10
+  );
+
+  let newXP = currentXP + xpToAdd;
+  let xpForNextLevel = getXPForNextLevel(currentLevel);
+
+  while (newXP >= xpForNextLevel) {
+    newXP -= xpForNextLevel;
+    currentLevel++;
+    didLevelUp = true;
+    xpForNextLevel = getXPForNextLevel(currentLevel);
+  }
+
+  await Promise.all([
+    setMetaValue("user_xp", newXP.toString()),
+    setMetaValue("user_level", currentLevel.toString()),
+  ]);
+
+  return { newXP, newLevel: currentLevel, didLevelUp };
 }
 
 // A helper to set a single metadata value
@@ -681,7 +755,8 @@ export async function getPracticeHistory(): Promise<PracticeHistory[]> {
 }
 
 export async function updateUserPracticeMetrics(
-  sessionStreak: number
+  sessionStreak: number,
+  deckId?: number
 ): Promise<void> {
   try {
     const currentLongestStreak = parseInt(
@@ -714,6 +789,9 @@ export async function updateUserPracticeMetrics(
       setMetaValue("consecutive_days", newConsecutiveDays.toString()),
       setMetaValue("last_practice_date", today.toISOString()),
     ]);
+    if (deckId) {
+      await setMetaValue("last_practiced_deck_id", deckId.toString());
+    }
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);
     throw e;
