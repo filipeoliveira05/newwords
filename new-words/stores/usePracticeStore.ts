@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { shuffle } from "../utils/arrayUtils";
 import { useWordStore } from "./wordStore";
-import { useUserStore } from "./useUserStore";
+import { eventStore } from "./eventStore";
 
 interface PracticeWord {
   id: number;
@@ -147,10 +147,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     // Update the database with the new SM-2 logic
     useWordStore.getState().updateStatsAfterAnswer(wordId, quality);
 
-    // Adiciona XP por cada resposta correta
-    if (isCorrect) {
-      useUserStore.getState().addXP(10);
-    }
+    eventStore.getState().publish("answerRecorded", { wordId, quality });
 
     set((state) => ({
       correctAnswers:

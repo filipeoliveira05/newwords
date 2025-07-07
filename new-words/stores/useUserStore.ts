@@ -12,9 +12,9 @@ import {
   ChallengingWord,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
-import { DailyGoal, allPossibleDailyGoals } from "@/config/dailyGoals";
-import { shuffle } from "@/utils/arrayUtils";
-import { Deck } from "@/types/database";
+import { DailyGoal, allPossibleDailyGoals } from "../config/dailyGoals";
+import { shuffle } from "../utils/arrayUtils";
+import { Deck } from "../types/database";
 
 // A DailyGoal with its progress calculated for the current day.
 type ProcessedDailyGoal = DailyGoal & {
@@ -105,9 +105,29 @@ export const useUserStore = create<UserState>((set) => ({
         eventStore.getState().publish("leveledUp", { newLevel });
       }
       // Publica um evento geral de atualização de XP
-      eventStore.getState().publish("xpUpdated", {});
+      eventStore.getState().publish("xpUpdated", { xp: xpToAdd });
     } catch (error) {
       console.error("Erro ao adicionar XP:", error);
     }
   },
 }));
+
+// --- Event Subscriptions for Gamification ---
+// The user store listens for events from other stores to award XP.
+// This centralizes the gamification logic.
+
+eventStore
+  .getState()
+  .subscribe<{ wordId: number; quality: number }>(
+    "answerRecorded",
+    ({ quality }) => {
+      if (quality >= 3) {
+        // Correct answer
+        useUserStore.getState().addXP(10);
+      }
+    }
+  );
+
+eventStore.getState().subscribe("wordAdded", () => {
+  useUserStore.getState().addXP(5);
+});
