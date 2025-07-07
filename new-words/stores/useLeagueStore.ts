@@ -68,11 +68,13 @@ const generateSimulatedLeaderboard = (
   league: League
 ): LeaderboardUser[] => {
   const list: { name: string; xp: number }[] = [];
-  const baseXP = currentUserXP > 100 ? currentUserXP : 100;
+  // Usa o XP base e a variação da liga para uma simulação mais realista
+  const { baseXP, xpRange } = league;
 
   for (let i = 0; i < league.groupSize - 1; i++) {
-    const randomFactor = (Math.random() - 0.4) * 1.5; // Skew towards higher scores
-    const xp = Math.max(0, Math.floor(baseXP + baseXP * randomFactor));
+    // Gera uma pontuação aleatória dentro da faixa definida para a liga
+    const randomXP = baseXP + (Math.random() * 2 - 1) * xpRange;
+    const xp = Math.max(0, Math.floor(randomXP));
     list.push({ name: FAKE_NAMES[i % FAKE_NAMES.length], xp });
   }
 
