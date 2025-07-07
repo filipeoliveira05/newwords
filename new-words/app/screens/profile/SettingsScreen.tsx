@@ -6,7 +6,7 @@ import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { deleteDatabase } from "../../../services/storage";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useAlertStore } from "../../../stores/useAlertStore";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 

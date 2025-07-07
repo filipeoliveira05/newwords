@@ -1,5 +1,5 @@
-import { useDeckStore } from "@/stores/deckStore";
-import { useWordStore } from "@/stores/wordStore";
+import { useDeckStore } from "../stores/deckStore";
+import { useWordStore } from "../stores/wordStore";
 
 const seedData = [
   {

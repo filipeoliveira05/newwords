@@ -20,13 +20,13 @@ import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import Toast from "react-native-toast-message";
 // import * as Speech from "expo-speech"; // Descomentar quando for gerada uma nova build de desenvolvimento
-import { eventStore } from "@/stores/eventStore";
+import { eventStore } from "../../../stores/eventStore";
 
 import { getWordById } from "../../../services/storage";
 import { Word } from "../../../types/database";
 import { DecksStackParamList } from "../../../types/navigation";
-import { useWordStore } from "@/stores/wordStore";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useWordStore } from "../../../stores/wordStore";
+import { useAlertStore } from "../../../stores/useAlertStore";
 import ChipInput from "../../components/ChipInput";
 import WordEditModal from "../../components/WordEditModal";
 import AppText from "../../components/AppText";

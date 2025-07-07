@@ -15,8 +15,8 @@ import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { useWordStore } from "@/stores/wordStore";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useWordStore } from "../../../stores/wordStore";
+import { useAlertStore } from "../../../stores/useAlertStore";
 import { Word } from "../../../types/database";
 import {
   DecksStackParamList,

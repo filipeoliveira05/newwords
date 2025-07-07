@@ -13,10 +13,10 @@ import {
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePracticeStore } from "@/stores/usePracticeStore";
-import { useWordStore } from "@/stores/wordStore";
-import { useAlertStore } from "@/stores/useAlertStore";
-import { Word } from "@/types/database";
+import { usePracticeStore } from "../../../stores/usePracticeStore";
+import { useWordStore } from "../../../stores/wordStore";
+import { useAlertStore } from "../../../stores/useAlertStore";
+import { Word } from "../../../types/database";
 import {
   PracticeStackParamList,
   RootTabParamList,

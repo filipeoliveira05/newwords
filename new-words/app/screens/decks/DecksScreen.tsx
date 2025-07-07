@@ -8,15 +8,19 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { Ionicons } from "@expo/vector-icons";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import AppText from "../../components/AppText";
-import { useDeckStore } from "@/stores/deckStore";
-import { useAlertStore } from "@/stores/useAlertStore";
+import { useDeckStore } from "../../../stores/deckStore";
+import { useAlertStore } from "../../../stores/useAlertStore";
 import DeckOverview from "../../components/DeckOverview";
 import { seedDatabase } from "../../../services/seeder";
 import { theme } from "../../../config/theme";
+import { DecksStackParamList } from "../../../types/navigation";
 
-export default function HomeDecksScreen({ navigation }: any) {
+type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
+
+export default function DecksScreen({ navigation }: Props) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
   const [isSeeding, setIsSeeding] = useState(false);
 
@@ -70,7 +74,7 @@ export default function HomeDecksScreen({ navigation }: any) {
         </AppText>
         <TouchableOpacity
           style={styles.emptyButton}
-          onPress={() => navigation.navigate("AddOrEditDeck")}
+          onPress={() => navigation.navigate("AddOrEditDeck", {})}
         >
           <Ionicons name="add" size={20} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.emptyButtonText}>
@@ -170,7 +174,7 @@ export default function HomeDecksScreen({ navigation }: any) {
       </ScrollView>
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate("AddOrEditDeck")}
+        onPress={() => navigation.navigate("AddOrEditDeck", {})}
       >
         <Ionicons name="add" size={32} color={theme.colors.surface} />
       </TouchableOpacity>

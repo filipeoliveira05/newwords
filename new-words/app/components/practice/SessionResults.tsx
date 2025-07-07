@@ -10,7 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 // import ConfettiCannon from "react-native-confetti-cannon";
-import { usePracticeStore } from "@/stores/usePracticeStore";
+import { usePracticeStore } from "../../../stores/usePracticeStore";
 import {
   updateUserPracticeMetrics,
   countWordsForPractice,
