@@ -33,6 +33,12 @@ import ProfileScreen from "../screens/profile/ProfileScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 
 import CustomAlert from "../components/CustomAlert";
+import LevelUpOverlay from "../components/LevelUpOverlay";
+
+// Import fonts using ES6 modules for consistency and to satisfy the linter
+import SatoshiRegular from "../../assets/fonts/Satoshi-Regular.otf";
+import SatoshiMedium from "../../assets/fonts/Satoshi-Medium.otf";
+import SatoshiBold from "../../assets/fonts/Satoshi-Bold.otf";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -134,9 +140,9 @@ const iconMapping = {
 
 export default function AppNavigator() {
   const [fontsLoaded] = useFonts({
-    "Satoshi-Regular": require("../../assets/fonts/Satoshi-Regular.otf"),
-    "Satoshi-Medium": require("../../assets/fonts/Satoshi-Medium.otf"),
-    "Satoshi-Bold": require("../../assets/fonts/Satoshi-Bold.otf"),
+    "Satoshi-Regular": SatoshiRegular,
+    "Satoshi-Medium": SatoshiMedium,
+    "Satoshi-Bold": SatoshiBold,
   });
 
   useEffect(() => {
@@ -234,6 +240,7 @@ export default function AppNavigator() {
         />
       </Tab.Navigator>
       <CustomAlert />
+      <LevelUpOverlay />
     </View>
   );
 }

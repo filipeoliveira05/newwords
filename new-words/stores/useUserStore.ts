@@ -28,6 +28,8 @@ interface UserState extends GamificationStats {
   dailyGoals: ProcessedDailyGoal[];
   challengingWords: ChallengingWord[];
   lastPracticedDeck: Deck | null;
+  pendingLevelUpAnimation: number | null;
+  clearPendingLevelUpAnimation: () => void;
 }
 
 const getXPForNextLevel = (level: number) =>
@@ -43,6 +45,7 @@ export const useUserStore = create<UserState>((set) => ({
   dailyGoals: [],
   challengingWords: [],
   lastPracticedDeck: null,
+  pendingLevelUpAnimation: null,
 
   fetchUserStats: async () => {
     set({ loading: true });
@@ -97,18 +100,24 @@ export const useUserStore = create<UserState>((set) => ({
 
       // Atualiza o estado de forma otimista
       set(() => {
-        const xpForNext = getXPForNextLevel(newLevel);
-        return { xp: newXP, level: newLevel, xpForNextLevel: xpForNext };
+        return {
+          xp: newXP,
+          level: newLevel,
+          xpForNextLevel: getXPForNextLevel(newLevel),
+          // Se houve level up, guarda o novo nível para a animação ser mostrada mais tarde.
+          pendingLevelUpAnimation: didLevelUp ? newLevel : null,
+        };
       });
 
-      if (didLevelUp) {
-        eventStore.getState().publish("leveledUp", { newLevel });
-      }
       // Publica um evento geral de atualização de XP
       eventStore.getState().publish("xpUpdated", { xp: xpToAdd });
     } catch (error) {
       console.error("Erro ao adicionar XP:", error);
     }
+  },
+
+  clearPendingLevelUpAnimation: () => {
+    set({ pendingLevelUpAnimation: null });
   },
 }));
 
