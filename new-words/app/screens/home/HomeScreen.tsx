@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   StyleSheet,
@@ -11,6 +11,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../../components/AppText";
+import { differenceInDays } from "date-fns";
 import { theme } from "../../../config/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { eventStore } from "../../../stores/eventStore";
@@ -48,12 +49,15 @@ export default function HomeScreen({ navigation }: Props) {
     level,
     xpForNextLevel,
     consecutiveDays,
+    wordsMastered,
+    lastPracticeDate,
+    todaysPractice,
     totalWords,
     loading,
     fetchUserStats,
     dailyGoals,
-    challengingWords,
     lastPracticedDeck,
+    user,
   } = useUserStore();
 
   useEffect(() => {
@@ -78,6 +82,144 @@ export default function HomeScreen({ navigation }: Props) {
     };
   }, [fetchUserStats]);
 
+  const [welcomeMessage, setWelcomeMessage] = useState("Bem-vindo(a)!");
+
+  useEffect(() => {
+    const getPersonalizedWelcomeMessage = (): string => {
+      if (!user?.firstName) return "Bem-vindo(a)!";
+
+      const name = user.firstName;
+
+      // Helper to get a random element from an array
+      const getRandomItem = <T,>(arr: T[]): T =>
+        arr[Math.floor(Math.random() * arr.length)];
+
+      // --- Message Templates for different contexts ---
+
+      const firstSessionTemplates = [
+        "Bem-vindo ao início da tua jornada, {name}! Cada palavra é uma conquista.",
+        "A primeira sessão é sempre especial. Bora deixar a curiosidade guiar-te, {name}!",
+        "Estás prestes a abrir as portas de um novo mundo, {name}!",
+      ];
+
+      const longPauseTemplates = [
+        "Sentimos a tua falta, {name}! Vamos retomar de onde paraste?",
+        "O mais importante é voltar. Que bom ter-te de volta, {name}!",
+        "As palavras estavam com saudades tuas, {name}!",
+      ];
+
+      const streakMilestoneTemplates = [
+        "🔥 {consecutiveDays} dias seguidos! A tua consistência é impressionante, {name}!",
+        "Estás a criar um hábito poderoso. Já vais com {consecutiveDays} dias seguidos!",
+        "{consecutiveDays} dias de treino! Quem te para, {name}?",
+      ];
+
+      const allGoalsDoneTemplates = [
+        "Objetivos do dia completados! Missão cumprida, {name}!",
+        "Mais um check na tua lista de vitórias hoje, {name}!",
+        "Boa! Cumpriste as tuas metas diárias, e com estilo!",
+      ];
+
+      const highVolumePracticeTemplates = [
+        "Treinaste {numWords} palavras hoje. Que dedicação, {name}!",
+        "Foi uma verdadeira maratona de vocabulário. Excelente trabalho!",
+        "{numWords} palavras praticadas hoje! Estás a jogar em modo avançado.",
+      ];
+
+      const masteredWordsMilestoneTemplates = [
+        "Já dominaste {totalMasteredWords} palavras. Estás a construir um vocabulário imbatível!",
+        "O teu dicionário interno está a crescer rápido, {name}!",
+        "{totalMasteredWords} palavras memorizadas. És imparável!",
+      ];
+
+      const returningUserTemplates = [
+        // For regular returns
+        "Que bom te ver por aqui, {name}!",
+        "De volta à ação, {name}!",
+        "Continue o bom trabalho, {name}!",
+        "Cada sessão conta, {name}. Vamos em frente!",
+        "A prática leva à perfeição, {name}. Vamos lá!",
+        "Mais um dia, mais progresso, {name}!",
+        "Vamos manter o ritmo, {name}!",
+      ];
+
+      const genericTemplates = [
+        // For new users or no specific context
+        "Olá, {name}!",
+        "O que vamos treinar hoje, {name}?",
+        "Vamos a isso, {name}!",
+        "Hora de expandir o vocabulário, {name}!",
+        "Vamos aprender algo novo hoje, {name}?",
+        "Tudo a postos para uma sessão, {name}?",
+        "Bora praticar, {name}!",
+        "Que tal aprender umas palavras novas, {name}?",
+      ];
+
+      // --- Logic to select the right message ---
+
+      // Priority 1: First Session Ever
+      if (!lastPracticeDate && totalWords < 5) {
+        return getRandomItem(firstSessionTemplates).replace("{name}", name);
+      }
+
+      // Priority 2: Return After Long Pause
+      const daysSinceLastPractice = lastPracticeDate
+        ? differenceInDays(new Date(), new Date(lastPracticeDate))
+        : 0;
+      if (daysSinceLastPractice > 5) {
+        return getRandomItem(longPauseTemplates).replace("{name}", name);
+      }
+
+      // Priority 3: All Daily Goals Completed
+      const allGoalsCompleted =
+        dailyGoals.length > 0 && dailyGoals.every((g) => g.current >= g.target);
+      if (allGoalsCompleted) {
+        return getRandomItem(allGoalsDoneTemplates).replace("{name}", name);
+      }
+
+      // Priority 4: Streak Milestones
+      const streakMilestones = [3, 5, 7, 10, 15, 20, 30, 50, 100];
+      if (streakMilestones.includes(consecutiveDays)) {
+        return getRandomItem(streakMilestoneTemplates)
+          .replace("{consecutiveDays}", consecutiveDays.toString())
+          .replace("{name}", name);
+      }
+
+      // Priority 5: High Volume Practice Today
+      const wordsPracticedToday = todaysPractice?.words_trained ?? 0;
+      if (wordsPracticedToday >= 50) {
+        return getRandomItem(highVolumePracticeTemplates)
+          .replace("{numWords}", wordsPracticedToday.toString())
+          .replace("{name}", name);
+      }
+
+      // Priority 6: Mastered Words Milestones
+      const masteredMilestones = [10, 25, 50, 100, 200, 500];
+      if (masteredMilestones.includes(wordsMastered)) {
+        return getRandomItem(masteredWordsMilestoneTemplates)
+          .replace("{totalMasteredWords}", wordsMastered.toString())
+          .replace("{name}", name);
+      }
+
+      // Fallback: Regular returning user or generic
+      const templates =
+        consecutiveDays >= 2
+          ? [...returningUserTemplates, ...genericTemplates]
+          : genericTemplates;
+      return getRandomItem(templates).replace("{name}", name);
+    };
+
+    setWelcomeMessage(getPersonalizedWelcomeMessage());
+  }, [
+    user,
+    consecutiveDays,
+    lastPracticeDate,
+    totalWords,
+    dailyGoals,
+    todaysPractice,
+    wordsMastered,
+  ]);
+
   const xpProgress = xpForNextLevel > 0 ? (xp / xpForNextLevel) * 100 : 0;
 
   if (loading) {
@@ -92,7 +234,7 @@ export default function HomeScreen({ navigation }: Props) {
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <AppText variant="bold" style={styles.title}>
-          Bem-vindo!
+          {welcomeMessage}
         </AppText>
         <AppText style={styles.subtitle}>O seu progresso de hoje</AppText>
       </View>
@@ -203,22 +345,6 @@ export default function HomeScreen({ navigation }: Props) {
                 color={theme.colors.textMuted}
               />
             </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Challenging Words Widget */}
-        {challengingWords.length > 0 && (
-          <View style={styles.section}>
-            <AppText variant="bold" style={styles.sectionTitle}>
-              Palavras Desafiadoras
-            </AppText>
-            {challengingWords.map((word) => (
-              <View key={word.id} style={styles.challengingWordItem}>
-                <AppText style={styles.challengingWordText}>
-                  {word.name}
-                </AppText>
-              </View>
-            ))}
           </View>
         )}
       </View>

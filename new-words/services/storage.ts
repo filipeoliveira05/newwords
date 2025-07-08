@@ -177,17 +177,28 @@ export interface GamificationStats {
   xpForNextLevel: number;
   consecutiveDays: number;
   totalWords: number;
+  wordsMastered: number;
+  lastPracticeDate: string | null;
 }
 
 const getXPForNextLevel = (level: number) =>
   Math.floor(100 * Math.pow(level, 1.5));
 
 export async function getGamificationStats(): Promise<GamificationStats> {
-  const [xpStr, levelStr, practiceMetrics, totalWords] = await Promise.all([
+  const [
+    xpStr,
+    levelStr,
+    practiceMetrics,
+    totalWords,
+    globalStats,
+    lastPracticeDate,
+  ] = await Promise.all([
     getMetaValue("user_xp", "0"),
     getMetaValue("user_level", "1"),
     getUserPracticeMetrics(),
     getTotalWordCount(),
+    getGlobalStats(),
+    getMetaValue("last_practice_date", null),
   ]);
 
   const level = parseInt(levelStr ?? "1", 10);
@@ -198,6 +209,8 @@ export async function getGamificationStats(): Promise<GamificationStats> {
     xpForNextLevel: getXPForNextLevel(level),
     consecutiveDays: practiceMetrics.consecutiveDays,
     totalWords: totalWords,
+    wordsMastered: globalStats.wordsMastered,
+    lastPracticeDate: lastPracticeDate,
   };
 }
 

@@ -11,6 +11,7 @@ import {
   updateUserXP,
   GamificationStats,
   ChallengingWord,
+  PracticeHistory,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import { DailyGoal, allPossibleDailyGoals } from "../config/dailyGoals";
@@ -41,6 +42,7 @@ interface UserState extends GamificationStats {
   lastPracticedDeck: Deck | null;
   pendingLevelUpAnimation: number | null;
   clearPendingLevelUpAnimation: () => void;
+  todaysPractice: PracticeHistory | null;
 }
 
 const getXPForNextLevel = (level: number) =>
@@ -52,12 +54,15 @@ export const useUserStore = create<UserState>((set) => ({
   xpForNextLevel: 100,
   consecutiveDays: 0,
   totalWords: 0,
+  wordsMastered: 0,
+  lastPracticeDate: null,
   loading: true,
   user: null,
   dailyGoals: [],
   challengingWords: [],
   lastPracticedDeck: null,
   pendingLevelUpAnimation: null,
+  todaysPractice: null,
 
   fetchUserStats: async () => {
     set({ loading: true });
@@ -112,6 +117,7 @@ export const useUserStore = create<UserState>((set) => ({
         })),
         challengingWords: challenging,
         lastPracticedDeck: lastDeck,
+        todaysPractice: todaysPractice,
         loading: false,
       });
     } catch (error) {
