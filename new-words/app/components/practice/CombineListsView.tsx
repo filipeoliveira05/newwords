@@ -8,6 +8,9 @@ import Animated, {
   runOnJS,
   withSpring,
   withSequence,
+  withDelay,
+  interpolateColor,
+  interpolate,
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { shuffle } from "@/utils/arrayUtils";
@@ -24,37 +27,34 @@ interface Selection {
   index: number;
 }
 
+const AnimatedAppText = Animated.createAnimatedComponent(AppText);
+
 // Subcomponente para cada item da lista, com a sua própria lógica de animação.
 const AnimatedCombineItem = ({
   text,
   onPress,
   disabled,
-  isCorrect,
+  isMatched,
   isIncorrect,
   isSelected,
 }: {
   text: string;
   onPress: () => void;
   disabled: boolean;
-  isCorrect: boolean;
+  isMatched: boolean;
   isIncorrect: boolean;
   isSelected: boolean;
 }) => {
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
-
-  const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ scale: scale.value }, { translateX: translateX.value }],
-    };
-  });
+  const fadeProgress = useSharedValue(0); // 0 = not faded (green), 1 = faded (gray)
 
   // Animação de "pop" para acerto
   useEffect(() => {
-    if (isCorrect) {
-      scale.value = withSequence(withSpring(1.1), withSpring(1));
+    if (isMatched) {
+      scale.value = withSequence(withSpring(1.05), withSpring(1));
     }
-  }, [isCorrect, scale]);
+  }, [isMatched, scale]);
 
   // Animação de "shake" para erro
   useEffect(() => {
@@ -68,23 +68,75 @@ const AnimatedCombineItem = ({
     }
   }, [isIncorrect, translateX]);
 
-  // Determina os estilos com base no estado
-  const itemStyles: any[] = [styles.item];
-  const textStyles: any[] = [styles.itemText];
+  useEffect(() => {
+    if (isMatched) {
+      // After a delay, start the animation to fade the item.
+      fadeProgress.value = withDelay(800, withTiming(1, { duration: 500 }));
+    } else {
+      // Reset for the next round.
+      fadeProgress.value = withTiming(0, { duration: 0 });
+    }
+  }, [isMatched, fadeProgress]);
 
-  if (isCorrect) {
-    itemStyles.push(styles.itemCorrect);
-    textStyles.push(styles.itemTextCorrect);
-  } else if (isIncorrect) {
-    itemStyles.push(styles.itemIncorrect);
-  } else if (isSelected) {
-    itemStyles.push(styles.itemSelected);
-  }
+  // A single hook for all animated properties of the item, ensuring synchronization.
+  const animatedItemStyle = useAnimatedStyle(() => {
+    const transform = [
+      { scale: scale.value },
+      { translateX: translateX.value },
+    ];
+
+    // Default/unselected state
+    let backgroundColor = theme.colors.surface;
+    let borderColor = theme.colors.border;
+
+    if (isMatched) {
+      // Animate from green to gray when matched
+      backgroundColor = interpolateColor(
+        fadeProgress.value,
+        [0, 1],
+        [theme.colors.successLight, theme.colors.surface]
+      );
+      borderColor = interpolateColor(
+        fadeProgress.value,
+        [0, 1],
+        [theme.colors.success, theme.colors.border]
+      );
+    } else if (isIncorrect) {
+      backgroundColor = theme.colors.dangerLight;
+      borderColor = theme.colors.danger;
+    } else if (isSelected) {
+      backgroundColor = theme.colors.primaryLighter;
+      borderColor = theme.colors.primary;
+    }
+
+    const opacity = isMatched
+      ? interpolate(fadeProgress.value, [0, 1], [1, 0.4])
+      : 1;
+
+    return { transform, backgroundColor, borderColor, opacity };
+  });
+
+  const animatedTextStyle = useAnimatedStyle(() => {
+    const color = isMatched
+      ? interpolateColor(
+          fadeProgress.value,
+          [0, 1],
+          [theme.colors.successDark, theme.colors.textSecondary]
+        )
+      : theme.colors.text;
+
+    return { color };
+  });
 
   return (
     <TouchableOpacity onPress={onPress} disabled={disabled}>
-      <Animated.View style={[itemStyles, animatedStyle]}>
-        <AppText style={textStyles}>{text}</AppText>
+      <Animated.View style={[styles.item, animatedItemStyle]}>
+        <AnimatedAppText
+          variant="medium"
+          style={[styles.itemText, animatedTextStyle]}
+        >
+          {text}
+        </AnimatedAppText>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -243,7 +295,7 @@ export default function CombineListsView() {
               text={word.text}
               disabled={matchedPairs.includes(word.id)}
               isSelected={selectedWord?.index === index}
-              isCorrect={matchedPairs.includes(word.id)}
+              isMatched={matchedPairs.includes(word.id)}
               isIncorrect={incorrectPair?.wordIndex === index}
               onPress={() => handleWordSelect(word, index)}
             />
@@ -258,7 +310,7 @@ export default function CombineListsView() {
               text={meaning.text}
               disabled={matchedPairs.includes(meaning.id)}
               isSelected={selectedMeaning?.index === index}
-              isCorrect={matchedPairs.includes(meaning.id)}
+              isMatched={matchedPairs.includes(meaning.id)}
               isIncorrect={incorrectPair?.meaningIndex === index}
               onPress={() => handleMeaningSelect(meaning, index)}
             />
@@ -302,23 +354,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     textAlign: "center",
-    color: theme.colors.textMedium,
+    color: theme.colors.text,
   },
   itemSelected: {
     borderColor: theme.colors.primary,
     backgroundColor: theme.colors.primaryLighter,
-  },
-  itemCorrect: {
-    borderColor: theme.colors.success,
-    backgroundColor: theme.colors.successLight,
-    opacity: 0.5,
-  },
-  itemTextCorrect: {
-    fontSize: theme.fontSizes.sm,
-    textAlign: "center",
-    color: theme.colors.successDark,
   },
   itemIncorrect: {
     borderColor: theme.colors.danger,
