@@ -75,6 +75,9 @@ export const initializeDB = async () => {
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('user_xp', '0');`
       );
       await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('has_completed_onboarding', 'false');`
+      );
+      await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_practiced_deck_id', '');`
       );
       await db.runAsync(

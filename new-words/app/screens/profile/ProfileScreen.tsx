@@ -1,10 +1,13 @@
 import React, { useLayoutEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Updates from "expo-updates";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import { useAlertStore } from "../../../stores/useAlertStore";
+import { setMetaValue } from "../../../services/storage";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "ProfileMain">;
 
@@ -14,6 +17,27 @@ const ProfileScreen = ({ navigation }: Props) => {
       headerShown: false, // O título será gerido pelo Stack Navigator
     });
   }, [navigation]);
+
+  const { showAlert } = useAlertStore.getState();
+
+  const handleLogout = () => {
+    showAlert({
+      title: "Terminar Sessão",
+      message:
+        "Isto irá levá-lo para o ecrã inicial. O seu progresso e palavras não serão apagados. Quer continuar?",
+      buttons: [
+        { text: "Cancelar", style: "cancel", onPress: () => {} },
+        {
+          text: "Terminar Sessão",
+          style: "destructive",
+          onPress: async () => {
+            await setMetaValue("has_completed_onboarding", "false");
+            await Updates.reloadAsync();
+          },
+        },
+      ],
+    });
+  };
 
   const menuItems = [
     {
@@ -82,9 +106,7 @@ const ProfileScreen = ({ navigation }: Props) => {
           <TouchableOpacity
             key={item.title}
             style={styles.menuItem}
-            onPress={() => {
-              /* Futuramente, aqui irá a lógica de logout */
-            }}
+            onPress={handleLogout}
           >
             <Ionicons
               name={item.icon as any}

@@ -1,6 +1,11 @@
 import { Word } from "@/types/database";
 import { NavigatorScreenParams } from "@react-navigation/native";
 
+export type RootStackParamList = {
+  Onboarding: undefined;
+  MainApp: undefined;
+};
+
 export type HomeStackParamList = {
   HomeDashboard: undefined;
   LeagueDetails: undefined;

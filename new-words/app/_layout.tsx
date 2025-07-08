@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import AppNavigator from "./navigation/AppNavigator";
+import RootNavigator from "./navigation/RootNavigator";
 import { initializeDB } from "../services/storage";
 import { MenuProvider } from "react-native-popup-menu";
 import Toast, {
@@ -53,7 +53,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <MenuProvider>
-        <AppNavigator />
+        <RootNavigator />
         <Toast config={toastConfig} />
       </MenuProvider>
     </GestureHandlerRootView>
