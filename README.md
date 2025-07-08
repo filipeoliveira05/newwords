@@ -62,10 +62,8 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 1: Core Experience & Polish (High-Impact)
 
-- [x] 🔊 **Audio (Text-to-Speech):** Allow users to hear the pronunciation of words, adding a crucial audio component to learning.
 - [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place (e.g., the main screen's header) to constantly motivate the user.
 - [ ] 🌙 **Dark Mode:** Implement a full dark theme for the application.
-- [x] 🗂️ **Category on Creation:** Allow users to select a word's grammatical category directly from the creation/edit modal.
 - [ ] 🎨 **UI/UX Enhancements:**
   - [ ] Improve the design of the "Combine Lists" game mode to be more intuitive and visually appealing, similar to Duolingo's interface.
   - [ ] Refine screen transitions to use a consistent slide-right for forward navigation and slide-left for backward navigation.
@@ -84,8 +82,8 @@ With a robust foundation for practice and statistics, the focus now shifts to ma
 
 #### Level 3: Content Depth & Community
 
-- [ ] 📈 **XP & Leveling System:** Implement a comprehensive XP and leveling system to reward users for all learning activities (adding words, practicing, completing goals).
-- [ ] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
+- [x] 📈 **XP & Leveling System:** Implement a comprehensive XP and leveling system to reward users for all learning activities (adding words, practicing, completing goals).
+- [x] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
 
 #### Level 4: 🤖 AI Magic
 
