@@ -88,7 +88,10 @@ export default function SessionResults({
 
   // Calculate the statistics
   const totalWordsInRound = currentRoundWords.length;
-  const numCorrect = correctAnswers.length;
+  // A resposta só é verdadeiramente "correta" para a pontuação se nunca tiver sido errada na ronda.
+  // Isto corrige o caso do modo "Combinar Listas" onde se pode errar e depois acertar.
+  const numCorrect = totalWordsInRound - incorrectAnswers.length;
+
   const scorePercentage =
     totalWordsInRound > 0
       ? Math.round((numCorrect / totalWordsInRound) * 100)

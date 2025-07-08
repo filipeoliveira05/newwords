@@ -139,34 +139,61 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     const { correctAnswers, incorrectAnswers } = get();
     const isCorrect = quality >= 3;
 
-    // Prevent re-recording answer in the same round
-    if (correctAnswers.includes(wordId) || incorrectAnswers.includes(wordId)) {
+    // Se a palavra já foi combinada corretamente, não faz mais nada.
+    // Isto previne, por exemplo, ganhar XP múltiplas vezes pela mesma palavra.
+    if (correctAnswers.includes(wordId)) {
       return;
     }
 
-    // Update the database with the new SM-2 logic
-    useWordStore.getState().updateStatsAfterAnswer(wordId, quality);
+    // --- Lógica de Base de Dados (SM-2) ---
+    // A primeira resposta a uma palavra na ronda é a que conta para as estatísticas de aprendizagem.
+    // Se o utilizador errar primeiro e depois acertar, a penalidade do erro é mantida.
+    const isFirstAnswerInRound =
+      !correctAnswers.includes(wordId) && !incorrectAnswers.includes(wordId);
 
-    eventStore.getState().publish("answerRecorded", { wordId, quality });
+    if (isFirstAnswerInRound) {
+      useWordStore.getState().updateStatsAfterAnswer(wordId, quality);
+    }
 
-    set((state) => ({
-      correctAnswers:
-        isCorrect && !state.correctAnswers.includes(wordId)
-          ? [...state.correctAnswers, wordId]
-          : state.correctAnswers,
-      incorrectAnswers:
+    // --- Lógica de Gamificação e Estado da UI ---
+    // Publica sempre o evento de resposta correta para que o XP seja atribuído.
+    if (isCorrect) {
+      eventStore.getState().publish("answerRecorded", { wordId, quality });
+    }
+
+    set((state) => {
+      // Se a resposta for incorreta, adiciona-a à lista de erros da ronda.
+      // Esta lista não é limpa mesmo que o utilizador acerte depois.
+      const newIncorrectAnswers =
         !isCorrect && !state.incorrectAnswers.includes(wordId)
           ? [...state.incorrectAnswers, wordId]
-          : state.incorrectAnswers,
-      wordsPracticedInSession:
-        state.gameMode !== "combine-lists" || isCorrect
-          ? new Set(state.wordsPracticedInSession).add(wordId)
-          : state.wordsPracticedInSession,
-      streak: isCorrect ? state.streak + 1 : 0,
-      highestStreakThisRound: isCorrect
-        ? Math.max(state.highestStreakThisRound, state.streak + 1)
-        : state.highestStreakThisRound,
-    }));
+          : state.incorrectAnswers;
+
+      // Se a resposta for correta, adiciona-a à lista de acertos (para UI e pontuação).
+      const newCorrectAnswers = isCorrect
+        ? [...state.correctAnswers, wordId]
+        : state.correctAnswers;
+
+      // A barra de progresso só avança com uma resposta correta.
+      const newWordsPracticedInSession =
+        // Para o modo de combinar, só avança no acerto.
+        state.gameMode === "combine-lists"
+          ? isCorrect
+            ? new Set(state.wordsPracticedInSession).add(wordId)
+            : state.wordsPracticedInSession
+          : // Para os outros modos, avança em qualquer resposta (a palavra foi "vista").
+            new Set(state.wordsPracticedInSession).add(wordId);
+
+      return {
+        correctAnswers: newCorrectAnswers,
+        incorrectAnswers: newIncorrectAnswers,
+        wordsPracticedInSession: newWordsPracticedInSession,
+        streak: isCorrect ? state.streak + 1 : 0,
+        highestStreakThisRound: isCorrect
+          ? Math.max(state.highestStreakThisRound, state.streak + 1)
+          : state.highestStreakThisRound,
+      };
+    });
   },
 
   completeRound: () => {
