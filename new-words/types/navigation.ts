@@ -33,6 +33,8 @@ export type PracticeStackParamList = {
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   Settings: undefined;
+  Account: undefined;
+  Help: undefined;
 };
 
 export type RootTabParamList = {

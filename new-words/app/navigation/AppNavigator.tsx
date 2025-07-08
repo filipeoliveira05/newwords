@@ -30,7 +30,9 @@ import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
 import StatsScreen from "../screens/stats/StatsScreen";
 
 import ProfileScreen from "../screens/profile/ProfileScreen";
+import AccountScreen from "../screens/profile/AccountScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
+import HelpScreen from "../screens/profile/HelpScreen";
 
 import CustomAlert from "../components/CustomAlert";
 import LevelUpOverlay from "../components/LevelUpOverlay";
@@ -125,7 +127,9 @@ function ProfileStack() {
         component={ProfileScreen}
         options={{ headerShown: false }}
       />
+      <ProfileStackNav.Screen name="Account" component={AccountScreen} />
       <ProfileStackNav.Screen name="Settings" component={SettingsScreen} />
+      <ProfileStackNav.Screen name="Help" component={HelpScreen} />
     </ProfileStackNav.Navigator>
   );
 }

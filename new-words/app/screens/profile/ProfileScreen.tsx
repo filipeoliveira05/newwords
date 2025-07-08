@@ -19,7 +19,7 @@ const ProfileScreen = ({ navigation }: Props) => {
     {
       title: "Conta",
       icon: "person-circle-outline",
-      screen: "Settings", // Placeholder
+      screen: "Account",
       color: theme.colors.primary,
     },
     {
@@ -31,13 +31,7 @@ const ProfileScreen = ({ navigation }: Props) => {
     {
       title: "Ajuda & Suporte",
       icon: "help-buoy-outline",
-      screen: "Settings", // Placeholder
-      color: theme.colors.textMedium,
-    },
-    {
-      title: "Termos e Condições",
-      icon: "document-text-outline",
-      screen: "Settings", // Placeholder
+      screen: "Help",
       color: theme.colors.textMedium,
     },
   ];

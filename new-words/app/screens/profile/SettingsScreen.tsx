@@ -1,6 +1,9 @@
-import React, { useLayoutEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import * as Updates from "expo-updates";
+import * as Application from "expo-application";
+import * as Linking from "expo-linking";
+import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
@@ -12,6 +15,11 @@ type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
 const SettingsScreen = ({ navigation }: Props) => {
   const { showAlert } = useAlertStore.getState();
+  const [appVersion, setAppVersion] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAppVersion(Application.nativeApplicationVersion);
+  }, []);
 
   const handleResetData = () => {
     showAlert({
@@ -32,6 +40,20 @@ const SettingsScreen = ({ navigation }: Props) => {
     });
   };
 
+  const handleLinkPress = (url: string) => {
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        showAlert({
+          title: "Erro",
+          message: `Não foi possível abrir o URL: ${url}`,
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+      }
+    });
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "Definições",
@@ -48,13 +70,15 @@ const SettingsScreen = ({ navigation }: Props) => {
         <AppText variant="bold" style={styles.sectionTitle}>
           Geral
         </AppText>
-        <View style={styles.settingItem}>
-          <AppText style={styles.settingLabel}>Notificações</AppText>
-          {/* Futuramente, um switch para ligar/desligar */}
-        </View>
-        <View style={styles.settingItem}>
-          <AppText style={styles.settingLabel}>Sons do Jogo</AppText>
-          {/* Futuramente, um switch para ligar/desligar */}
+        <View style={styles.card}>
+          <View style={styles.settingItem}>
+            <AppText style={styles.settingLabel}>Notificações</AppText>
+            {/* Futuramente, um switch para ligar/desligar */}
+          </View>
+          <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
+            <AppText style={styles.settingLabel}>Sons do Jogo</AppText>
+            {/* Futuramente, um switch para ligar/desligar */}
+          </View>
         </View>
       </View>
 
@@ -62,15 +86,37 @@ const SettingsScreen = ({ navigation }: Props) => {
         <AppText variant="bold" style={styles.sectionTitle}>
           Sobre
         </AppText>
-        <View style={styles.settingItem}>
-          <AppText style={styles.settingLabel}>Versão da Aplicação</AppText>
-          <AppText style={styles.settingValue}>1.0.0</AppText>
-        </View>
-        <View style={styles.settingItem}>
-          <AppText style={styles.settingLabel}>Política de Privacidade</AppText>
-        </View>
-        <View style={styles.settingItem}>
-          <AppText style={styles.settingLabel}>Termos de Serviço</AppText>
+        <View style={styles.card}>
+          <View style={styles.settingItem}>
+            <AppText style={styles.settingLabel}>Versão da Aplicação</AppText>
+            <AppText style={styles.settingValue}>{appVersion || "..."}</AppText>
+          </View>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() =>
+              handleLinkPress("https://www.exemplo.com/privacidade")
+            }
+          >
+            <AppText style={styles.settingLabel}>
+              Política de Privacidade
+            </AppText>
+            <Ionicons
+              name="open-outline"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.settingItem, { borderBottomWidth: 0 }]}
+            onPress={() => handleLinkPress("https://www.exemplo.com/termos")}
+          >
+            <AppText style={styles.settingLabel}>Termos de Serviço</AppText>
+            <Ionicons
+              name="open-outline"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -108,10 +154,15 @@ const styles = StyleSheet.create({
     color: theme.colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 8,
+    paddingHorizontal: 4,
+  },
+  card: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 12,
+    overflow: "hidden",
   },
   settingItem: {
-    backgroundColor: theme.colors.surface,
-    paddingVertical: 14,
+    paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.borderLight,
