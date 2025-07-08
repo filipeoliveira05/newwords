@@ -5,8 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   LayoutAnimation,
-  Platform,
-  UIManager,
 } from "react-native";
 import * as Linking from "expo-linking";
 import * as StoreReview from "expo-store-review";
@@ -15,13 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
-
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -45,6 +36,16 @@ const faqs = [
     question: "O que é a sessão de prática 'Urgente'?",
     answer:
       "A sessão Urgente seleciona automaticamente as palavras cuja data de revisão, calculada pelo algoritmo, já passou ou está próxima. É a forma mais eficiente de manter o seu vocabulário fresco na memória.",
+  },
+  {
+    question: "O que acontece se eu errar uma palavra?",
+    answer:
+      "Errar uma palavra diminui o seu fator de facilidade e faz com que ela apareça mais cedo para revisão. Além disso, é possível fazer uma sessão dedicada às palavras que errou previamente.",
+  },
+  {
+    question: "Como funciona a Liga Semanal?",
+    answer:
+      "A Liga Semanal agrupa utilizadores em divisões (Bronze, Prata, Ouro, etc.). Você compete ao ganhar XP durante a semana. No final da semana, os melhores classificados são promovidos para a liga seguinte, enquanto os últimos são despromovidos.",
   },
 ];
 
