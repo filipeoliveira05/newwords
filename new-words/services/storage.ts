@@ -95,6 +95,19 @@ export const initializeDB = async () => {
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('league_start_date', '');`
       );
+      // Substituímos 'user_name' por campos mais detalhados
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('first_name', 'Novo');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_name', 'Utilizador');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('email', '');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('profile_picture_url', '');`
+      );
 
       // --- INDEXES FOR PERFORMANCE ---
       // Index to quickly fetch words for a specific deck.

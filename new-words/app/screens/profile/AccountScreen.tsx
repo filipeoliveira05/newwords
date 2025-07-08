@@ -1,5 +1,11 @@
 import React, { useLayoutEffect } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { ProfileStackParamList } from "../../../types/navigation";
@@ -33,7 +39,7 @@ const InfoRow = ({
 );
 
 const AccountScreen = ({ navigation }: Props) => {
-  const { level, xp, xpForNextLevel, consecutiveDays, totalWords } =
+  const { level, xp, xpForNextLevel, consecutiveDays, totalWords, user } =
     useUserStore();
 
   useLayoutEffect(() => {
@@ -43,22 +49,36 @@ const AccountScreen = ({ navigation }: Props) => {
       headerTitleStyle: { fontFamily: theme.fonts.bold },
       headerShadowVisible: false,
       headerBackTitle: "Perfil",
+      headerRight: () => (
+        <TouchableOpacity onPress={() => navigation.navigate("EditAccount")}>
+          <Ionicons name="pencil" size={22} color={theme.colors.textMedium} />
+        </TouchableOpacity>
+      ),
     });
   }, [navigation]);
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerSection}>
-        <View style={styles.avatar}>
-          <Ionicons
-            name="person-outline"
-            size={50}
-            color={theme.colors.primary}
+        {user?.profilePictureUrl ? (
+          <Image
+            source={{ uri: user.profilePictureUrl }}
+            style={styles.avatar}
           />
+        ) : (
+          <View style={styles.avatar}>
+            <Ionicons
+              name="person-outline"
+              size={50}
+              color={theme.colors.primary}
+            />
+          </View>
+        )}
+        <View style={styles.usernameContainer}>
+          <AppText variant="bold" style={styles.username}>
+            {user?.firstName} {user?.lastName}
+          </AppText>
         </View>
-        <AppText variant="bold" style={styles.username}>
-          Utilizador
-        </AppText>
         <AppText style={styles.userLevel}>Nível {level}</AppText>
       </View>
       <View style={styles.section}>
@@ -108,6 +128,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 2,
     borderColor: theme.colors.primaryLighter,
+  },
+  usernameContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   username: {
     fontSize: theme.fontSizes["2xl"],

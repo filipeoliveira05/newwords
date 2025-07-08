@@ -31,6 +31,7 @@ import StatsScreen from "../screens/stats/StatsScreen";
 
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AccountScreen from "../screens/profile/AccountScreen";
+import EditAccountScreen from "../screens/profile/EditAccountScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
 
@@ -128,6 +129,10 @@ function ProfileStack() {
         options={{ headerShown: false }}
       />
       <ProfileStackNav.Screen name="Account" component={AccountScreen} />
+      <ProfileStackNav.Screen
+        name="EditAccount"
+        component={EditAccountScreen}
+      />
       <ProfileStackNav.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNav.Screen name="Help" component={HelpScreen} />
     </ProfileStackNav.Navigator>

@@ -6,6 +6,7 @@ import {
   getTodaysPracticeStats,
   getChallengingWords,
   getMetaValue,
+  setMetaValue,
   getDeckById,
   updateUserXP,
   GamificationStats,
@@ -21,10 +22,20 @@ type ProcessedDailyGoal = DailyGoal & {
   current: number;
 };
 
+interface UserDetails {
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePictureUrl: string;
+}
+
 interface UserState extends GamificationStats {
+  user: UserDetails | null;
   loading: boolean;
   fetchUserStats: () => Promise<void>;
   addXP: (xp: number) => Promise<void>;
+  // Função mais genérica para atualizar qualquer detalhe do utilizador
+  updateUserDetails: (details: Partial<UserDetails>) => Promise<void>;
   dailyGoals: ProcessedDailyGoal[];
   challengingWords: ChallengingWord[];
   lastPracticedDeck: Deck | null;
@@ -42,6 +53,7 @@ export const useUserStore = create<UserState>((set) => ({
   consecutiveDays: 0,
   totalWords: 0,
   loading: true,
+  user: null,
   dailyGoals: [],
   challengingWords: [],
   lastPracticedDeck: null,
@@ -56,12 +68,20 @@ export const useUserStore = create<UserState>((set) => ({
         todaysActiveGoalIds,
         challenging,
         lastDeckIdStr,
+        firstName,
+        lastName,
+        email,
+        profilePictureUrl,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
         getTodaysActiveGoalIds(),
         getChallengingWords(),
         getMetaValue("last_practiced_deck_id"),
+        getMetaValue("first_name", "Novo"),
+        getMetaValue("last_name", "Utilizador"),
+        getMetaValue("email", ""),
+        getMetaValue("profile_picture_url", ""),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -80,6 +100,12 @@ export const useUserStore = create<UserState>((set) => ({
 
       set({
         ...stats,
+        user: {
+          firstName: firstName ?? "Novo",
+          lastName: lastName ?? "Utilizador",
+          email: email ?? "",
+          profilePictureUrl: profilePictureUrl ?? "",
+        },
         dailyGoals: finalGoals.map((g) => ({
           ...g,
           current: g.getCurrentProgress(todaysPractice),
@@ -113,6 +139,30 @@ export const useUserStore = create<UserState>((set) => ({
       eventStore.getState().publish("xpUpdated", { xp: xpToAdd });
     } catch (error) {
       console.error("Erro ao adicionar XP:", error);
+    }
+  },
+
+  updateUserDetails: async (details) => {
+    try {
+      const updatePromises: Promise<void>[] = [];
+
+      if (details.firstName !== undefined)
+        updatePromises.push(setMetaValue("first_name", details.firstName));
+      if (details.lastName !== undefined)
+        updatePromises.push(setMetaValue("last_name", details.lastName));
+      if (details.email !== undefined)
+        updatePromises.push(setMetaValue("email", details.email));
+      if (details.profilePictureUrl !== undefined)
+        updatePromises.push(
+          setMetaValue("profile_picture_url", details.profilePictureUrl)
+        );
+
+      await Promise.all(updatePromises);
+
+      // Atualiza o estado localmente
+      set((state) => ({ user: { ...state.user!, ...details } }));
+    } catch (error) {
+      console.error("Erro ao atualizar os detalhes do utilizador:", error);
     }
   },
 
