@@ -294,7 +294,8 @@ const styles = StyleSheet.create({
     padding: 8, // Larger touch area
   },
   headerTitle: {
-    fontSize: theme.fontSizes.lg,
+    textAlign: "center",
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.textMedium,
   },
   headerRight: {

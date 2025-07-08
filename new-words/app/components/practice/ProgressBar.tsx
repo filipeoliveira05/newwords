@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressTitle: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
   },
   progressText: {
