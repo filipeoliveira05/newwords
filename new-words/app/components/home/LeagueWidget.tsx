@@ -36,7 +36,12 @@ export default function LeagueWidget() {
       onPress={() => navigation.navigate("LeagueDetails")}
     >
       <View style={styles.leftContent}>
-        <AppText style={styles.leagueIcon}>{currentLeague.icon}</AppText>
+        <Ionicons
+          name={currentLeague.icon}
+          size={32}
+          color={theme.colors.surface}
+          style={styles.leagueIcon}
+        />
         <View>
           <AppText variant="bold" style={styles.title}>
             Liga {currentLeague.name}
@@ -74,7 +79,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   leagueIcon: {
-    fontSize: 32,
     marginRight: 16,
   },
   title: {

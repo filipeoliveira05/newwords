@@ -5,6 +5,7 @@ import {
   getLeagueData,
   updateLeagueData,
   addWeeklyXP as dbAddWeeklyXP,
+  getMetaValue,
 } from "../services/storage";
 import {
   LEAGUES,
@@ -46,55 +47,106 @@ const FAKE_NAMES = [
   "Eva",
 ];
 
+const FAKE_LAST_NAMES = [
+  "Silva",
+  "Santos",
+  "Ferreira",
+  "Pereira",
+  "Oliveira",
+  "Costa",
+  "Rodrigues",
+  "Martins",
+  "Jesus",
+  "Sousa",
+  "Fernandes",
+  "Gonçalves",
+  "Gomes",
+  "Lopes",
+  "Marques",
+  "Alves",
+  "Almeida",
+  "Ribeiro",
+  "Pinto",
+  "Carvalho",
+];
+
 export interface LeaderboardUser {
   isCurrentUser: boolean;
   rank: number;
   name: string;
   xp: number;
+  profilePictureUrl?: string;
 }
 
 interface LeagueState {
   isLoading: boolean;
   currentLeague: League | null;
+  leagues: League[];
   leaderboard: LeaderboardUser[];
   userRank: number;
+  currentLeagueIndex: number;
   weeklyXP: number;
+  leagueStartDate: string | null;
   checkAndInitializeLeagues: () => Promise<void>;
   addXP: (xp: number) => Promise<void>;
 }
 
 const generateSimulatedLeaderboard = (
   currentUserXP: number,
-  league: League
+  league: League,
+  currentUserProfileUrl?: string,
+  currentUserName: string = "Você"
 ): LeaderboardUser[] => {
-  const list: { name: string; xp: number }[] = [];
+  const list: { name: string; xp: number; profilePictureUrl?: string }[] = [];
   // Usa o XP base e a variação da liga para uma simulação mais realista
   const { baseXP, xpRange } = league;
+
+  const usedNames = new Set<string>();
+  usedNames.add(currentUserName); // Garante que o nome do utilizador não é duplicado
 
   for (let i = 0; i < league.groupSize - 1; i++) {
     // Gera uma pontuação aleatória dentro da faixa definida para a liga
     const randomXP = baseXP + (Math.random() * 2 - 1) * xpRange;
     const xp = Math.max(0, Math.floor(randomXP));
-    list.push({ name: FAKE_NAMES[i % FAKE_NAMES.length], xp });
+
+    // Gera um nome completo único para evitar repetições na lista
+    let fullName: string;
+    do {
+      const firstName =
+        FAKE_NAMES[Math.floor(Math.random() * FAKE_NAMES.length)];
+      const lastName =
+        FAKE_LAST_NAMES[Math.floor(Math.random() * FAKE_LAST_NAMES.length)];
+      fullName = `${firstName} ${lastName}`;
+    } while (usedNames.has(fullName));
+    usedNames.add(fullName);
+
+    list.push({ name: fullName, xp });
   }
 
-  list.push({ name: "Você", xp: currentUserXP });
+  list.push({
+    name: currentUserName,
+    xp: currentUserXP,
+    profilePictureUrl: currentUserProfileUrl,
+  });
 
   return list
     .sort((a, b) => b.xp - a.xp)
     .map((user, index) => ({
       ...user,
       rank: index + 1,
-      isCurrentUser: user.name === "Você",
+      isCurrentUser: user.name === currentUserName,
     }));
 };
 
 export const useLeagueStore = create<LeagueState>((set, get) => ({
   isLoading: true,
   currentLeague: null,
+  leagues: LEAGUES, // Initialize with all leagues
   leaderboard: [],
   userRank: 0,
+  currentLeagueIndex: -1,
   weeklyXP: 0,
+  leagueStartDate: null,
 
   checkAndInitializeLeagues: async () => {
     set({ isLoading: true });
@@ -103,6 +155,15 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
       weeklyXP,
       leagueStartDate,
     } = await getLeagueData();
+
+    const [profilePictureUrl, firstName, lastName] = await Promise.all([
+      getMetaValue("profile_picture_url"),
+      getMetaValue("first_name", "Novo"),
+      getMetaValue("last_name", "Utilizador"),
+    ]);
+    const currentUserFullName = `${firstName ?? "Novo"} ${
+      lastName ?? "Utilizador"
+    }`;
 
     const now = new Date();
     const startOfThisWeek = startOfWeek(now, { weekStartsOn: 1 }); // Monday
@@ -117,7 +178,9 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
         // Only do promotion if it's not the first time
         const finalLeaderboard = generateSimulatedLeaderboard(
           weeklyXP,
-          oldLeagueConfig
+          oldLeagueConfig,
+          profilePictureUrl ?? undefined,
+          currentUserFullName
         );
         const finalRank =
           finalLeaderboard.find((u) => u.isCurrentUser)?.rank ?? 0;
@@ -149,22 +212,32 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
 
       // Reset for the new week
       weeklyXP = 0;
+      const newLeagueStartDate = formatISO(startOfThisWeek);
       await updateLeagueData({
         currentLeague: leagueName,
         weeklyXP: 0,
-        leagueStartDate: formatISO(startOfThisWeek),
+        leagueStartDate: newLeagueStartDate,
       });
+      leagueStartDate = newLeagueStartDate;
     }
 
     const leagueConfig = getLeagueByName(leagueName);
     if (leagueConfig) {
-      const leaderboard = generateSimulatedLeaderboard(weeklyXP, leagueConfig);
+      const leagueIndex = getLeagueIndex(leagueName);
+      const leaderboard = generateSimulatedLeaderboard(
+        weeklyXP,
+        leagueConfig,
+        profilePictureUrl ?? undefined,
+        currentUserFullName
+      );
       const userRank = leaderboard.find((u) => u.isCurrentUser)?.rank ?? 0;
       set({
         currentLeague: leagueConfig,
         leaderboard,
+        currentLeagueIndex: leagueIndex,
         userRank,
         weeklyXP,
+        leagueStartDate,
         isLoading: false,
       });
     }
@@ -176,9 +249,15 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
       if (!state.currentLeague) return state;
 
       const newWeeklyXP = state.weeklyXP + xpToAdd;
+      const currentUser = state.leaderboard.find((u) => u.isCurrentUser);
+      const currentUserProfileUrl = currentUser?.profilePictureUrl;
+      const currentUserName = currentUser?.name ?? "Você";
+
       const newLeaderboard = generateSimulatedLeaderboard(
         newWeeklyXP,
-        state.currentLeague
+        state.currentLeague,
+        currentUserProfileUrl,
+        currentUserName
       );
       const newUserRank =
         newLeaderboard.find((u) => u.isCurrentUser)?.rank ?? 0;

@@ -57,11 +57,7 @@ function HomeStack() {
         component={HomeScreen}
         options={{ headerShown: false }}
       />
-      <HomeStackNav.Screen
-        name="LeagueDetails"
-        component={LeagueScreen}
-        options={{ title: "Liga Semanal" }}
-      />
+      <HomeStackNav.Screen name="LeagueDetails" component={LeagueScreen} />
     </HomeStackNav.Navigator>
   );
 }
