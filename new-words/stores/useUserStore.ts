@@ -12,11 +12,16 @@ import {
   GamificationStats,
   ChallengingWord,
   PracticeHistory,
+  getWeeklySummaryStats,
+  getWordLearnedOnThisDay,
+  getAchievementsCount,
+  WeeklySummaryStats,
+  countWordsForPractice,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import { DailyGoal, allPossibleDailyGoals } from "../config/dailyGoals";
 import { shuffle } from "../utils/arrayUtils";
-import { Deck } from "../types/database";
+import { Word, Deck } from "../types/database";
 
 // A DailyGoal with its progress calculated for the current day.
 type ProcessedDailyGoal = DailyGoal & {
@@ -43,6 +48,10 @@ interface UserState extends GamificationStats {
   pendingLevelUpAnimation: number | null;
   clearPendingLevelUpAnimation: () => void;
   todaysPractice: PracticeHistory | null;
+  weeklySummary: WeeklySummaryStats | null;
+  onThisDayWord: Word | null;
+  totalAchievements: number;
+  urgentWordsCount: number;
 }
 
 const getXPForNextLevel = (level: number) =>
@@ -63,6 +72,10 @@ export const useUserStore = create<UserState>((set) => ({
   lastPracticedDeck: null,
   pendingLevelUpAnimation: null,
   todaysPractice: null,
+  weeklySummary: null,
+  onThisDayWord: null,
+  totalAchievements: 0,
+  urgentWordsCount: 0,
 
   fetchUserStats: async () => {
     set({ loading: true });
@@ -77,6 +90,10 @@ export const useUserStore = create<UserState>((set) => ({
         lastName,
         email,
         profilePictureUrl,
+        weeklySummary,
+        onThisDayWord,
+        totalAchievements,
+        urgentWordsCount,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
@@ -87,6 +104,10 @@ export const useUserStore = create<UserState>((set) => ({
         getMetaValue("last_name", "Utilizador"),
         getMetaValue("email", ""),
         getMetaValue("profile_picture_url", ""),
+        getWeeklySummaryStats(),
+        getWordLearnedOnThisDay(),
+        getAchievementsCount(),
+        countWordsForPractice(),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -118,6 +139,10 @@ export const useUserStore = create<UserState>((set) => ({
         challengingWords: challenging,
         lastPracticedDeck: lastDeck,
         todaysPractice: todaysPractice,
+        weeklySummary,
+        onThisDayWord,
+        totalAchievements,
+        urgentWordsCount,
         loading: false,
       });
     } catch (error) {

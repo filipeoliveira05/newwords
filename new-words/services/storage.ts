@@ -1,7 +1,14 @@
 import * as SQLite from "expo-sqlite";
 import { Deck, Word } from "@/types/database";
 import * as FileSystem from "expo-file-system";
-import { startOfDay, isYesterday, isToday, format, addDays } from "date-fns";
+import {
+  startOfDay,
+  isYesterday,
+  isToday,
+  format,
+  addDays,
+  startOfWeek,
+} from "date-fns";
 import { calculateSm2Factors } from "../utils/sm2";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
@@ -873,6 +880,75 @@ export async function updateUserPracticeMetrics(
     }
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);
+    throw e;
+  }
+}
+
+export async function getAchievementsCount(): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM unlocked_achievements"
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar conquistas:", e);
+    throw e;
+  }
+}
+
+export interface WeeklySummaryStats {
+  wordsLearned: number;
+  wordsTrained: number;
+}
+
+export async function getWeeklySummaryStats(): Promise<WeeklySummaryStats> {
+  try {
+    const startOfThisWeek = format(
+      startOfWeek(new Date(), { weekStartsOn: 1 }),
+      "yyyy-MM-dd"
+    );
+
+    const practiceResult = await db.getFirstAsync<{ total_trained: number }>(
+      `SELECT SUM(words_trained) as total_trained FROM practice_history WHERE date >= ?`,
+      [startOfThisWeek]
+    );
+
+    const wordsResult = await db.getFirstAsync<{ count: number }>(
+      `SELECT COUNT(*) as count FROM words WHERE date(createdAt) >= ?`,
+      [startOfThisWeek]
+    );
+
+    return {
+      wordsLearned: wordsResult?.count ?? 0,
+      wordsTrained: practiceResult?.total_trained ?? 0,
+    };
+  } catch (e) {
+    console.error("Erro ao obter estatísticas do resumo semanal:", e);
+    throw e;
+  }
+}
+
+export async function getWordLearnedOnThisDay(): Promise<Word | null> {
+  try {
+    const now = new Date();
+    const currentMonthDay = format(now, "MM-dd");
+    const currentYear = format(now, "yyyy");
+
+    const query = `
+      SELECT * FROM words
+      WHERE strftime('%m-%d', createdAt) = ?
+        AND strftime('%Y', createdAt) < ?
+      ORDER BY RANDOM()
+      LIMIT 1;
+    `;
+
+    const result = await db.getFirstAsync<Word>(query, [
+      currentMonthDay,
+      currentYear,
+    ]);
+    return result;
+  } catch (e) {
+    console.error("Erro ao obter palavra 'Neste Dia':", e);
     throw e;
   }
 }

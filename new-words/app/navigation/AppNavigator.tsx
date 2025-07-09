@@ -55,7 +55,7 @@ function HomeStack() {
       <HomeStackNav.Screen
         name="HomeDashboard"
         component={HomeScreen}
-        options={{ headerShown: false }}
+        options={{ headerShown: true }}
       />
       <HomeStackNav.Screen name="LeagueDetails" component={LeagueScreen} />
     </HomeStackNav.Navigator>
