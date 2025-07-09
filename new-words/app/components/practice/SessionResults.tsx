@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textMedium,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     marginBottom: 20,
   },
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
   },
   scoreText: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.text,
     marginBottom: 8,
   },
@@ -297,12 +297,12 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
   },
   congratsTitle: {
-    fontSize: theme.fontSizes.xxl,
+    fontSize: theme.fontSizes["2xl"],
     color: theme.colors.success,
     marginTop: 16,
   },
   congratsSubtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   reviewTitle: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.text,
     marginBottom: 10,
   },
@@ -329,10 +329,10 @@ const styles = StyleSheet.create({
     borderLeftColor: theme.colors.danger,
   },
   wordFront: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
   },
   wordBack: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -364,14 +364,14 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
   },
   secondaryButton: {
     backgroundColor: theme.colors.border,
   },
   secondaryButtonText: {
     color: theme.colors.textMedium,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
   },
   progressContainer: {
     width: "100%",
@@ -381,10 +381,10 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.borderLight,
   },
   progressTitle: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textMedium,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   progressBarBackground: {
     height: 12,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   progressLabel: {
-    fontSize: theme.fontSizes.xs,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 6,

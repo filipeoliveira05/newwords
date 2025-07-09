@@ -57,13 +57,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     textAlign: "center",
     marginTop: 40,
   },
   subtitle: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 16,
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.xl,
   },
 });
 

@@ -13,8 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
-
-const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
+import CategorySelectionModal from "./modals/CategorySelectionModal";
 
 interface WordEditModalProps {
   isVisible: boolean;
@@ -187,53 +186,14 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
-        {/* Category Selection Modal */}
-        <Modal
-          visible={isCategoryModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setIsCategoryModalVisible(false)}
-        >
-          <TouchableOpacity
-            style={styles.categoryModalOverlay}
-            activeOpacity={1}
-            onPressOut={() => setIsCategoryModalVisible(false)}
-          >
-            <View style={styles.categoryModalContainer}>
-              <AppText variant="bold" style={styles.categoryModalTitle}>
-                Escolha uma Categoria
-              </AppText>
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={styles.categoryModalOption}
-                  onPress={() => {
-                    setCategory(cat);
-                    setIsCategoryModalVisible(false);
-                  }}
-                >
-                  <AppText style={styles.categoryModalOptionText}>
-                    {cat}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
-              <TouchableOpacity
-                style={[
-                  styles.categoryModalOption,
-                  styles.categoryModalCancelButton,
-                ]}
-                onPress={() => setIsCategoryModalVisible(false)}
-              >
-                <AppText
-                  variant="medium"
-                  style={styles.categoryModalCancelButtonText}
-                >
-                  Cancelar
-                </AppText>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </Modal>
+        <CategorySelectionModal
+          isVisible={isCategoryModalVisible}
+          onClose={() => setIsCategoryModalVisible(false)}
+          onSelect={(selectedCategory) => {
+            setCategory(selectedCategory);
+            setIsCategoryModalVisible(false);
+          }}
+        />
       </View>
     </Modal>
   );
@@ -266,13 +226,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 24,
   },
-  modalTitle: { fontSize: theme.fontSizes.xxl },
+  modalTitle: { fontSize: theme.fontSizes["2xl"] },
   closeButton: { padding: 8 },
   form: { marginBottom: 0 },
   inputGroup: { marginBottom: 24 },
   label: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -289,7 +249,7 @@ const styles = StyleSheet.create({
   inputIcon: { color: theme.colors.textMuted, marginRight: 12 },
   input: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     paddingVertical: 14,
     fontFamily: theme.fonts.regular,
@@ -309,7 +269,7 @@ const styles = StyleSheet.create({
   buttonDisabled: { backgroundColor: theme.colors.disabled },
   saveButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
     letterSpacing: 0.5,
   },
   categorySelector: {
@@ -339,45 +299,6 @@ const styles = StyleSheet.create({
   categoryPlaceholder: {
     fontSize: theme.fontSizes.base,
     color: theme.colors.placeholder,
-  },
-  categoryModalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  categoryModalContainer: {
-    width: "100%",
-    maxWidth: 320,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 8,
-  },
-  categoryModalTitle: {
-    fontSize: theme.fontSizes.lg,
-    color: theme.colors.text,
-    textAlign: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  categoryModalOption: {
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  categoryModalOptionText: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.primary,
-  },
-  categoryModalCancelButton: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    marginTop: 8,
-  },
-  categoryModalCancelButtonText: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.danger,
   },
 });
 

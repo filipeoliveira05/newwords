@@ -58,7 +58,10 @@ const SettingsScreen = ({ navigation }: Props) => {
     navigation.setOptions({
       title: "Definições",
       headerStyle: { backgroundColor: theme.colors.background },
-      headerTitleStyle: { fontFamily: theme.fonts.bold },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
       headerShadowVisible: false,
       headerBackTitle: "Perfil",
     });
@@ -150,7 +153,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 8,
@@ -171,11 +174,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   settingLabel: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
   },
   settingValue: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
   },
   resetButton: {

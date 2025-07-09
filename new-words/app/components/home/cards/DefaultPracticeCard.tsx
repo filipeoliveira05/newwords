@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     marginLeft: 12,
   },
 });

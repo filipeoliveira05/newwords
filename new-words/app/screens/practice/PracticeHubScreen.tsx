@@ -391,11 +391,11 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
   },
   subtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
@@ -436,11 +436,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statusTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.surface,
   },
   statusDescription: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.dangerLight,
   },
   statusDescriptionOnColor: {
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes["2xl"],
     color: theme.colors.text,
     marginBottom: 16,
   },
@@ -479,12 +479,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modeTitle: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.text,
     marginBottom: 4,
   },
   modeDescription: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
   },
   loadingText: {

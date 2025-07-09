@@ -46,7 +46,10 @@ const AccountScreen = ({ navigation }: Props) => {
     navigation.setOptions({
       title: "A Minha Conta",
       headerStyle: { backgroundColor: theme.colors.background },
-      headerTitleStyle: { fontFamily: theme.fonts.bold },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
       headerShadowVisible: false,
       headerBackTitle: "Perfil",
       headerRight: () => (
@@ -135,11 +138,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   username: {
-    fontSize: theme.fontSizes["2xl"],
+    fontSize: theme.fontSizes["3xl"],
     color: theme.colors.text,
   },
   userLevel: {
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
@@ -148,7 +151,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 8,
@@ -172,7 +175,7 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
   },
   infoValue: {

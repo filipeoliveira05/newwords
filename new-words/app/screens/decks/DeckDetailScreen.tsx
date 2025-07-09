@@ -690,7 +690,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 size={24}
                 style={styles.modeIcon}
               />
-              <View>
+              <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Revisão Clássica
                 </AppText>
@@ -705,7 +705,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               onPress={() => handleStartPractice("multiple-choice")}
             >
               <Ionicons name="list-outline" size={24} style={styles.modeIcon} />
-              <View>
+              <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Escolha Múltipla
                 </AppText>
@@ -724,7 +724,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 size={24}
                 style={styles.modeIcon}
               />
-              <View>
+              <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Jogo da Escrita
                 </AppText>
@@ -743,7 +743,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 size={24}
                 style={styles.modeIcon}
               />
-              <View>
+              <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Combinar Listas
                 </AppText>
@@ -827,10 +827,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   deckTitle: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
   },
   deckAuthor: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   legendLabel: {
-    fontSize: theme.fontSizes.xs,
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textSecondary,
   },
   searchBarContainer: {
@@ -868,7 +868,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     marginLeft: 12,
     fontFamily: theme.fonts.regular,
@@ -881,12 +881,12 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   emptyTitle: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes["2xl"],
     color: theme.colors.textMedium,
     marginTop: 16,
   },
   emptySubtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: 8,
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
   },
   emptyButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.xl,
     marginLeft: 8,
   },
   emptyText: {
@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalTitle: {
-    fontSize: theme.fontSizes.xxl,
+    fontSize: theme.fontSizes["2xl"],
   },
   closeButton: {
     padding: 8,
@@ -985,11 +985,14 @@ const styles = StyleSheet.create({
     color: "#4F8EF7",
     marginRight: 16,
   },
+  modeTextContainer: {
+    flex: 1,
+  },
   modeTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
   },
   modeDescription: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -999,7 +1002,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   sortOptionText: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textMedium,
     textAlign: "center",
   },

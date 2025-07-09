@@ -147,14 +147,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   title: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes["2xl"],
     color: theme.colors.text,
     marginBottom: 8,
     textAlign: "center",
     paddingHorizontal: 24,
   },
   message: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginBottom: 24,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
   },
-  buttonText: { fontSize: theme.fontSizes.md },
+  buttonText: { fontSize: theme.fontSizes.lg },
   buttonTextDefault: {
     color: theme.colors.primary,
   },

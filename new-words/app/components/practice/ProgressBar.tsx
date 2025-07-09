@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   progressTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
   },
   progressText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textMedium,
   },
   barBackground: {

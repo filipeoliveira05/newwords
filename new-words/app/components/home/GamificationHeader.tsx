@@ -17,7 +17,7 @@ const StatItem = ({
   color: string;
 }) => (
   <View style={styles.statItem}>
-    <Ionicons name={icon} size={18} color={color} />
+    <Ionicons name={icon} size={24} color={color} />
     <AppText variant="bold" style={[styles.statText, { color }]}>
       {value}
     </AppText>
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     marginLeft: 6,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
   },
   separator: {
     width: 1,
@@ -132,9 +132,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   levelCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: theme.colors.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   levelText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
   },
   xpBarContainer: {
     width: 75, // Give the bar a bit more space
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   xpText: {
-    fontSize: theme.fontSizes.xs,
+    fontSize: theme.fontSizes.sm,
     color: theme.colors.textMuted,
     marginTop: 2,
     textAlign: "center", // Ensures the text is centered under the bar

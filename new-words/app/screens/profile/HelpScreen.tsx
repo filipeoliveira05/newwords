@@ -19,33 +19,74 @@ type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 const faqs = [
   {
     question: "Como funciona o sistema de níveis e XP?",
-    answer:
-      "Você ganha XP (Pontos de Experiência) ao praticar palavras e ao adicionar novas palavras aos seus conjuntos. Ao acumular XP suficiente, você sobe de nível.",
+    answer: (
+      <>
+        Você ganha <AppText variant="bold">XP (Pontos de Experiência)</AppText>{" "}
+        ao praticar e ao adicionar novas palavras. Ao acumular XP suficiente,
+        você sobe de nível.
+      </>
+    ),
   },
   {
     question: "O que significa o nível de maestria?",
-    answer:
-      "O nível de maestria baseia-se no algoritmo de repetição espaçada. 'Nova' é uma palavra que nunca praticou. 'Em aprendizagem' significa que já a praticou algumas vezes. 'Dominada' indica que acertou consistentemente e que a palavra aparecerá com menos frequência para revisão.",
+    answer: (
+      <>
+        Baseia-se no algoritmo de repetição espaçada.{" "}
+        <AppText variant="bold">Nova</AppText> é uma palavra que nunca praticou.{" "}
+        <AppText variant="bold">Em aprendizagem</AppText> significa que já a
+        praticou algumas vezes. <AppText variant="bold">Dominada</AppText>{" "}
+        indica que acertou consistentemente e que a palavra aparecerá com menos
+        frequência para revisão.
+      </>
+    ),
   },
   {
     question: "Como funcionam os modos de prática?",
-    answer:
-      "Oferecemos vários modos para manter a aprendizagem interessante: Revisão Clássica (flashcards), Escolha Múltipla, Jogo da Escrita e Combinar Listas. Cada modo testa o seu conhecimento de uma forma diferente.",
+    answer: (
+      <>
+        Oferecemos vários modos para manter a aprendizagem interessante:{" "}
+        <AppText variant="bold">Revisão Clássica</AppText> (flashcards),{" "}
+        <AppText variant="bold">Escolha Múltipla</AppText>,{" "}
+        <AppText variant="bold">Jogo da Escrita</AppText> e{" "}
+        <AppText variant="bold">Combinar Listas</AppText>. Cada modo testa o seu
+        conhecimento de uma forma diferente.
+      </>
+    ),
   },
   {
-    question: "O que é a sessão de prática 'Urgente'?",
-    answer:
-      "A sessão Urgente seleciona automaticamente as palavras cuja data de revisão, calculada pelo algoritmo, já passou ou está próxima. É a forma mais eficiente de manter o seu vocabulário fresco na memória.",
+    question: "O que é a sessão de prática Urgente?",
+    answer: (
+      <>
+        A sessão <AppText variant="bold">Urgente</AppText> seleciona
+        automaticamente as palavras cuja data de revisão, calculada pelo
+        algoritmo, já passou ou está próxima. É a forma mais eficiente de manter
+        o seu vocabulário fresco na memória.
+      </>
+    ),
   },
   {
     question: "O que acontece se eu errar uma palavra?",
-    answer:
-      "Errar uma palavra diminui o seu fator de facilidade e faz com que ela apareça mais cedo para revisão. Além disso, é possível fazer uma sessão dedicada às palavras que errou previamente.",
+    answer: (
+      <>
+        <AppText variant="bold">Errar uma palavra</AppText> diminui o seu fator
+        de facilidade e faz com que ela apareça mais cedo para revisão. Além
+        disso, é possível fazer uma sessão dedicada às palavras que errou
+        previamente.
+      </>
+    ),
   },
   {
     question: "Como funciona a Liga Semanal?",
-    answer:
-      "A Liga Semanal agrupa utilizadores em divisões (Bronze, Prata, Ouro, etc.). Você compete ao ganhar XP durante a semana. No final da semana, os melhores classificados são promovidos para a liga seguinte, enquanto os últimos são despromovidos.",
+    answer: (
+      <>
+        A <AppText variant="bold">Liga Semanal</AppText> agrupa utilizadores em
+        divisões (Bronze, Prata, Ouro, etc.). Você compete ao ganhar{" "}
+        <AppText variant="bold">XP</AppText> durante a semana. No final da
+        semana, os melhores classificados são{" "}
+        <AppText variant="bold">promovidos</AppText> para a liga seguinte,
+        enquanto os últimos são <AppText variant="bold">despromovidos</AppText>.
+      </>
+    ),
   },
 ];
 
@@ -54,7 +95,7 @@ const AccordionItem = ({
   answer,
 }: {
   question: string;
-  answer: string;
+  answer: React.ReactNode;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -89,7 +130,10 @@ const HelpScreen = ({ navigation }: Props) => {
     navigation.setOptions({
       title: "Ajuda e Suporte",
       headerStyle: { backgroundColor: theme.colors.background },
-      headerTitleStyle: { fontFamily: theme.fonts.bold },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
       headerShadowVisible: false,
       headerBackTitle: "Perfil",
     });
@@ -212,7 +256,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textMuted,
     textTransform: "uppercase",
     marginBottom: 8,
@@ -235,7 +279,7 @@ const styles = StyleSheet.create({
   },
   questionText: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
     marginRight: 8,
   },
@@ -244,7 +288,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   answerText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     lineHeight: 20,
   },
@@ -261,8 +305,8 @@ const styles = StyleSheet.create({
   },
   tipText: {
     flex: 1,
-    fontSize: theme.fontSizes.sm,
-    color: theme.colors.textSecondary,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMedium,
     lineHeight: 20,
   },
   cardButton: {
@@ -276,7 +320,7 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   cardButtonText: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     flex: 1,
   },
@@ -287,10 +331,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     padding: 16,
     borderRadius: 12,
+    marginTop: 6,
   },
   contactButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     marginLeft: 12,
   },
 });

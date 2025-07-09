@@ -11,7 +11,6 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
   Keyboard,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,10 +28,9 @@ import { useWordStore } from "../../../stores/wordStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import ChipInput from "../../components/ChipInput";
 import WordEditModal from "../../components/WordEditModal";
+import CategorySelectionModal from "../../components/modals/CategorySelectionModal";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
-
-const CATEGORIES = ["Nome", "Verbo", "Adjetivo", "Advérbio", "Outro"];
 
 const masteryLevelText = {
   new: "Nova",
@@ -682,44 +680,6 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           </View>
         </View>
       </ScrollView>
-      <Modal
-        visible={isCategoryModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsCategoryModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPressOut={() => setIsCategoryModalVisible(false)}
-        >
-          <View style={styles.modalContainer}>
-            <AppText variant="bold" style={styles.modalTitle}>
-              Escolha uma Categoria
-            </AppText>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={styles.modalOption}
-                onPress={() => {
-                  setCategory(cat);
-                  setIsCategoryModalVisible(false);
-                }}
-              >
-                <AppText style={styles.modalOptionText}>{cat}</AppText>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={[styles.modalOption, styles.modalCancelButton]}
-              onPress={() => setIsCategoryModalVisible(false)}
-            >
-              <AppText variant="medium" style={styles.modalCancelButtonText}>
-                Cancelar
-              </AppText>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
       <WordEditModal
         isVisible={isEditModalVisible}
@@ -727,6 +687,14 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         onSave={handleSaveWordEdit}
         initialData={editingWordDetails}
         isSaving={isSavingEdit}
+      />
+      <CategorySelectionModal
+        isVisible={isCategoryModalVisible}
+        onClose={() => setIsCategoryModalVisible(false)}
+        onSelect={(selectedCategory) => {
+          setCategory(selectedCategory);
+          setIsCategoryModalVisible(false);
+        }}
       />
       {/* A barra só aparece se houver alterações não guardadas */}
       {isDirty && (
@@ -788,7 +756,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionContent: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     lineHeight: 24,
     color: theme.colors.textMedium,
   },
@@ -798,7 +766,7 @@ const styles = StyleSheet.create({
   },
   */
   label: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textMuted,
     marginBottom: 8,
     textTransform: "uppercase",
@@ -824,56 +792,17 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   categoryText: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
   },
   categoryPlaceholder: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.placeholder,
   },
   errorText: {
     fontSize: theme.fontSizes.lg,
     color: theme.colors.textSecondary,
     marginTop: 16,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContainer: {
-    width: "100%",
-    maxWidth: 320,
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 8,
-  },
-  modalTitle: {
-    fontSize: theme.fontSizes.lg,
-    color: theme.colors.text,
-    textAlign: "center",
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  modalOption: {
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  modalOptionText: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.primary,
-  },
-  modalCancelButton: {
-    borderTopWidth: 1,
-    borderTopColor: theme.colors.border,
-    marginTop: 8,
-  },
-  modalCancelButtonText: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.danger,
   },
   statsContainer: {
     backgroundColor: theme.colors.surface,
@@ -891,7 +820,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   statLabel: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
   },
   statValue: {
@@ -937,7 +866,7 @@ const styles = StyleSheet.create({
   },
   saveBarButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.xl,
   },
 });
 

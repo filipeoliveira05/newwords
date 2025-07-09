@@ -168,13 +168,12 @@ export default function AppNavigator() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarIcon: ({ focused, color, size }) => {
+          tabBarShowLabel: false,
+          tabBarIcon: ({ focused, color /* size */ }) => {
             const [iconFocused, iconInactive] = iconMapping[route.name];
             const iconName = focused ? iconFocused : iconInactive;
 
-            return (
-              <Ionicons name={iconName as any} size={size} color={color} />
-            );
+            return <Ionicons name={iconName as any} size={28} color={color} />;
           },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
@@ -182,16 +181,16 @@ export default function AppNavigator() {
             backgroundColor: theme.colors.surface,
             borderTopColor: theme.colors.border,
           },
-          tabBarLabelStyle: {
-            fontFamily: theme.fonts.medium,
-            fontSize: theme.fontSizes.xs,
-          },
+          // tabBarLabelStyle: {
+          //   fontFamily: theme.fonts.medium,
+          //   fontSize: theme.fontSizes.xs,
+          // },
         })}
       >
         <Tab.Screen
           name="Home"
           component={HomeStack}
-          options={{ tabBarLabel: "Início" }}
+          // options={{ tabBarLabel: "Início" }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
@@ -202,7 +201,7 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Decks"
           component={DecksStack}
-          options={{ tabBarLabel: "Conjuntos" }}
+          // options={{ tabBarLabel: "Conjuntos" }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               e.preventDefault();
@@ -221,7 +220,7 @@ export default function AppNavigator() {
               }
               return {};
             })(route),
-            tabBarLabel: "Praticar",
+            // tabBarLabel: "Praticar",
           })}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
@@ -233,13 +232,13 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Stats"
           component={StatsScreen}
-          options={{ tabBarLabel: "Estatísticas" }}
+          // options={{ tabBarLabel: "Estatísticas" }}
         />
         <Tab.Screen
           name="Profile"
           component={ProfileStack}
           options={{
-            tabBarLabel: "Perfil",
+            // tabBarLabel: "Perfil",
             headerShown: false,
           }}
         />

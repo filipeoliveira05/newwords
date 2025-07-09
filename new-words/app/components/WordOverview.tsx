@@ -219,12 +219,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   word: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     marginBottom: 4,
   },
   meaning: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
   },
   displayValueContainer: {
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     marginLeft: 12,
   },

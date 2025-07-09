@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   label: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textMuted,
     textTransform: "uppercase",
   },
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
     paddingVertical: 14,
     fontFamily: theme.fonts.regular,
@@ -260,14 +260,14 @@ const styles = StyleSheet.create({
     borderLeftColor: theme.colors.primary,
   },
   chipTextWrap: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.dark,
     marginRight: 8,
     fontFamily: theme.fonts.medium,
   },
   chipTextStack: {
     flex: 1,
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.text,
     lineHeight: 20,
     marginRight: 12,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   emptyChipText: {
     color: theme.colors.textMuted,
     fontStyle: "italic",
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
   },
 });
 

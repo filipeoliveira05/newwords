@@ -13,7 +13,7 @@ type StatCardProps = {
 
 const StatCard = ({ icon, value, label, color }: StatCardProps) => (
   <View style={styles.statCard}>
-    <Ionicons name={icon} size={28} color={color} />
+    <Ionicons name={icon} size={34} color={color} />
     <AppText variant="bold" style={styles.statValue}>
       {value}
     </AppText>
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   statLabel: {
-    fontSize: theme.fontSizes.xs,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     textAlign: "center",
   },

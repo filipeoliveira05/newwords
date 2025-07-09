@@ -60,7 +60,10 @@ const EditAccountScreen = ({ navigation }: Props) => {
     navigation.setOptions({
       title: "Editar Detalhes",
       headerStyle: { backgroundColor: theme.colors.background },
-      headerTitleStyle: { fontFamily: theme.fonts.bold },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
       headerShadowVisible: false,
       headerBackTitle: "Conta",
     });
@@ -231,8 +234,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -252,7 +255,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     paddingVertical: 14,
     fontFamily: theme.fonts.regular,
@@ -276,7 +279,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.xl,
   },
 });
 

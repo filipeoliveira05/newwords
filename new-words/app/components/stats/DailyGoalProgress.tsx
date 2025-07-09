@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 6,
   },
-  title: { fontSize: theme.fontSizes.sm, color: theme.colors.textMedium },
+  title: { fontSize: theme.fontSizes.base, color: theme.colors.textMedium },
   progressText: {
     fontSize: theme.fontSizes.sm,
     color: theme.colors.textSecondary,

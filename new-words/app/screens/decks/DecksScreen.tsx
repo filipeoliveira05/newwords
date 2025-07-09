@@ -200,11 +200,11 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
   },
   subtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },

@@ -243,12 +243,12 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border,
   },
   questionHint: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textMuted,
     marginBottom: 20,
   },
   questionText: {
-    fontSize: theme.fontSizes["2xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     textAlign: "center",
   },
@@ -270,14 +270,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 12,
     borderWidth: 2,
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     textAlign: "center",
     color: theme.colors.text,
     fontFamily: theme.fonts.regular,
   },
   correctAnswerText: {
     marginTop: 12,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.success,
     textAlign: "center",
   },
@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
   },
   hintContainer: {
     marginBottom: 16,
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   hintText: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.textMedium,
     letterSpacing: 4, // Spread out the letters and underscores
     textAlign: "center",

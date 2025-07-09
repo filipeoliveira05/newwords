@@ -275,12 +275,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   cardText: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     textAlign: "center",
   },
   cardHint: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textMuted,
   },
   buttonContainer: {
@@ -311,6 +311,6 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
   },
 });

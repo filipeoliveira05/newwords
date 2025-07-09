@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   instructions: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     marginBottom: 24,
     textAlign: "center",
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemText: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     textAlign: "center",
     color: theme.colors.text,
   },

@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
   },
   description: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     marginTop: 2,
   },
   unlockedText: {

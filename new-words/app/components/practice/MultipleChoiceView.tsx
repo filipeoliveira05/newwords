@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.border, // Usamos a borda padrão para consistência
   },
   questionLabel: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
   },
   wordText: {

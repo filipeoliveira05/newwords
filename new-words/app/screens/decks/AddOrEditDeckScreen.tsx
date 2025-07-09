@@ -202,12 +202,12 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   headerTitle: {
-    fontSize: theme.fontSizes["2xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
     marginTop: 16,
   },
   headerSubtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 8,
@@ -220,8 +220,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   label: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.textMuted,
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textSecondary,
     marginBottom: 8,
     textTransform: "uppercase",
     letterSpacing: 0.5,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
     paddingVertical: 14, // Aumenta a área de toque vertical
     fontFamily: theme.fonts.regular,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
     letterSpacing: 0.5,
   },
 });

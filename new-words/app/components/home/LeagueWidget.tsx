@@ -82,11 +82,11 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   title: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xl,
     color: theme.colors.surface,
   },
   subtitle: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.surface,
     opacity: 0.9,
   },

@@ -54,9 +54,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   textContainer: { flex: 1, marginHorizontal: 16 },
-  title: { fontSize: theme.fontSizes.base, color: theme.colors.text },
+  title: { fontSize: theme.fontSizes.xl, color: theme.colors.text },
   subtitle: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
   },
-  badgeText: { color: theme.colors.surface, fontSize: theme.fontSizes.sm },
+  badgeText: { color: theme.colors.surface, fontSize: theme.fontSizes.base },
 });
 
 export default UrgentReviewCard;

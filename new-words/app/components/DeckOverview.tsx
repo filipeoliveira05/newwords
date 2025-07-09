@@ -137,11 +137,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    fontSize: theme.fontSizes.md,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.text,
   },
   author: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
     marginTop: 2,
   },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   words: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textMedium,
   },
   menuTrigger: {
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   menuText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.text,
     marginLeft: 12,
   },

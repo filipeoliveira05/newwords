@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
   },
   content: {
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes.xxl,
     color: theme.colors.text,
     marginBottom: 16,
   },

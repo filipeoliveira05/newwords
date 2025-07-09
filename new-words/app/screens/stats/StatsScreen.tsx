@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   title: {
-    fontSize: theme.fontSizes["3xl"],
+    fontSize: theme.fontSizes["4xl"],
     color: theme.colors.text,
   },
   statsGrid: {
@@ -673,11 +673,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   countdownText: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.danger,
   },
   sectionTitle: {
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xxl,
     color: theme.colors.text,
   },
   wordItem: {
@@ -689,11 +689,11 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   wordName: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textMedium,
   },
   wordSuccessRate: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.danger,
   },
   placeholderText: {
@@ -712,7 +712,7 @@ const styles = StyleSheet.create({
   },
   practiceButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     marginLeft: 8,
   },
   loadingText: {
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
   },
   subtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.md,
     color: theme.colors.textSecondary,
     marginTop: 4,
   },

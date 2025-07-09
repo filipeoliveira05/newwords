@@ -127,7 +127,7 @@ const ProfileScreen = ({ navigation }: Props) => {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.colors.background },
   header: { paddingTop: 60, paddingBottom: 20, paddingHorizontal: 20 },
-  title: { fontSize: theme.fontSizes["3xl"], color: theme.colors.text },
+  title: { fontSize: theme.fontSizes["4xl"], color: theme.colors.text },
   section: {
     backgroundColor: theme.colors.surface,
     borderRadius: 12,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.colors.borderLight,
   },
   icon: { marginRight: 20 },
-  menuText: { flex: 1, fontSize: theme.fontSizes.base },
+  menuText: { flex: 1, fontSize: theme.fontSizes.lg },
 });
 
 export default ProfileScreen;
