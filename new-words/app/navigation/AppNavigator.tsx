@@ -5,6 +5,7 @@ import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
+import * as Haptics from "expo-haptics";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
 
@@ -37,6 +38,7 @@ import HelpScreen from "../screens/profile/HelpScreen";
 
 import CustomAlert from "../components/CustomAlert";
 import LevelUpOverlay from "../components/LevelUpOverlay";
+// import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
 import SatoshiRegular from "../../assets/fonts/Satoshi-Regular.otf";
@@ -193,6 +195,7 @@ export default function AppNavigator() {
           // options={{ tabBarLabel: "Início" }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               e.preventDefault();
               navigation.navigate("Home", { screen: "HomeDashboard" });
             },
@@ -204,6 +207,7 @@ export default function AppNavigator() {
           // options={{ tabBarLabel: "Conjuntos" }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               e.preventDefault();
               navigation.navigate("Decks", { screen: "DecksList" });
             },
@@ -224,6 +228,7 @@ export default function AppNavigator() {
           })}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               e.preventDefault();
               navigation.navigate("Practice", { screen: "PracticeHub" });
             },
@@ -232,14 +237,22 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Stats"
           component={StatsScreen}
-          // options={{ tabBarLabel: "Estatísticas" }}
+          listeners={{
+            tabPress: () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            },
+          }}
         />
         <Tab.Screen
           name="Profile"
           component={ProfileStack}
           options={{
-            // tabBarLabel: "Perfil",
             headerShown: false,
+          }}
+          listeners={{
+            tabPress: () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            },
           }}
         />
       </Tab.Navigator>
