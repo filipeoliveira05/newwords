@@ -19,7 +19,7 @@ const ChallengingWordsCard = ({ words }: Props) => {
     navigation.navigate("Practice", {
       screen: "PracticeGame",
       params: {
-        mode: "flashcard",
+        mode: "multiple-choice",
         sessionType: "free",
         words: words,
         origin: "Stats", // Re-using this origin for now

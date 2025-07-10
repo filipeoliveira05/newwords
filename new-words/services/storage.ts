@@ -809,7 +809,7 @@ export async function getChallengingWords(): Promise<ChallengingWord[]> {
         timesTrained > 2 AND
         (CAST(timesCorrect AS REAL) / timesTrained) < 0.8
       ORDER BY successRate ASC, timesIncorrect DESC, lastTrained ASC
-      LIMIT 3
+      LIMIT 10
     `);
   } catch (e) {
     console.error("Erro ao obter palavras desafiadoras:", e);
