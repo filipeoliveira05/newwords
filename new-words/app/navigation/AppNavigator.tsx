@@ -1,9 +1,24 @@
 import React, { useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import {
+  createBottomTabNavigator,
+  BottomTabBarButtonProps,
+  BottomTabBar,
+  BottomTabBarProps,
+} from "@react-navigation/bottom-tabs";
 import { getFocusedRouteNameFromRoute } from "@react-navigation/native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import { useFonts } from "expo-font";
 import * as Haptics from "expo-haptics";
 import { theme } from "../../config/theme";
@@ -39,12 +54,113 @@ import HelpScreen from "../screens/profile/HelpScreen";
 
 import CustomAlert from "../components/CustomAlert";
 import LevelUpOverlay from "../components/LevelUpOverlay";
-// import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
+import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
+import Icon from "../components/Icon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
 import SatoshiRegular from "../../assets/fonts/Satoshi-Regular.otf";
 import SatoshiMedium from "../../assets/fonts/Satoshi-Medium.otf";
 import SatoshiBold from "../../assets/fonts/Satoshi-Bold.otf";
+
+// --- Estilos e Componentes da Tab Bar ---
+
+const shadowStyle = {
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.1,
+  shadowRadius: 8,
+  elevation: 5,
+};
+
+const styles = StyleSheet.create({
+  customButtonContainer: {
+    top: -20, // Elevates the button. This value is used for padding below.
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  customButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: theme.colors.primary,
+    justifyContent: "center",
+    alignItems: "center",
+    ...shadowStyle,
+    shadowColor: theme.colors.primary, // Sombra com a cor do botão
+    shadowOpacity: 0.3,
+  },
+});
+
+// --- Componente para o botão central da Tab Bar ---
+const CustomTabBarButton = ({ children, onPress }: BottomTabBarButtonProps) => (
+  <TouchableOpacity style={styles.customButtonContainer} onPress={onPress}>
+    <View style={styles.customButton}>{children}</View>
+  </TouchableOpacity>
+);
+
+// --- Componente para a Tab Bar animada ---
+
+const TAB_BAR_HEIGHT = 60; // Altura padrão da tab bar
+
+const AnimatedTabBar = (props: BottomTabBarProps) => {
+  const { state, insets } = props;
+  // Obtém o nome da rota focada dentro da stack atual
+  const routeName = getFocusedRouteNameFromRoute(state.routes[state.index]);
+
+  // Lista de ecrãs onde a tab bar deve ser escondida.
+  const screensWithHiddenTabBar = [
+    "DeckDetail",
+    "WordDetails",
+    "AddOrEditDeck",
+    "PracticeGame",
+    "PracticeLoading",
+    "LeagueDetails",
+    "Account",
+    "EditAccount",
+    "Settings",
+    "Help",
+  ];
+
+  const isTabBarVisible = routeName
+    ? !screensWithHiddenTabBar.includes(routeName)
+    : true;
+
+  const translateY = useSharedValue(0);
+
+  // Anima a posição da tab bar com base na sua visibilidade
+  useEffect(() => {
+    // Para esconder completamente, precisamos de mover a tab bar para baixo
+    // pela sua altura + a altura do safe area + a porção do botão que fica de fora.
+    const hiddenTranslateY =
+      TAB_BAR_HEIGHT +
+      (insets.bottom || 0) +
+      Math.abs(styles.customButtonContainer.top);
+    translateY.value = withTiming(isTabBarVisible ? 0 : hiddenTranslateY, {
+      duration: 300,
+      easing: Easing.bezier(0.3, 0.01, 0, 1),
+    });
+  }, [isTabBarVisible, translateY, insets.bottom]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    transform: [{ translateY: translateY.value }],
+    overflow: "visible", // Crucial para o Android não cortar o botão que sobressai
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <BottomTabBar {...props} />
+    </Animated.View>
+  );
+};
+
+// --- Stacks de Navegação ---
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
@@ -145,14 +261,6 @@ function ProfileStack() {
   );
 }
 
-const iconMapping = {
-  Home: ["home", "home-outline"],
-  Decks: ["file-tray-stacked", "file-tray-stacked-outline"],
-  Practice: ["flash", "flash-outline"],
-  Stats: ["stats-chart", "stats-chart-outline"],
-  Profile: ["person-circle", "person-circle-outline"],
-};
-
 export default function AppNavigator() {
   const [fontsLoaded] = useFonts({
     "Satoshi-Regular": SatoshiRegular,
@@ -176,31 +284,33 @@ export default function AppNavigator() {
   return (
     <View style={{ flex: 1 }}>
       <Tab.Navigator
-        screenOptions={({ route }) => ({
+        tabBar={(props) => <AnimatedTabBar {...props} />}
+        screenOptions={{
           headerShown: false,
           tabBarShowLabel: false,
-          tabBarIcon: ({ focused, color /* size */ }) => {
-            const [iconFocused, iconInactive] = iconMapping[route.name];
-            const iconName = focused ? iconFocused : iconInactive;
-
-            return <Ionicons name={iconName as any} size={28} color={color} />;
-          },
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.textSecondary,
           tabBarStyle: {
             backgroundColor: theme.colors.surface,
-            borderTopColor: theme.colors.border,
+            height: TAB_BAR_HEIGHT,
+            borderTopWidth: 0, // A sombra já cria uma separação visual
+            ...shadowStyle,
           },
-          // tabBarLabelStyle: {
-          //   fontFamily: theme.fonts.medium,
-          //   fontSize: theme.fontSizes.xs,
-          // },
-        })}
+        }}
       >
         <Tab.Screen
           name="Home"
           component={HomeStack}
-          // options={{ tabBarLabel: "Início" }}
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <AnimatedTabBarIcon
+                focused={focused}
+                name="home"
+                size={28}
+                color={color}
+              />
+            ),
+          }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -212,7 +322,16 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Decks"
           component={DecksStack}
-          // options={{ tabBarLabel: "Conjuntos" }}
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <AnimatedTabBarIcon
+                focused={focused}
+                name="decks"
+                size={28}
+                color={color}
+              />
+            ),
+          }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -224,17 +343,12 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Practice"
           component={PracticeStack}
-          options={({ route }) => ({
-            tabBarStyle: ((route) => {
-              const routeName =
-                getFocusedRouteNameFromRoute(route) ?? "PracticeHub";
-              if (["PracticeGame", "PracticeLoading"].includes(routeName)) {
-                return { display: "none" };
-              }
-              return {};
-            })(route),
-            // tabBarLabel: "Praticar",
-          })}
+          options={{
+            tabBarIcon: () => (
+              <Icon name="practice" size={32} color={theme.colors.surface} />
+            ),
+            tabBarButton: (props) => <CustomTabBarButton {...props} />,
+          }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -246,6 +360,16 @@ export default function AppNavigator() {
         <Tab.Screen
           name="Stats"
           component={StatsScreen}
+          options={{
+            tabBarIcon: ({ focused, color }) => (
+              <AnimatedTabBarIcon
+                focused={focused}
+                name="stats"
+                size={28}
+                color={color}
+              />
+            ),
+          }}
           listeners={{
             tabPress: () => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -257,6 +381,14 @@ export default function AppNavigator() {
           component={ProfileStack}
           options={{
             headerShown: false,
+            tabBarIcon: ({ focused, color }) => (
+              <AnimatedTabBarIcon
+                focused={focused}
+                name="profile"
+                size={28}
+                color={color}
+              />
+            ),
           }}
           listeners={{
             tabPress: () => {
