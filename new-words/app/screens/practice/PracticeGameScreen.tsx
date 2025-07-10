@@ -180,14 +180,15 @@ export default function PracticeGameScreen({ route }: Props) {
   useEffect(
     () =>
       navigation.addListener("beforeRemove", (e) => {
-        // Previne o utilizador de sair a meio de uma ronda sem querer.
+        // Previne o utilizador de sair a meio de uma ronda sem querer,
+        // a menos que a saída já tenha sido confirmada ou a sessão não esteja em progresso.
         if (hasConfirmedExit.current || sessionState !== "in-progress") {
           return;
         }
 
+        // Previne a ação de voltar padrão para podermos mostrar o nosso alerta.
         e.preventDefault();
 
-        // Com o CustomAlert baseado em View, já não é necessário o InteractionManager.
         showAlert({
           title: "Sair da Prática?",
           message: "Tem a certeza que quer sair?",
@@ -197,26 +198,16 @@ export default function PracticeGameScreen({ route }: Props) {
               text: "Sair",
               style: "destructive",
               onPress: () => {
+                // Marca que a saída foi confirmada para não mostrar o alerta novamente.
                 hasConfirmedExit.current = true;
-
-                if (origin === "DeckDetail") {
-                  // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Home.
-                  navigation.goBack();
-                  navigation.navigate("Decks"); // O stack do HomeDecks irá mostrar o DeckDetail
-                } else if (origin === "Stats") {
-                  // Volta para o ecrã anterior (PracticeHub) e depois navega para o separador Stats.
-                  navigation.goBack();
-                  navigation.navigate("Stats");
-                } else {
-                  // Comportamento padrão (vindo do PracticeHub): apenas executa a ação de voltar original.
-                  navigation.dispatch(e.data.action);
-                }
+                // Executa a ação de navegação original que foi prevenida (ex: voltar atrás).
+                navigation.dispatch(e.data.action);
               },
             },
           ],
         });
       }),
-    [navigation, sessionState, showAlert, origin]
+    [navigation, sessionState, showAlert]
   );
 
   if (isLoading) {
