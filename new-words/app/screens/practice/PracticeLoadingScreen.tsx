@@ -10,6 +10,7 @@ import Animated, {
   withSequence,
   withDelay,
   Easing,
+  cancelAnimation,
 } from "react-native-reanimated";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import { useWordStore } from "../../../stores/wordStore";
@@ -17,10 +18,8 @@ import { useAlertStore } from "../../../stores/useAlertStore";
 // import { Word } from "../../../types/database";
 import { PracticeStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
-import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
-
-const AnimatedIcon = Animated.createAnimatedComponent(Icon);
+import Icon from "../../components/Icon";
 
 const loadingTips = [
   "A consistência é a chave para a maestria.",
@@ -90,12 +89,19 @@ export default function PracticeLoadingScreen({ route }: Props) {
       true // Reverse direction
     );
     textOpacity.value = withDelay(300, withTiming(1, { duration: 600 }));
+
+    // Cleanup function to cancel animations when the component unmounts
+    return () => {
+      cancelAnimation(iconOpacity);
+      cancelAnimation(iconScale);
+      cancelAnimation(textOpacity);
+    };
   }, [iconOpacity, iconScale, textOpacity]);
 
   // Effect for cycling through tips
   useEffect(() => {
     tipOpacity.value = withSequence(
-      withDelay(800, withTiming(1, { duration: 600 })),
+      withDelay(800, withTiming(1, { duration: 600 })), // Fade in
       withDelay(2000, withTiming(0, { duration: 600 }))
     );
 
@@ -107,8 +113,12 @@ export default function PracticeLoadingScreen({ route }: Props) {
       );
     }, 3200); // 600ms in + 2000ms visible + 600ms out
 
-    return () => clearInterval(tipInterval);
-  }, [tipOpacity]);
+    return () => {
+      clearInterval(tipInterval);
+      // Also cancel the tip animation on unmount
+      cancelAnimation(tipOpacity);
+    };
+  }, [tipOpacity, setCurrentTipIndex]);
 
   // Effect for loading data and navigating
   useEffect(() => {
@@ -172,12 +182,9 @@ export default function PracticeLoadingScreen({ route }: Props) {
 
   return (
     <View style={styles.container}>
-      <AnimatedIcon
-        name="flashOutline"
-        size={80}
-        color={theme.colors.primary}
-        style={animatedIconStyle}
-      />
+      <Animated.View style={animatedIconStyle}>
+        <Icon name="flashOutline" size={80} color={theme.colors.primary} />
+      </Animated.View>
       <Animated.View style={animatedTextStyle}>
         <AppText variant="bold" style={styles.loadingText}>
           A preparar a sua sessão...
