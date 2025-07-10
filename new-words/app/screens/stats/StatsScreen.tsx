@@ -407,16 +407,16 @@ export default function StatsScreen() {
             color={theme.colors.dark}
           />
           <StatCard
-            icon="flame-outline"
+            icon="trending-up-outline"
             value={userMetrics?.longestStreak ?? 0}
-            label="Maior Streak"
-            color={theme.colors.challenge}
+            label="Maior Sequência de Acertos"
+            color={theme.colors.primary}
           />
           <StatCard
-            icon="calendar-outline"
+            icon="flame-outline"
             value={userMetrics?.consecutiveDays ?? 0}
             label="Dias Seguidos"
-            color={theme.colors.danger}
+            color={theme.colors.challenge}
           />
         </View>
 
