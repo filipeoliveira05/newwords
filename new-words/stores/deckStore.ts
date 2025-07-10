@@ -5,12 +5,14 @@ import {
   updateDeck as dbUpdateDeck,
   deleteDeck as dbDeleteDeck,
   getWordCountByDeck,
+  countMasteredWordsByDeck,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Deck } from "../types/database";
 
 export interface DeckWithCount extends Deck {
   wordCount: number;
+  masteredCount: number;
 }
 
 interface DeckState {
@@ -22,6 +24,7 @@ interface DeckState {
   deleteDeck: (id: number) => Promise<void>;
   incrementWordCount: (id: number) => void;
   decrementWordCount: (id: number) => void;
+  updateMasteredCount: (deckId: number, change: 1 | -1) => void;
 }
 
 export const useDeckStore = create<DeckState>((set, get) => ({
@@ -36,6 +39,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
         decksData.map(async (deck) => ({
           ...deck,
           wordCount: await getWordCountByDeck(deck.id),
+          masteredCount: await countMasteredWordsByDeck(deck.id),
         }))
       );
       set({ decks: decksWithCounts, loading: false });
@@ -51,6 +55,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       const newDeckWithCount: DeckWithCount = {
         ...newDeckData,
         wordCount: 0,
+        masteredCount: 0,
       };
       set((state) => ({ decks: [newDeckWithCount, ...state.decks] }));
     } catch (error) {
@@ -102,6 +107,16 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       ),
     }));
   },
+
+  updateMasteredCount: (deckId, change) => {
+    set((state) => ({
+      decks: state.decks.map((d) =>
+        d.id === deckId
+          ? { ...d, masteredCount: Math.max(0, d.masteredCount + change) } // Ensure count doesn't go below 0
+          : d
+      ),
+    }));
+  },
 }));
 
 // --- Subscrições de Eventos ---
@@ -121,3 +136,16 @@ eventStore
   .subscribe<{ deckId: number }>("wordDeleted", ({ deckId }) => {
     useDeckStore.getState().decrementWordCount(deckId);
   });
+
+eventStore.getState().subscribe<{
+  deckId: number;
+  isNowMastered: boolean;
+  wasMastered: boolean;
+}>("masteryLevelChanged", ({ deckId, isNowMastered, wasMastered }) => {
+  const store = useDeckStore.getState();
+  if (isNowMastered && !wasMastered) {
+    store.updateMasteredCount(deckId, 1);
+  } else if (!isNowMastered && wasMastered) {
+    store.updateMasteredCount(deckId, -1);
+  }
+});

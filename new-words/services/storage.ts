@@ -340,6 +340,21 @@ export async function getWordCountByDeck(deckId: number): Promise<number> {
   }
 }
 
+export async function countMasteredWordsByDeck(
+  deckId: number
+): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM words WHERE deckId = ? AND masteryLevel = 'mastered'",
+      [deckId]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras dominadas do deck:", e);
+    throw e;
+  }
+}
+
 export async function addDeck(title: string, author: string): Promise<Deck> {
   if (!title.trim() || !author.trim()) {
     throw new Error("Título e autor são obrigatórios.");

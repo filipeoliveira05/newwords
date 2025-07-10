@@ -125,6 +125,7 @@ export default function DecksScreen({ navigation }: Props) {
             title={deck.title}
             author={deck.author}
             totalWords={deck.wordCount}
+            masteredWords={deck.masteredCount}
             onPress={() =>
               navigation.navigate("DeckDetail", {
                 deckId: deck.id,

@@ -444,6 +444,7 @@ export const useWordStore = create<WordState>((set, get) => ({
 
   updateStatsAfterAnswer: async (wordId, quality) => {
     try {
+      const oldWord = get().words.byId[wordId]; // Get state before update
       const updatedWord = await dbUpdateWordStatsWithQuality(wordId, quality);
 
       if (!updatedWord) return;
@@ -458,7 +459,18 @@ export const useWordStore = create<WordState>((set, get) => ({
           },
         };
       });
-      eventStore.getState().publish("wordUpdated", { wordId: wordId });
+
+      // If mastery level changed, publish a specific event for the deckStore
+      if (oldWord && oldWord.masteryLevel !== updatedWord.masteryLevel) {
+        eventStore.getState().publish("masteryLevelChanged", {
+          deckId: updatedWord.deckId,
+          isNowMastered: updatedWord.masteryLevel === "mastered",
+          wasMastered: oldWord.masteryLevel === "mastered",
+        });
+      }
+
+      // Publish the generic wordUpdated event for other listeners
+      eventStore.getState().publish("wordUpdated", { wordId });
     } catch (error) {
       console.error(
         "Erro ao atualizar estatísticas da palavra com SM-2 no store",

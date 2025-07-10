@@ -9,11 +9,13 @@ import {
 } from "react-native-popup-menu";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
+import LinearProgressBar from "./LinearProgressBar";
 
 type DeckOverviewProps = {
   title: string;
   author: string;
   totalWords: number;
+  masteredWords: number;
   onPress?: () => void;
   onEdit?: () => void;
   onAddWord?: () => void;
@@ -24,11 +26,13 @@ const DeckOverview = ({
   title,
   author,
   totalWords,
+  masteredWords,
   onPress,
   onEdit,
   onAddWord,
   onDelete,
 }: DeckOverviewProps) => {
+  const progress = totalWords > 0 ? (masteredWords / totalWords) * 100 : 0;
   return (
     <TouchableOpacity
       style={styles.container}
@@ -52,9 +56,13 @@ const DeckOverview = ({
         </View>
       </View>
       <View style={styles.footer}>
-        <AppText variant="medium" style={styles.words}>
-          {totalWords} palavras
-        </AppText>
+        <View style={styles.progressContainer}>
+          <LinearProgressBar
+            progress={progress}
+            totalWords={totalWords}
+            masteredWords={masteredWords}
+          />
+        </View>
         <Menu>
           <MenuTrigger
             customStyles={{
@@ -153,9 +161,8 @@ const styles = StyleSheet.create({
     borderTopColor: theme.colors.borderLight,
     paddingTop: 16,
   },
-  words: {
-    fontSize: theme.fontSizes.base,
-    color: theme.colors.textMedium,
+  progressContainer: {
+    flex: 1,
   },
   menuTrigger: {
     padding: 8,
