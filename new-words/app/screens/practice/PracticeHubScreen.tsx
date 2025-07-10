@@ -71,7 +71,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
       mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists",
       sessionType: "urgent" | "free"
     ) => {
-      navigation.navigate("PracticeGame", {
+      navigation.navigate("PracticeLoading", {
         mode: mode,
         sessionType: sessionType,
         // deckId é undefined, então praticará tudo
@@ -82,7 +82,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
   const handleStartWrongPractice = useCallback(async () => {
     if (wrongWordsCount > 0) {
-      navigation.navigate("PracticeGame", {
+      navigation.navigate("PracticeLoading", {
         mode: "multiple-choice", // Um bom modo para focar em erros
         sessionType: "wrong",
       });
@@ -99,7 +99,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
   const handleStartFavoritePractice = useCallback(async () => {
     if (favoriteWordsCount > 0) {
-      navigation.navigate("PracticeGame", {
+      navigation.navigate("PracticeLoading", {
         mode: "flashcard", // Flashcard seems good for favorites
         sessionType: "favorite",
       });

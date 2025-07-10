@@ -398,7 +398,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     navigation
       .getParent<BottomTabNavigationProp<RootTabParamList>>()
       ?.navigate("Practice", {
-        screen: "PracticeGame",
+        // Navega para o separador de prática
+        screen: "PracticeLoading", // Inicia o ecrã de carregamento
         params: {
           mode,
           deckId: deckId,

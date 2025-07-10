@@ -344,7 +344,8 @@ export default function StatsScreen() {
     // Navega para o ecrã de prática, passando apenas as palavras desafiadoras.
     // O modo 'multiple-choice' é ótimo para uma revisão focada.
     navigation.navigate("Practice", {
-      screen: "PracticeGame",
+      // Navega para o separador de prática
+      screen: "PracticeLoading", // Inicia o ecrã de carregamento
       params: {
         mode: "multiple-choice",
         sessionType: "free", // Prática de palavras específicas é sempre 'free'

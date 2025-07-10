@@ -16,7 +16,7 @@ const UrgentReviewCard = ({ count }: Props) => {
 
   const handlePress = () => {
     navigation.navigate("Practice", {
-      screen: "PracticeGame",
+      screen: "PracticeLoading",
       params: {
         mode: "flashcard",
         sessionType: "urgent",

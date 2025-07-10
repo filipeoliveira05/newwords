@@ -1,22 +1,11 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
-import {
-  RouteProp,
-  useNavigation,
-  useFocusEffect,
-} from "@react-navigation/native";
+import React, { useEffect, useRef } from "react";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { RouteProp, useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
-import { useWordStore } from "../../../stores/wordStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
-import { Word } from "../../../types/database";
 import {
   PracticeStackParamList,
   RootTabParamList,
@@ -68,114 +57,20 @@ const GameHeader = ({
 };
 
 export default function PracticeGameScreen({ route }: Props) {
-  const {
-    mode,
-    deckId,
-    words: wordsFromRoute,
-    sessionType,
-    origin,
-  } = route.params;
+  const { origin } = route.params;
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const { showAlert } = useAlertStore.getState();
 
-  const [isLoading, setIsLoading] = useState(true);
   const hasConfirmedExit = useRef(false);
 
   const sessionState = usePracticeStore((state) => state.sessionState);
-  const {
-    fetchWordsForPractice,
-    fetchLeastPracticedWords,
-    fetchWrongWords,
-    fetchFavoriteWords,
-  } = useWordStore.getState();
-  const initializeSession = usePracticeStore(
-    (state) => state.initializeSession
-  );
+  const gameMode = usePracticeStore((state) => state.gameMode);
+  const deckId = usePracticeStore((state) => state.deckId);
   const endSession = usePracticeStore((state) => state.endSession);
   const startNextRound = usePracticeStore((state) => state.startNextRound);
 
-  // useFocusEffect é usado em vez de useEffect para garantir que a sessão
-  // é recarregada sempre que o ecrã entra em foco, resolvendo o bug de
-  // não iniciar uma nova sessão ao reentrar com os mesmos parâmetros.
-  useFocusEffect(
-    React.useCallback(() => {
-      let isActive = true; // Flag para evitar updates de estado se o componente for desmontado
-
-      const loadSessionData = async () => {
-        try {
-          setIsLoading(true);
-          const SESSION_LIMIT = 20; // Limite para qualquer tipo de sessão
-          let fullWordPool: Word[];
-
-          if (wordsFromRoute && wordsFromRoute.length > 0) {
-            // Use a lista de palavras passada diretamente (ex: palavras desafiadoras).
-            fullWordPool = wordsFromRoute;
-          } else if (sessionType === "urgent") {
-            // Busca até 20 palavras urgentes, priorizadas pela data de revisão mais antiga.
-            fullWordPool = await fetchWordsForPractice(deckId, SESSION_LIMIT);
-          } else if (sessionType === "wrong") {
-            fullWordPool = await fetchWrongWords();
-          } else if (sessionType === "favorite") {
-            fullWordPool = await fetchFavoriteWords();
-          } else {
-            // Para uma sessão livre, busca as 20 palavras mais desafiadoras
-            // (menor 'easinessFactor') ou as menos praticadas.
-            fullWordPool = await fetchLeastPracticedWords(
-              deckId,
-              SESSION_LIMIT
-            );
-          }
-
-          if (fullWordPool.length === 0) {
-            // Apenas mostra o alerta se o ecrã ainda estiver ativo
-            if (isActive) {
-              showAlert({
-                title: "Tudo em dia!",
-                message:
-                  "Não há palavras para praticar neste momento. Adicione novas palavras ou volte mais tarde.",
-                buttons: [{ text: "OK", onPress: () => navigation.goBack() }],
-              });
-            }
-            return; // Sai da função mais cedo
-          }
-
-          initializeSession(fullWordPool, mode, sessionType, deckId);
-          hasConfirmedExit.current = false;
-        } catch (error) {
-          console.error("Erro ao carregar a sessão de prática:", error);
-          showAlert({
-            title: "Erro",
-            message: "Não foi possível iniciar a sessão.",
-            buttons: [{ text: "OK", onPress: () => navigation.goBack() }],
-          });
-        } finally {
-          setIsLoading(false);
-        }
-      };
-
-      loadSessionData();
-
-      // A função de limpeza do useFocusEffect é chamada quando o ecrã perde o foco.
-      // É o local perfeito para limpar o estado da sessão.
-      return () => {
-        isActive = false;
-        endSession();
-      };
-    }, [
-      deckId,
-      mode,
-      sessionType,
-      wordsFromRoute,
-      fetchWordsForPractice,
-      fetchLeastPracticedWords,
-      fetchWrongWords,
-      fetchFavoriteWords,
-      showAlert,
-      navigation,
-      initializeSession,
-      endSession,
-    ])
-  );
+  // Limpa a sessão quando o ecrã é desmontado.
+  useEffect(() => endSession, [endSession]);
 
   useEffect(
     () =>
@@ -191,7 +86,8 @@ export default function PracticeGameScreen({ route }: Props) {
 
         showAlert({
           title: "Sair da Prática?",
-          message: "Tem a certeza que quer sair?",
+          message:
+            "O seu progresso nesta ronda não será guardado. Tem a certeza que quer sair?",
           buttons: [
             { text: "Ficar", style: "cancel", onPress: () => {} },
             {
@@ -210,17 +106,6 @@ export default function PracticeGameScreen({ route }: Props) {
     [navigation, sessionState, showAlert]
   );
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <AppText variant="bold" style={styles.loadingText}>
-          A preparar a sua sessão...
-        </AppText>
-      </View>
-    );
-  }
-
   if (sessionState === "finished") {
     return (
       <SessionResults
@@ -232,15 +117,15 @@ export default function PracticeGameScreen({ route }: Props) {
     );
   }
 
-  if (sessionState === "in-progress") {
+  if (sessionState === "in-progress" && gameMode) {
     return (
       <View style={styles.container}>
-        <GameHeader mode={mode} onBackPress={() => navigation.goBack()} />
+        <GameHeader mode={gameMode} onBackPress={() => navigation.goBack()} />
         <ProgressBar key={sessionState} />
-        {mode === "flashcard" && <FlashcardView />}
-        {mode === "multiple-choice" && <MultipleChoiceView />}
-        {mode === "writing" && <WritingView />}
-        {mode === "combine-lists" && <CombineListsView />}
+        {gameMode === "flashcard" && <FlashcardView />}
+        {gameMode === "multiple-choice" && <MultipleChoiceView />}
+        {gameMode === "writing" && <WritingView />}
+        {gameMode === "combine-lists" && <CombineListsView />}
       </View>
     );
   }

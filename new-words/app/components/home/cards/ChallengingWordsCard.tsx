@@ -17,7 +17,8 @@ const ChallengingWordsCard = ({ words }: Props) => {
 
   const handlePress = () => {
     navigation.navigate("Practice", {
-      screen: "PracticeGame",
+      // Navega para o separador de prática
+      screen: "PracticeLoading", // Inicia o ecrã de carregamento
       params: {
         mode: "multiple-choice",
         sessionType: "free",

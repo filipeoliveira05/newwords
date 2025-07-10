@@ -27,6 +27,7 @@ import WordDetailsScreen from "../screens/decks/WordDetailsScreen";
 
 import PracticeHubScreen from "../screens/practice/PracticeHubScreen";
 import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
+import PracticeLoadingScreen from "../screens/practice/PracticeLoadingScreen";
 
 import StatsScreen from "../screens/stats/StatsScreen";
 
@@ -99,11 +100,18 @@ const PracticeStackNav = createNativeStackNavigator<PracticeStackParamList>();
 
 function PracticeStack() {
   return (
-    <PracticeStackNav.Navigator>
+    <PracticeStackNav.Navigator
+      screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
+    >
       <PracticeStackNav.Screen
         name="PracticeHub"
         component={PracticeHubScreen}
         options={{ headerShown: false }} // pode se alterar
+      />
+      <PracticeStackNav.Screen
+        name="PracticeLoading"
+        component={PracticeLoadingScreen}
+        options={{ headerShown: false }}
       />
       <PracticeStackNav.Screen
         name="PracticeGame"
@@ -218,8 +226,9 @@ export default function AppNavigator() {
           component={PracticeStack}
           options={({ route }) => ({
             tabBarStyle: ((route) => {
-              const routeName = getFocusedRouteNameFromRoute(route) ?? "";
-              if (routeName === "PracticeGame") {
+              const routeName =
+                getFocusedRouteNameFromRoute(route) ?? "PracticeHub";
+              if (["PracticeGame", "PracticeLoading"].includes(routeName)) {
                 return { display: "none" };
               }
               return {};
