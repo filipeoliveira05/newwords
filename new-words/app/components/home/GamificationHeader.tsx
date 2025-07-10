@@ -1,10 +1,10 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon, { IconName } from "../Icon";
 
 // Small component for each stat in the header
 const StatItem = ({
@@ -12,12 +12,12 @@ const StatItem = ({
   value,
   color,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   value: string | number;
   color: string;
 }) => (
   <View style={styles.statItem}>
-    <Ionicons name={icon} size={24} color={color} />
+    <Icon name={icon} size={24} color={color} />
     <AppText variant="bold" style={[styles.statText, { color }]}>
       {value}
     </AppText>
@@ -81,19 +81,19 @@ const GamificationHeader = () => {
       <LevelProgress level={level} xp={xp} xpForNextLevel={xpForNextLevel} />
       <View style={styles.separator} />
       <StatItem
-        icon="flame-outline"
+        icon="flame"
         value={consecutiveDays}
         color={theme.colors.challenge}
       />
       <View style={styles.separator} />
       <StatItem
-        icon="library-outline"
+        icon="library"
         value={totalWords}
         color={theme.colors.success}
       />
       <View style={styles.separator} />
       <StatItem
-        icon="trophy-outline"
+        icon="trophy"
         value={totalAchievements}
         color={theme.colors.gold}
       />

@@ -3,13 +3,13 @@ import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import * as Updates from "expo-updates";
 import * as Application from "expo-application";
 import * as Linking from "expo-linking";
-import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { deleteDatabase } from "../../../services/storage";
 import { useAlertStore } from "../../../stores/useAlertStore";
+import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
@@ -103,22 +103,14 @@ const SettingsScreen = ({ navigation }: Props) => {
             <AppText style={styles.settingLabel}>
               Política de Privacidade
             </AppText>
-            <Ionicons
-              name="open-outline"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
+            <Icon name="open" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.settingItem, { borderBottomWidth: 0 }]}
             onPress={() => handleLinkPress("https://www.exemplo.com/termos")}
           >
             <AppText style={styles.settingLabel}>Termos de Serviço</AppText>
-            <Ionicons
-              name="open-outline"
-              size={20}
-              color={theme.colors.textSecondary}
-            />
+            <Icon name="open" size={20} color={theme.colors.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>

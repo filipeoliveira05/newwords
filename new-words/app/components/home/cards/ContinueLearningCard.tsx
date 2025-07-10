@@ -6,7 +6,7 @@ import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
 import { Deck } from "../../../../types/database";
 import { RootTabParamList } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 type Props = {
   deck: Deck;
@@ -28,7 +28,7 @@ const ContinueLearningCard = ({ deck }: Props) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons name="book-outline" size={24} color={theme.colors.primary} />
+      <Icon name="book" size={24} color={theme.colors.primary} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           Continue a Aprender
@@ -37,11 +37,7 @@ const ContinueLearningCard = ({ deck }: Props) => {
           Pratique o conjunto {deck.title}
         </AppText>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={22}
-        color={theme.colors.textMuted}
-      />
+      <Icon name="forward" size={22} color={theme.colors.textMuted} />
     </TouchableOpacity>
   );
 };

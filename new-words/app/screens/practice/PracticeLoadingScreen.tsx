@@ -11,16 +11,16 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import { useWordStore } from "../../../stores/wordStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 // import { Word } from "../../../types/database";
 import { PracticeStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
+import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
 
-const AnimatedIcon = Animated.createAnimatedComponent(Ionicons);
+const AnimatedIcon = Animated.createAnimatedComponent(Icon);
 
 const loadingTips = [
   "A consistência é a chave para a maestria.",
@@ -173,7 +173,7 @@ export default function PracticeLoadingScreen({ route }: Props) {
   return (
     <View style={styles.container}>
       <AnimatedIcon
-        name="flash-outline"
+        name="flashOutline"
         size={80}
         color={theme.colors.primary}
         style={animatedIconStyle}

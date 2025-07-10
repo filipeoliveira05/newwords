@@ -1,6 +1,5 @@
 import React, { useLayoutEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import * as Updates from "expo-updates";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
@@ -8,6 +7,7 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import { setMetaValue } from "../../../services/storage";
+import Icon, { IconName } from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "ProfileMain">;
 
@@ -42,19 +42,19 @@ const ProfileScreen = ({ navigation }: Props) => {
   const menuItems = [
     {
       title: "Conta",
-      icon: "person-circle-outline",
+      icon: "personCircle" as IconName,
       screen: "Account",
       color: theme.colors.primary,
     },
     {
       title: "Definições",
-      icon: "cog-outline",
+      icon: "settings" as IconName,
       screen: "Settings",
       color: theme.colors.textMedium,
     },
     {
       title: "Ajuda & Suporte",
-      icon: "help-buoy-outline",
+      icon: "helpBuoy" as IconName,
       screen: "Help",
       color: theme.colors.textMedium,
     },
@@ -63,7 +63,7 @@ const ProfileScreen = ({ navigation }: Props) => {
   const authItems = [
     {
       title: "Terminar Sessão",
-      icon: "log-out-outline",
+      icon: "logout" as IconName,
       screen: "Settings", // Placeholder
       color: theme.colors.danger,
     },
@@ -83,8 +83,8 @@ const ProfileScreen = ({ navigation }: Props) => {
             style={styles.menuItem}
             onPress={() => navigation.navigate(item.screen as any)}
           >
-            <Ionicons
-              name={item.icon as any}
+            <Icon
+              name={item.icon}
               size={24}
               color={item.color}
               style={styles.icon}
@@ -92,11 +92,7 @@ const ProfileScreen = ({ navigation }: Props) => {
             <AppText style={[styles.menuText, { color: item.color }]}>
               {item.title}
             </AppText>
-            <Ionicons
-              name="chevron-forward-outline"
-              size={22}
-              color={theme.colors.textMuted}
-            />
+            <Icon name="forward" size={22} color={theme.colors.textMuted} />
           </TouchableOpacity>
         ))}
       </View>
@@ -108,8 +104,8 @@ const ProfileScreen = ({ navigation }: Props) => {
             style={styles.menuItem}
             onPress={handleLogout}
           >
-            <Ionicons
-              name={item.icon as any}
+            <Icon
+              name={item.icon}
               size={24}
               color={item.color}
               style={styles.icon}

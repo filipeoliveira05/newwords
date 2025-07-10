@@ -2,7 +2,7 @@ import React from "react";
 import { View, StyleSheet } from "react-native";
 import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 type Props = {
   tip: {
@@ -14,7 +14,7 @@ type Props = {
 const TipOfTheDayCard = ({ tip }: Props) => {
   return (
     <View style={styles.card}>
-      <Ionicons name="bulb-outline" size={24} color={theme.colors.favorite} />
+      <Icon name="bulb" size={24} color={theme.colors.favorite} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           {tip.title}

@@ -9,10 +9,10 @@ import {
 import * as Linking from "expo-linking";
 import * as StoreReview from "expo-store-review";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -110,8 +110,8 @@ const AccordionItem = ({
         <AppText variant="medium" style={styles.questionText}>
           {question}
         </AppText>
-        <Ionicons
-          name={isOpen ? "chevron-down-outline" : "chevron-forward-outline"}
+        <Icon
+          name={isOpen ? "down" : "forward"}
           size={22}
           color={theme.colors.textSecondary}
         />
@@ -177,8 +177,8 @@ const HelpScreen = ({ navigation }: Props) => {
         </AppText>
         <View style={styles.card}>
           <View style={styles.tipItem}>
-            <Ionicons
-              name="flash-outline"
+            <Icon
+              name="flashOutline"
               size={22}
               color={theme.colors.primary}
               style={styles.tipIcon}
@@ -188,8 +188,8 @@ const HelpScreen = ({ navigation }: Props) => {
             </AppText>
           </View>
           <View style={styles.tipItem}>
-            <Ionicons
-              name="star-outline"
+            <Icon
+              name="starOutline"
               size={22}
               color={theme.colors.favorite}
               style={styles.tipIcon}
@@ -210,8 +210,8 @@ const HelpScreen = ({ navigation }: Props) => {
           style={styles.cardButton}
           onPress={handleRateAppPress}
         >
-          <Ionicons
-            name="star-outline"
+          <Icon
+            name="starOutline"
             size={22}
             color={theme.colors.favorite}
             style={styles.cardButtonIcon}
@@ -230,11 +230,7 @@ const HelpScreen = ({ navigation }: Props) => {
           style={styles.contactButton}
           onPress={handleContactPress}
         >
-          <Ionicons
-            name="mail-outline"
-            size={22}
-            color={theme.colors.surface}
-          />
+          <Icon name="mail" size={22} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.contactButtonText}>
             Contactar Suporte
           </AppText>

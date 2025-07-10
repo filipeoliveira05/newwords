@@ -6,7 +6,6 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 // import ConfettiCannon from "react-native-confetti-cannon";
@@ -19,6 +18,7 @@ import { eventStore } from "../../../stores/eventStore";
 import { RootTabParamList } from "../../../types/navigation";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../Icon";
 
 type SessionResultsProps = {
   onPlayAgain: () => void;
@@ -166,8 +166,8 @@ export default function SessionResults({
 
       {isUrgentSessionTrulyComplete ? (
         <View style={styles.summaryCard}>
-          <Ionicons
-            name="checkmark-done-circle"
+          <Icon
+            name="checkmarkDoneCircleFilled"
             size={48}
             color={theme.colors.success}
           />

@@ -10,9 +10,9 @@ import {
   Platform,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
+import Icon from "./Icon";
 import CategorySelectionModal from "./modals/CategorySelectionModal";
 
 interface WordEditModalProps {
@@ -94,7 +94,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                 {isEditMode ? "Editar Palavra" : "Nova Palavra"}
               </AppText>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close" size={24} color={theme.colors.icon} />
+                <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
 
@@ -105,11 +105,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                   style={styles.inputContainer}
                   onPress={() => nameInputRef.current?.focus()}
                 >
-                  <Ionicons
-                    name="text-outline"
-                    style={styles.inputIcon}
-                    size={22}
-                  />
+                  <Icon name="text" style={styles.inputIcon} size={22} />
                   <TextInput
                     ref={nameInputRef}
                     style={styles.input}
@@ -128,11 +124,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                   style={styles.inputContainer}
                   onPress={() => meaningInputRef.current?.focus()}
                 >
-                  <Ionicons
-                    name="chatbox-ellipses-outline"
-                    style={styles.inputIcon}
-                    size={22}
-                  />
+                  <Icon name="chat" style={styles.inputIcon} size={22} />
                   <TextInput
                     ref={meaningInputRef}
                     style={styles.input}

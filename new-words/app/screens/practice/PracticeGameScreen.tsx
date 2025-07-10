@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { RouteProp, useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
@@ -19,6 +18,7 @@ import WritingView from "../../components/practice/WritingView";
 import CombineListsView from "../../components/practice/CombineListsView";
 import SessionResults from "../../components/practice/SessionResults";
 import AppText from "../../components/AppText";
+import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
 
 type Props = {
@@ -44,7 +44,7 @@ const GameHeader = ({
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top + 15 }]}>
       <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
-        <Ionicons name="arrow-back" size={24} color={theme.colors.textMedium} />
+        <Icon name="back" size={24} color={theme.colors.textMedium} />
       </TouchableOpacity>
       <AppText variant="bold" style={styles.headerTitle}>
         {gameModeTitles[mode]}

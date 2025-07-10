@@ -1,13 +1,13 @@
 import React from "react";
 import { View, StyleSheet, useWindowDimensions } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon, { IconName } from "../Icon";
 
 interface OnboardingSlideProps {
   item: {
     id: string;
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: IconName;
     title: string;
     description: string;
   };
@@ -18,7 +18,7 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ item }) => {
 
   return (
     <View style={[styles.container, { width }]}>
-      <Ionicons
+      <Icon
         name={item.icon}
         size={120}
         color={theme.colors.primary}

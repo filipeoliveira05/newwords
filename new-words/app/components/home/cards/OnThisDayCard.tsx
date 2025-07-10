@@ -15,7 +15,7 @@ import {
   RootTabParamList,
   HomeStackParamList,
 } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 // We need a composite navigation prop type because we are navigating from a screen
 // in the Home stack to a screen in the Decks stack.
@@ -46,11 +46,7 @@ const OnThisDayCard = ({ word }: Props) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons
-        name="calendar-outline"
-        size={24}
-        color={theme.colors.primary}
-      />
+      <Icon name="calendar" size={24} color={theme.colors.primary} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           Neste dia, {timeAgo}...
@@ -60,11 +56,7 @@ const OnThisDayCard = ({ word }: Props) => {
           Lembra-se dela?
         </AppText>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={22}
-        color={theme.colors.textMuted}
-      />
+      <Icon name="forward" size={22} color={theme.colors.textMuted} />
     </TouchableOpacity>
   );
 };

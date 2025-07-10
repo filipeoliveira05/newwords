@@ -1,11 +1,11 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon, { IconName } from "../Icon";
 
 type DailyGoalProgressProps = {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   current: number;
   target: number;
@@ -22,8 +22,8 @@ const DailyGoalProgress = ({
 
   return (
     <View style={styles.container}>
-      <Ionicons
-        name={isCompleted ? "checkmark-circle" : icon}
+      <Icon
+        name={isCompleted ? "checkmarkCircle" : icon}
         size={24}
         color={isCompleted ? theme.colors.success : theme.colors.textMedium}
         style={styles.icon}

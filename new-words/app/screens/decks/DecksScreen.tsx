@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import AppText from "../../components/AppText";
@@ -17,6 +16,7 @@ import DeckOverview from "../../components/DeckOverview";
 import { seedDatabase } from "../../../services/seeder";
 import { theme } from "../../../config/theme";
 import { DecksStackParamList } from "../../../types/navigation";
+import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
@@ -61,11 +61,7 @@ export default function DecksScreen({ navigation }: Props) {
   if (!decks || decks.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons
-          name="file-tray-stacked-outline"
-          size={80}
-          color={theme.colors.iconMuted}
-        />
+        <Icon name="fileTrayStacked" size={80} color={theme.colors.iconMuted} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhum conjunto encontrado
         </AppText>
@@ -76,7 +72,7 @@ export default function DecksScreen({ navigation }: Props) {
           style={styles.emptyButton}
           onPress={() => navigation.navigate("AddOrEditDeck", {})}
         >
-          <Ionicons name="add" size={20} color={theme.colors.surface} />
+          <Icon name="add" size={20} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.emptyButtonText}>
             Criar Primeiro Conjunto
           </AppText>
@@ -92,11 +88,7 @@ export default function DecksScreen({ navigation }: Props) {
               <ActivityIndicator color={theme.colors.primary} />
             ) : (
               <>
-                <Ionicons
-                  name="leaf-outline"
-                  size={18}
-                  color={theme.colors.primary}
-                />
+                <Icon name="leaf" size={18} color={theme.colors.primary} />
                 <AppText style={styles.seedButtonText}>
                   Carregar dados de teste
                 </AppText>
@@ -177,7 +169,7 @@ export default function DecksScreen({ navigation }: Props) {
         style={styles.fab}
         onPress={() => navigation.navigate("AddOrEditDeck", {})}
       >
-        <Ionicons name="add" size={32} color={theme.colors.surface} />
+        <Icon name="add" size={32} color={theme.colors.surface} />
       </TouchableOpacity>
     </View>
   );

@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,12 +7,13 @@ import Animated, {
   withDelay,
 } from "react-native-reanimated";
 import AppText from "../AppText";
+import Icon, { IconName } from "../Icon";
 import { theme } from "../../../config/theme";
 
 type AchievementBadgeProps = {
   title: string;
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   unlocked: boolean;
   isNew: boolean;
 };
@@ -55,7 +55,7 @@ const AchievementBadge = ({
   return (
     <Animated.View style={[containerStyle, animatedStyle]}>
       <View style={styles.iconContainer}>
-        <Ionicons name={icon} size={32} color={iconColor} />
+        <Icon name={icon} size={32} color={iconColor} />
       </View>
       <View style={styles.textContainer}>
         <AppText

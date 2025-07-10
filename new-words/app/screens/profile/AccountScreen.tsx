@@ -7,11 +7,11 @@ import {
   Image,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Ionicons } from "@expo/vector-icons";
 import { ProfileStackParamList } from "../../../types/navigation";
 import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import Icon, { IconName } from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Account">;
 
@@ -20,12 +20,12 @@ const InfoRow = ({
   label,
   value,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   label: string;
   value: React.ReactNode;
 }) => (
   <View style={styles.infoRow}>
-    <Ionicons
+    <Icon
       name={icon}
       size={22}
       color={theme.colors.textSecondary}
@@ -54,7 +54,7 @@ const AccountScreen = ({ navigation }: Props) => {
       headerBackTitle: "Perfil",
       headerRight: () => (
         <TouchableOpacity onPress={() => navigation.navigate("EditAccount")}>
-          <Ionicons name="pencil" size={22} color={theme.colors.textMedium} />
+          <Icon name="pencil" size={22} color={theme.colors.textMedium} />
         </TouchableOpacity>
       ),
     });
@@ -70,11 +70,7 @@ const AccountScreen = ({ navigation }: Props) => {
           />
         ) : (
           <View style={styles.avatar}>
-            <Ionicons
-              name="person-outline"
-              size={50}
-              color={theme.colors.primary}
-            />
+            <Icon name="person" size={50} color={theme.colors.primary} />
           </View>
         )}
         <View style={styles.usernameContainer}>
@@ -89,22 +85,14 @@ const AccountScreen = ({ navigation }: Props) => {
           Progresso
         </AppText>
         <View style={styles.infoCard}>
-          <InfoRow icon="bar-chart-outline" label="Nível" value={level} />
+          <InfoRow icon="stats" label="Nível" value={level} />
           <InfoRow
-            icon="star-outline"
+            icon="starOutline"
             label="Experiência"
             value={`${xp} / ${xpForNextLevel}`}
           />
-          <InfoRow
-            icon="flame-outline"
-            label="Dias Seguidos"
-            value={consecutiveDays}
-          />
-          <InfoRow
-            icon="library-outline"
-            label="Palavras Totais"
-            value={totalWords}
-          />
+          <InfoRow icon="flame" label="Dias Seguidos" value={consecutiveDays} />
+          <InfoRow icon="library" label="Palavras Totais" value={totalWords} />
         </View>
       </View>
     </ScrollView>

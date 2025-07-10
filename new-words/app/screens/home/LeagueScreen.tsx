@@ -16,7 +16,7 @@ import { theme } from "../../../config/theme";
 import AppText from "../../components/AppText";
 import { HomeStackParamList } from "../../../types/navigation";
 import { addDays, intervalToDuration, isBefore } from "date-fns";
-import { Ionicons } from "@expo/vector-icons";
+import Icon, { IconName } from "../../components/Icon";
 
 // Define a union type for the items in our list
 type ListItem =
@@ -64,11 +64,7 @@ const LeaderboardItem = ({
         <Image source={{ uri: item.profilePictureUrl }} style={styles.avatar} />
       ) : (
         <View style={styles.avatar}>
-          <Ionicons
-            name="person-outline"
-            size={20}
-            color={theme.colors.textSecondary}
-          />
+          <Icon name="person" size={20} color={theme.colors.textSecondary} />
         </View>
       )}
       <AppText
@@ -93,15 +89,15 @@ const ZoneSeparator = ({
   color,
 }: {
   text: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   color: string;
 }) => (
   <View style={styles.separatorContainer}>
-    <Ionicons name={icon} size={16} color={color} />
+    <Icon name={icon} size={16} color={color} />
     <AppText variant="bold" style={[styles.separatorText, { color }]}>
       {text}
     </AppText>
-    <Ionicons name={icon} size={16} color={color} />
+    <Icon name={icon} size={16} color={color} />
   </View>
 );
 
@@ -244,13 +240,9 @@ export default function LeagueScreen({ navigation }: Props) {
                 ]}
               >
                 {isLocked ? (
-                  <Ionicons
-                    name="lock-closed"
-                    size={28}
-                    color={theme.colors.textMuted}
-                  />
+                  <Icon name="lock" size={28} color={theme.colors.textMuted} />
                 ) : (
-                  <Ionicons name={league.icon} size={28} color={league.color} />
+                  <Icon name={league.icon} size={28} color={league.color} />
                 )}
               </View>
             );
@@ -258,20 +250,12 @@ export default function LeagueScreen({ navigation }: Props) {
         </ScrollView>
       </View>
       <View style={styles.headerContainer}>
-        <Ionicons
-          name={currentLeague.icon}
-          size={54}
-          color={currentLeague.color}
-        />
+        <Icon name={currentLeague.icon} size={54} color={currentLeague.color} />
         <AppText variant="bold" style={styles.leagueTitle}>
           Liga {currentLeague.name}
         </AppText>
         <View style={styles.countdownContainer}>
-          <Ionicons
-            name="time-outline"
-            size={16}
-            color={theme.colors.textSecondary}
-          />
+          <Icon name="time" size={16} color={theme.colors.textSecondary} />
           <AppText style={styles.countdownText}>
             Termina em: <AppText variant="bold">{countdown}</AppText>
           </AppText>
@@ -297,7 +281,7 @@ export default function LeagueScreen({ navigation }: Props) {
               return (
                 <ZoneSeparator
                   text="ZONA DE PROMOÇÃO"
-                  icon="caret-up"
+                  icon="caretUp"
                   color={theme.colors.success}
                 />
               );
@@ -305,7 +289,7 @@ export default function LeagueScreen({ navigation }: Props) {
             return (
               <ZoneSeparator
                 text="ZONA DE DESPROMOÇÃO"
-                icon="caret-down"
+                icon="caretDown"
                 color={theme.colors.danger}
               />
             );

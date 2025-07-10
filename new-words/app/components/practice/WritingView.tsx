@@ -12,11 +12,11 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../Icon";
 
 export default function WritingView() {
   // --- Store State and Actions ---
@@ -189,7 +189,7 @@ export default function WritingView() {
         onPress={handleHint}
         disabled={!!feedback || hintsUsed >= currentWord.name.length}
       >
-        <Ionicons name="bulb-outline" size={20} color={theme.colors.surface} />
+        <Icon name="bulb" size={20} color={theme.colors.surface} />
         <AppText variant="bold" style={styles.hintButtonText}>
           Dica
         </AppText>

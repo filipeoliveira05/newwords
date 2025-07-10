@@ -6,7 +6,7 @@ import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
 import { WeeklySummaryStats } from "../../../../services/storage";
 import { RootTabParamList } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 type Props = {
   summary: WeeklySummaryStats;
@@ -21,7 +21,7 @@ const WeeklySummaryCard = ({ summary }: Props) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons name="podium-outline" size={24} color={theme.colors.favorite} />
+      <Icon name="podium" size={24} color={theme.colors.favorite} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           Resumo da Semana
@@ -30,11 +30,7 @@ const WeeklySummaryCard = ({ summary }: Props) => {
           Bom trabalho! Treinou {summary.wordsTrained} palavras.
         </AppText>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={22}
-        color={theme.colors.textMuted}
-      />
+      <Icon name="forward" size={22} color={theme.colors.textMuted} />
     </TouchableOpacity>
   );
 };

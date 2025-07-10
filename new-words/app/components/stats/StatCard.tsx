@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { View, StyleSheet, TextInput } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
   withTiming,
@@ -9,11 +8,12 @@ import Animated, {
 } from "react-native-reanimated";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon, { IconName } from "../Icon";
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type StatCardProps = {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   value: string | number;
   label: string;
   color: string;
@@ -51,7 +51,7 @@ const StatCard = ({ icon, value, label, color }: StatCardProps) => {
 
   return (
     <View style={styles.statCard}>
-      <Ionicons name={icon} size={34} color={color} />
+      <Icon name={icon} size={34} color={color} />
       {isNumeric ? (
         <AnimatedTextInput
           underlineColorAndroid="transparent"

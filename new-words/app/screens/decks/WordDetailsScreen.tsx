@@ -13,7 +13,6 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
@@ -31,6 +30,7 @@ import WordEditModal from "../../components/WordEditModal";
 import CategorySelectionModal from "../../components/modals/CategorySelectionModal";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../../components/Icon";
 
 const masteryLevelText = {
   new: "Nova",
@@ -434,8 +434,8 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
                 }
               }}
             >
-              <Ionicons
-                name={wordDetails.isFavorite ? "star" : "star-outline"}
+              <Icon
+                name={wordDetails.isFavorite ? "star" : "starOutline"}
                 size={24}
                 color={
                   wordDetails.isFavorite
@@ -448,21 +448,13 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
               style={styles.headerIcon}
               onPress={handleEditWord}
             >
-              <Ionicons
-                name="pencil-outline"
-                size={22}
-                color={theme.colors.textMedium}
-              />
+              <Icon name="pencil" size={22} color={theme.colors.textMedium} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIcon}
               onPress={handleDeleteWord}
             >
-              <Ionicons
-                name="trash-outline"
-                size={22}
-                color={theme.colors.dangerDark}
-              />
+              <Icon name="trash" size={22} color={theme.colors.dangerDark} />
             </TouchableOpacity>
           </View>
         ),
@@ -480,11 +472,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   if (!wordDetails) {
     return (
       <View style={[styles.container, styles.centerContent]}>
-        <Ionicons
-          name="alert-circle-outline"
-          size={60}
-          color={theme.colors.iconMuted}
-        />
+        <Icon name="alertCircle" size={60} color={theme.colors.iconMuted} />
         <AppText style={styles.errorText}>Palavra não encontrada.</AppText>
       </View>
     );
@@ -551,11 +539,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
                 {category || "Escolha uma categoria"}
               </AppText>
             </View>
-            <Ionicons
-              name="chevron-down"
-              size={20}
-              color={theme.colors.iconMuted}
-            />
+            <Icon name="down" size={20} color={theme.colors.iconMuted} />
           </TouchableOpacity>
         </View>
 

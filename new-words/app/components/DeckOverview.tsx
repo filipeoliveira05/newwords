@@ -1,12 +1,12 @@
 import React, { memo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import {
   Menu,
   MenuOptions,
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
+import Icon from "./Icon";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
 import LinearProgressBar from "./LinearProgressBar";
@@ -42,11 +42,7 @@ const DeckOverview = ({
     >
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <Ionicons
-            name="albums-outline"
-            size={28}
-            color={theme.colors.primary}
-          />
+          <Icon name="albums" size={28} color={theme.colors.primary} />
         </View>
         <View style={styles.textContainer}>
           <AppText variant="bold" style={styles.title} numberOfLines={2}>
@@ -70,22 +66,18 @@ const DeckOverview = ({
               triggerWrapper: styles.menuTrigger,
             }}
           >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={22}
-              color={theme.colors.icon}
-            />
+            <Icon name="ellipsis" size={22} color={theme.colors.icon} />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
             <MenuOption onSelect={onAddWord}>
               <View style={styles.menuItem}>
-                <Ionicons name="add" size={20} color={theme.colors.text} />
+                <Icon name="add" size={20} color={theme.colors.text} />
                 <AppText style={styles.menuText}>Adicionar palavra</AppText>
               </View>
             </MenuOption>
             <MenuOption onSelect={onEdit}>
               <View style={styles.menuItem}>
-                <Ionicons name="pencil" size={18} color={theme.colors.text} />
+                <Icon name="edit" size={18} color={theme.colors.text} />
                 <AppText style={styles.menuText}>Editar detalhes</AppText>
               </View>
             </MenuOption>
@@ -94,11 +86,7 @@ const DeckOverview = ({
 
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="trash"
-                  size={18}
-                  color={theme.colors.dangerDark}
-                />
+                <Icon name="trash" size={18} color={theme.colors.dangerDark} />
                 <AppText
                   style={[styles.menuText, { color: theme.colors.dangerDark }]}
                 >

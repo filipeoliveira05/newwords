@@ -7,9 +7,9 @@ import Animated, {
   withSpring,
   withSequence,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../Icon";
 
 export default function StreakCounter() {
   const streak = usePracticeStore((state) => state.streak);
@@ -34,7 +34,7 @@ export default function StreakCounter() {
 
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
-      <Ionicons name="flame" size={22} color={theme.colors.challenge} />
+      <Icon name="flameFilled" size={22} color={theme.colors.challenge} />
       <AppText variant="bold" style={styles.streakText}>
         {streak}
       </AppText>

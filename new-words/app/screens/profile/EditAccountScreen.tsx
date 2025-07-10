@@ -12,13 +12,13 @@ import {
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
-import { Ionicons } from "@expo/vector-icons";
 
 import { ProfileStackParamList } from "../../../types/navigation";
 import { useUserStore } from "../../../stores/useUserStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "EditAccount">;
 
@@ -141,11 +141,7 @@ const EditAccountScreen = ({ navigation }: Props) => {
           <View style={styles.inputGroup}>
             <AppText style={styles.label}>PRIMEIRO NOME</AppText>
             <Pressable style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                style={styles.inputIcon}
-                size={22}
-              />
+              <Icon name="person" style={styles.inputIcon} size={22} />
               <TextInput
                 style={styles.input}
                 value={firstName}
@@ -159,11 +155,7 @@ const EditAccountScreen = ({ navigation }: Props) => {
           <View style={styles.inputGroup}>
             <AppText style={styles.label}>ÚLTIMO NOME</AppText>
             <Pressable style={styles.inputContainer}>
-              <Ionicons
-                name="person-outline"
-                style={styles.inputIcon}
-                size={22}
-              />
+              <Icon name="person" style={styles.inputIcon} size={22} />
               <TextInput
                 style={styles.input}
                 value={lastName}
@@ -177,11 +169,7 @@ const EditAccountScreen = ({ navigation }: Props) => {
           <View style={styles.inputGroup}>
             <AppText style={styles.label}>EMAIL</AppText>
             <Pressable style={styles.inputContainer}>
-              <Ionicons
-                name="mail-outline"
-                style={styles.inputIcon}
-                size={22}
-              />
+              <Icon name="mail" style={styles.inputIcon} size={22} />
               <TextInput
                 style={styles.input}
                 value={email}

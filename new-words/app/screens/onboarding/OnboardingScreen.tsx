@@ -11,17 +11,17 @@ import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import { RootStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { setMetaValue } from "../../../services/storage";
 import OnboardingSlide from "../../components/onboarding/OnboardingSlide";
 import OnboardingPaginator from "../../components/onboarding/OnboardingPaginator";
+import { IconName } from "../../components/Icon";
 
 interface Slide {
   id: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   description: string;
 }
@@ -29,28 +29,28 @@ interface Slide {
 const slides: Slide[] = [
   {
     id: "1",
-    icon: "albums-outline",
+    icon: "albums",
     title: "Crie os Seus Conjuntos",
     description:
       "Organize o seu vocabulário em conjuntos personalizados. Adicione palavras, significados e muito mais.",
   },
   {
     id: "2",
-    icon: "flash-outline",
+    icon: "flashOutline",
     title: "Prática Inteligente",
     description:
       "O nosso sistema de Repetição Espaçada mostra-lhe as palavras certas na altura certa para maximizar a sua memorização.",
   },
   {
     id: "3",
-    icon: "game-controller-outline",
+    icon: "gameController",
     title: "Vários Modos de Jogo",
     description:
       "Mantenha a aprendizagem divertida com flashcards, escolha múltipla, escrita e combinação de listas.",
   },
   {
     id: "4",
-    icon: "trophy-outline",
+    icon: "trophy",
     title: "Suba na Liga",
     description:
       "Ganhe XP com cada resposta correta, suba de nível e compita com outros utilizadores na liga semanal.",

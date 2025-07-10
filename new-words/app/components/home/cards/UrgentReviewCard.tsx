@@ -5,7 +5,7 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
 import { RootTabParamList } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 type Props = {
   count: number;
@@ -26,7 +26,7 @@ const UrgentReviewCard = ({ count }: Props) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons name="alarm-outline" size={24} color={theme.colors.primary} />
+      <Icon name="alarm" size={24} color={theme.colors.primary} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           Revisão Urgente

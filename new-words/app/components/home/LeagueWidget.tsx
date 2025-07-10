@@ -11,7 +11,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { HomeStackParamList } from "../../../types/navigation";
 import { theme } from "../../../config/theme";
 import AppText from "../AppText";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../Icon";
 
 type LeagueNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
@@ -19,6 +19,18 @@ type LeagueNavigationProp = NativeStackNavigationProp<
 >;
 
 export default function LeagueWidget() {
+  // Helper to map Ionicons names from the config to our IconName type
+  // const getLeagueIconName = (icon: string): IconName => {
+  //   const map: { [key: string]: IconName } = {
+  //     "shield-outline": "shieldOutline",
+  //     "shield-half-outline": "shieldHalf",
+  //     shield: "shield",
+  //     // Adicione outros mapeamentos de ícones de liga aqui, se necessário
+  //   };
+  //   // Fallback para um ícone de escudo padrão se o mapeamento não for encontrado
+  //   return map[icon] || "shieldOutline";
+  // };
+
   const { isLoading, currentLeague, userRank } = useLeagueStore();
   const navigation = useNavigation<LeagueNavigationProp>();
 
@@ -36,8 +48,8 @@ export default function LeagueWidget() {
       onPress={() => navigation.navigate("LeagueDetails")}
     >
       <View style={styles.leftContent}>
-        <Ionicons
-          name={currentLeague.icon}
+        <Icon
+          name="trophy"
           size={32}
           color={theme.colors.surface}
           style={styles.leagueIcon}
@@ -51,7 +63,7 @@ export default function LeagueWidget() {
           </AppText>
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={24} color={theme.colors.surface} />
+      <Icon name="forward" size={24} color={theme.colors.surface} />
     </TouchableOpacity>
   );
 }

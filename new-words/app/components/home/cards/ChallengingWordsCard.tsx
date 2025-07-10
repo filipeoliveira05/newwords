@@ -6,7 +6,7 @@ import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
 import { ChallengingWord } from "../../../../services/storage";
 import { RootTabParamList } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 type Props = {
   words: ChallengingWord[];
@@ -30,11 +30,7 @@ const ChallengingWordsCard = ({ words }: Props) => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons
-        name="fitness-outline"
-        size={24}
-        color={theme.colors.challenge}
-      />
+      <Icon name="fitness" size={24} color={theme.colors.challenge} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>
           Revisão Desafiadora
@@ -43,11 +39,7 @@ const ChallengingWordsCard = ({ words }: Props) => {
           Vamos rever as palavras que lhe estão a dar mais trabalho.
         </AppText>
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={22}
-        color={theme.colors.textMuted}
-      />
+      <Icon name="forward" size={22} color={theme.colors.textMuted} />
     </TouchableOpacity>
   );
 };

@@ -18,7 +18,6 @@ import Animated, {
 import { useNavigation } from "@react-navigation/native";
 import Toast from "react-native-toast-message";
 import { format, parseISO } from "date-fns";
-import { Ionicons } from "@expo/vector-icons";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import StatCard from "../../components/stats/StatCard";
@@ -49,6 +48,7 @@ import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
 import { achievements, Achievement } from "../../../config/achievements";
 import AchievementBadge from "../../components/stats/AchievementBadge";
 import AppText from "../../components/AppText";
+import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
 
 // Define the type for the marked dates object locally.
@@ -396,25 +396,25 @@ export default function StatsScreen() {
         {/* Secção 1: Métricas Principais */}
         <View style={styles.statsGrid}>
           <StatCard
-            icon="checkmark-circle-outline"
+            icon="checkmarkCircleOutline"
             value={`${Math.round(stats?.successRate ?? 0)}%`}
             label="Taxa de Sucesso"
             color={theme.colors.success}
           />
           <StatCard
-            icon="school-outline"
+            icon="school"
             value={stats?.wordsMastered ?? 0}
             label="Palavras Dominadas"
             color={theme.colors.dark}
           />
           <StatCard
-            icon="trending-up-outline"
+            icon="trendingUp"
             value={userMetrics?.longestStreak ?? 0}
             label="Maior Sequência de Acertos"
             color={theme.colors.primary}
           />
           <StatCard
-            icon="flame-outline"
+            icon="flame"
             value={userMetrics?.consecutiveDays ?? 0}
             label="Dias Seguidos"
             color={theme.colors.challenge}
@@ -488,11 +488,7 @@ export default function StatsScreen() {
                 style={styles.practiceButton}
                 onPress={handlePracticeChallengingWords}
               >
-                <Ionicons
-                  name="flame-outline"
-                  size={20}
-                  color={theme.colors.surface}
-                />
+                <Icon name="flame" size={20} color={theme.colors.surface} />
                 <AppText variant="bold" style={styles.practiceButtonText}>
                   Praticar estas palavras
                 </AppText>
@@ -545,7 +541,7 @@ export default function StatsScreen() {
                 onPress={() => setIsDayDetailModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color={theme.colors.icon} />
+                <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
             {selectedDayData && (
@@ -559,8 +555,8 @@ export default function StatsScreen() {
                 </AppText>
                 {/* Palavras Adicionadas - sempre visível */}
                 <View style={styles.dayDetailStat}>
-                  <Ionicons
-                    name="add-circle-outline"
+                  <Icon
+                    name="addCircle"
                     size={24}
                     color={theme.colors.success}
                   />
@@ -576,8 +572,8 @@ export default function StatsScreen() {
 
                 {/* Palavras Praticadas - sempre visível */}
                 <View style={styles.dayDetailStat}>
-                  <Ionicons
-                    name="flash-outline"
+                  <Icon
+                    name="flashOutline"
                     size={24}
                     color={theme.colors.primary}
                   />
@@ -602,8 +598,8 @@ export default function StatsScreen() {
                     </AppText>
                     {selectedDayData.unlocked_achievements.map((ach) => (
                       <View key={ach.id} style={styles.dayDetailStat}>
-                        <Ionicons
-                          name={ach.icon as any}
+                        <Icon
+                          name={ach.icon as IconName}
                           size={24}
                           color={theme.colors.gold}
                         />

@@ -6,13 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { useWordStore } from "@/stores/wordStore";
 import { useAlertStore } from "@/stores/useAlertStore";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { PracticeStackParamList } from "../../../types/navigation";
 
 import AppText from "../../components/AppText";
+import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
 import { eventStore } from "@/stores/eventStore";
 
@@ -146,8 +146,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
             wrongWordsCount === 0 &&
             favoriteWordsCount === 0 && (
               <View style={styles.placeholderContainer}>
-                <Ionicons
-                  name="checkmark-done-circle-outline"
+                <Icon
+                  name="checkmarkDoneCircle"
                   size={28}
                   color={theme.colors.success}
                 />
@@ -164,8 +164,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <View style={styles.statusContent}>
-                <Ionicons
-                  name="flame-outline"
+                <Icon
+                  name="flame"
                   size={32}
                   style={[styles.statusIcon, { color: theme.colors.surface }]}
                 />
@@ -178,11 +178,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                     {urgentWordsCount > 1 ? "palavras" : "palavra"} para rever
                   </AppText>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={theme.colors.surface}
-                />
+                <Icon name="forward" size={24} color={theme.colors.surface} />
               </View>
             </TouchableOpacity>
           )}
@@ -194,8 +190,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <View style={styles.statusContent}>
-                <Ionicons
-                  name="bonfire-outline"
+                <Icon
+                  name="bonfire"
                   size={32}
                   style={[styles.statusIcon, { color: theme.colors.surface }]}
                 />
@@ -208,11 +204,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                     {wrongWordsCount > 1 ? "palavras" : "palavra"} que errou
                   </AppText>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={theme.colors.surface}
-                />
+                <Icon name="forward" size={24} color={theme.colors.surface} />
               </View>
             </TouchableOpacity>
           )}
@@ -224,8 +216,8 @@ export default function PracticeHubScreen({ navigation }: Props) {
               activeOpacity={0.8}
             >
               <View style={styles.statusContent}>
-                <Ionicons
-                  name="star-outline"
+                <Icon
+                  name="starOutline"
                   size={32}
                   style={[styles.statusIcon, { color: theme.colors.surface }]}
                 />
@@ -238,11 +230,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                     {favoriteWordsCount > 1 ? "palavras" : "palavra"} marcada
                   </AppText>
                 </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={24}
-                  color={theme.colors.surface}
-                />
+                <Icon name="forward" size={24} color={theme.colors.surface} />
               </View>
             </TouchableOpacity>
           )}
@@ -262,7 +250,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
               )
             }
           >
-            <Ionicons name="albums-outline" size={28} style={styles.modeIcon} />
+            <Icon name="albums" size={28} style={styles.modeIcon} />
             <View style={styles.modeTextContainer}>
               <AppText variant="bold" style={styles.modeTitle}>
                 Revisão Clássica
@@ -271,11 +259,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                 Flashcards simples: veja a palavra, adivinhe o significado.
               </AppText>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color={theme.colors.textMuted}
-            />
+            <Icon name="forward" size={22} color={theme.colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -287,7 +271,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
               )
             }
           >
-            <Ionicons name="list-outline" size={28} style={styles.modeIcon} />
+            <Icon name="list" size={28} style={styles.modeIcon} />
             <View style={styles.modeTextContainer}>
               <AppText variant="bold" style={styles.modeTitle}>
                 Escolha Múltipla
@@ -296,11 +280,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                 Escolha o significado correto entre 4 opções.
               </AppText>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color={theme.colors.textMuted}
-            />
+            <Icon name="forward" size={22} color={theme.colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -312,7 +292,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
               )
             }
           >
-            <Ionicons name="pencil-outline" size={28} style={styles.modeIcon} />
+            <Icon name="pencil" size={28} style={styles.modeIcon} />
             <View style={styles.modeTextContainer}>
               <AppText variant="bold" style={styles.modeTitle}>
                 Jogo da Escrita
@@ -321,11 +301,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                 Nós mostramos o significado, você escreve a palavra.
               </AppText>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color={theme.colors.textMuted}
-            />
+            <Icon name="forward" size={22} color={theme.colors.textMuted} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -337,11 +313,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
               )
             }
           >
-            <Ionicons
-              name="git-compare-outline"
-              size={28}
-              style={styles.modeIcon}
-            />
+            <Icon name="gitCompare" size={28} style={styles.modeIcon} />
             <View style={styles.modeTextContainer}>
               <AppText variant="bold" style={styles.modeTitle}>
                 Combinar Listas
@@ -350,11 +322,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
                 Combine as palavras com os seus significados.
               </AppText>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={22}
-              color={theme.colors.textMuted}
-            />
+            <Icon name="forward" size={22} color={theme.colors.textMuted} />
           </TouchableOpacity>
         </View>
       </ScrollView>

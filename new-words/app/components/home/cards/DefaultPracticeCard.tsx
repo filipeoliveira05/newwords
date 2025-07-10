@@ -5,7 +5,7 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import AppText from "../../AppText";
 import { theme } from "../../../../config/theme";
 import { RootTabParamList } from "../../../../types/navigation";
-import { Ionicons } from "@expo/vector-icons";
+import Icon from "../../Icon";
 
 const DefaultPracticeCard = () => {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
@@ -16,7 +16,7 @@ const DefaultPracticeCard = () => {
 
   return (
     <TouchableOpacity style={styles.card} onPress={handlePress}>
-      <Ionicons name="flash" size={24} color={theme.colors.surface} />
+      <Icon name="flash" size={24} color={theme.colors.surface} />
       <AppText variant="bold" style={styles.title}>
         Começar a Praticar
       </AppText>

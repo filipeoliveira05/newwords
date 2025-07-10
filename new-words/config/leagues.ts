@@ -1,9 +1,9 @@
 import { theme } from "./theme";
-import { Ionicons } from "@expo/vector-icons";
+import { IconName } from "../app/components/Icon";
 
 export interface League {
   name: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   promotionZone: number; // Top X users get promoted
   demotionZone: number; // Bottom Y users get demoted
   color: string; // A theme color for the league
@@ -15,7 +15,7 @@ export interface League {
 export const LEAGUES: League[] = [
   {
     name: "Bronze",
-    icon: "trophy",
+    icon: "trophyFilled",
     promotionZone: 10,
     demotionZone: 0,
     color: theme.colors.bronze,
@@ -25,7 +25,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Prata",
-    icon: "trophy",
+    icon: "trophyFilled",
     promotionZone: 7,
     demotionZone: 5,
     color: theme.colors.silver,
@@ -35,7 +35,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Ouro",
-    icon: "trophy",
+    icon: "trophyFilled",
     promotionZone: 5,
     demotionZone: 5,
     color: theme.colors.gold,
@@ -45,7 +45,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Platina",
-    icon: "diamond-outline",
+    icon: "diamond",
     promotionZone: 3,
     demotionZone: 5,
     color: theme.colors.platinum,
@@ -55,7 +55,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Diamante",
-    icon: "diamond",
+    icon: "diamondFilled",
     promotionZone: 3, // Agora promove para Mestre
     demotionZone: 5,
     color: theme.colors.diamond,
@@ -65,7 +65,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Mestre",
-    icon: "ribbon",
+    icon: "ribbonFilled",
     promotionZone: 1, // Apenas o melhor sobe
     demotionZone: 5,
     color: theme.colors.master,
@@ -75,7 +75,7 @@ export const LEAGUES: League[] = [
   },
   {
     name: "Lendária",
-    icon: "flame",
+    icon: "flameFilled",
     promotionZone: 0, // Liga final
     demotionZone: 5,
     color: theme.colors.legendary,

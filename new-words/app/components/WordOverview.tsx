@@ -1,12 +1,12 @@
 import React, { useRef, memo } from "react";
 import { View, StyleSheet, TouchableOpacity } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import {
   Menu,
   MenuOptions,
   MenuOption,
   MenuTrigger,
 } from "react-native-popup-menu";
+import Icon, { IconName } from "./Icon";
 import { Swipeable } from "react-native-gesture-handler";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
@@ -22,10 +22,7 @@ type WordOverviewProps = {
   isFavorite?: number; // 1 for favorite, 0 for not favorite
   displayValue?: string | number;
   displayLabel?: string;
-  displayIcon?: {
-    name: keyof typeof Ionicons.glyphMap;
-    color: string;
-  };
+  displayIcon?: { name: IconName; color: string };
 };
 
 const WordOverview = ({
@@ -57,13 +54,13 @@ const WordOverview = ({
           style={[styles.actionButton, styles.editButton]}
           onPress={handleEditPress}
         >
-          <Ionicons name="pencil-outline" size={22} color="#fff" />
+          <Icon name="pencil" size={22} color="#fff" />
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.actionButton, styles.deleteButton]}
           onPress={onDelete}
         >
-          <Ionicons name="trash-outline" size={22} color="#fff" />
+          <Icon name="trash" size={22} color="#fff" />
         </TouchableOpacity>
       </View>
     );
@@ -90,11 +87,7 @@ const WordOverview = ({
         {/* Mostra o valor da ordenação, se existir */}
         {displayIcon ? (
           <View style={styles.displayValueContainer}>
-            <Ionicons
-              name={displayIcon.name}
-              size={24}
-              color={displayIcon.color}
-            />
+            <Icon name={displayIcon.name} size={24} color={displayIcon.color} />
             {displayLabel && (
               <AppText style={styles.displayLabel}>{displayLabel}</AppText>
             )}
@@ -116,8 +109,8 @@ const WordOverview = ({
           style={styles.favoriteIcon}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons
-            name={isFavorite === 1 ? "star" : "star-outline"}
+          <Icon
+            name={isFavorite === 1 ? "star" : "starOutline"}
             size={18}
             color={
               isFavorite === 1 ? theme.colors.favorite : theme.colors.iconMuted
@@ -131,27 +124,19 @@ const WordOverview = ({
               triggerWrapper: styles.menuTrigger,
             }}
           >
-            <Ionicons
-              name="ellipsis-vertical"
-              size={22}
-              color={theme.colors.icon}
-            />
+            <Icon name="ellipsis" size={22} color={theme.colors.icon} />
           </MenuTrigger>
           <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
             <MenuOption onSelect={onViewDetails}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="eye-outline"
-                  size={18}
-                  color={theme.colors.textMedium}
-                />
+                <Icon name="eye" size={18} color={theme.colors.textMedium} />
                 <AppText style={styles.menuText}>Ver Detalhes</AppText>
               </View>
             </MenuOption>
             <MenuOption onSelect={onToggleFavorite}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name={isFavorite ? "star" : "star-outline"}
+                <Icon
+                  name={isFavorite ? "star" : "starOutline"}
                   size={18}
                   color={
                     isFavorite ? theme.colors.favorite : theme.colors.iconMuted
@@ -164,22 +149,14 @@ const WordOverview = ({
             </MenuOption>
             <MenuOption onSelect={onEdit}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="pencil-outline"
-                  size={18}
-                  color={theme.colors.textMedium}
-                />
+                <Icon name="pencil" size={18} color={theme.colors.textMedium} />
                 <AppText style={styles.menuText}>Editar</AppText>
               </View>
             </MenuOption>
             <View style={styles.separator} />
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
-                <Ionicons
-                  name="trash-outline"
-                  size={18}
-                  color={theme.colors.dangerDark}
-                />
+                <Icon name="trash" size={18} color={theme.colors.dangerDark} />
                 <AppText
                   style={[styles.menuText, { color: theme.colors.dangerDark }]}
                 >

@@ -10,7 +10,6 @@ import {
   Pressable,
   TextInput,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -25,6 +24,7 @@ import {
 import WordOverview from "../../components/WordOverview";
 import WordEditModal from "../../components/WordEditModal";
 import AppText from "../../components/AppText";
+import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
@@ -296,8 +296,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             style={styles.headerButton}
             onPress={() => setSortModalVisible(true)}
           >
-            <Ionicons
-              name="swap-vertical-outline"
+            <Icon
+              name="swapVertical"
               size={24}
               color={theme.colors.textMedium}
             />
@@ -415,7 +415,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   ): {
     value?: string | number;
     label?: string;
-    displayIcon?: { name: keyof typeof Ionicons.glyphMap; color: string };
+    displayIcon?: { name: IconName; color: string };
   } => {
     const formatNullableDate = (dateString: string | null) => {
       if (!dateString) return "Nunca";
@@ -449,9 +449,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         return {
           displayIcon: {
             name:
-              word.lastAnswerCorrect === 1
-                ? "checkmark-circle"
-                : "close-circle",
+              word.lastAnswerCorrect === 1 ? "checkmarkCircle" : "closeCircle",
             color:
               word.lastAnswerCorrect === 1
                 ? theme.colors.success
@@ -482,11 +480,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     if (searchQuery) {
       return (
         <View style={styles.emptyContainer}>
-          <Ionicons
-            name="search-circle-outline"
-            size={60}
-            color={theme.colors.iconMuted}
-          />
+          <Icon name="searchCircle" size={60} color={theme.colors.iconMuted} />
           <AppText variant="bold" style={styles.emptyTitle}>
             Nenhum resultado
           </AppText>
@@ -499,11 +493,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.emptyContainer}>
-        <Ionicons
-          name="document-text-outline"
-          size={60}
-          color={theme.colors.iconMuted}
-        />
+        <Icon name="documentText" size={60} color={theme.colors.iconMuted} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhuma palavra ainda
         </AppText>
@@ -518,7 +508,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             setIsModalVisible(true);
           }}
         >
-          <Ionicons name="add" size={20} color={theme.colors.surface} />
+          <Icon name="add" size={20} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.emptyButtonText}>
             Adicionar Palavra
           </AppText>
@@ -535,11 +525,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         </AppText>
         <AppText style={styles.deckAuthor}>por {author}</AppText>
         <View style={styles.searchBarContainer}>
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color={theme.colors.placeholder}
-          />
+          <Icon name="search" size={20} color={theme.colors.placeholder} />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
@@ -550,8 +536,8 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons
-                name="close-circle"
+              <Icon
+                name="closeCircle"
                 size={20}
                 color={theme.colors.placeholder}
               />
@@ -629,7 +615,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             onPress={() => setPracticeModalVisible(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="flash" size={28} color={theme.colors.surface} />
+            <Icon name="flash" size={28} color={theme.colors.surface} />
           </TouchableOpacity>
         )}
         {wordsForCurrentDeck.length > 0 && (
@@ -641,7 +627,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             }}
             activeOpacity={0.8}
           >
-            <Ionicons name="add" size={32} color={theme.colors.surface} />
+            <Icon name="add" size={32} color={theme.colors.surface} />
           </TouchableOpacity>
         )}
       </View>
@@ -678,7 +664,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 onPress={() => setPracticeModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color={theme.colors.icon} />
+                <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
 
@@ -686,11 +672,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               style={styles.modeButton}
               onPress={() => handleStartPractice("flashcard")}
             >
-              <Ionicons
-                name="albums-outline"
-                size={24}
-                style={styles.modeIcon}
-              />
+              <Icon name="albums" size={24} style={styles.modeIcon} />
               <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Revisão Clássica
@@ -705,7 +687,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               style={styles.modeButton}
               onPress={() => handleStartPractice("multiple-choice")}
             >
-              <Ionicons name="list-outline" size={24} style={styles.modeIcon} />
+              <Icon name="list" size={24} style={styles.modeIcon} />
               <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Escolha Múltipla
@@ -720,11 +702,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               style={styles.modeButton}
               onPress={() => handleStartPractice("writing")}
             >
-              <Ionicons
-                name="pencil-outline"
-                size={24}
-                style={styles.modeIcon}
-              />
+              <Icon name="pencil" size={24} style={styles.modeIcon} />
               <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Jogo da Escrita
@@ -739,11 +717,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               style={styles.modeButton}
               onPress={() => handleStartPractice("combine-lists")}
             >
-              <Ionicons
-                name="git-compare-outline"
-                size={24}
-                style={styles.modeIcon}
-              />
+              <Icon name="gitCompare" size={24} style={styles.modeIcon} />
               <View style={styles.modeTextContainer}>
                 <AppText variant="bold" style={styles.modeTitle}>
                   Combinar Listas
@@ -781,7 +755,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 onPress={() => setSortModalVisible(false)}
                 style={styles.closeButton}
               >
-                <Ionicons name="close" size={24} color={theme.colors.icon} />
+                <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
             <ScrollView ref={sortScrollViewRef} style={{ maxHeight: 400 }}>

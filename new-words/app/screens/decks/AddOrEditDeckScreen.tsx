@@ -10,7 +10,6 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
 import { useDeckStore } from "../../../stores/deckStore";
@@ -18,6 +17,7 @@ import { useAlertStore } from "../../../stores/useAlertStore";
 import { DecksStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "AddOrEditDeck">;
 
@@ -106,8 +106,8 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.headerSection}>
-          <Ionicons
-            name={isEdit ? "create-outline" : "add-circle-outline"}
+          <Icon
+            name={isEdit ? "edit" : "addCircle"}
             size={48}
             color={theme.colors.primary}
           />
@@ -128,11 +128,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
               style={styles.inputContainer}
               onPress={() => titleInputRef.current?.focus()}
             >
-              <Ionicons
-                name="bookmark-outline"
-                style={styles.inputIcon}
-                size={22}
-              />
+              <Icon name="bookmark" style={styles.inputIcon} size={22} />
               <TextInput
                 ref={titleInputRef}
                 style={styles.input}
@@ -150,11 +146,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
               style={styles.inputContainer}
               onPress={() => authorInputRef.current?.focus()}
             >
-              <Ionicons
-                name="person-outline"
-                style={styles.inputIcon}
-                size={22}
-              />
+              <Icon name="person" style={styles.inputIcon} size={22} />
               <TextInput
                 ref={authorInputRef}
                 style={styles.input}

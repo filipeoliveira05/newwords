@@ -7,9 +7,9 @@ import {
   ScrollView,
   useWindowDimensions,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
+import Icon from "./Icon";
 
 type ChipInputProps = {
   label: string;
@@ -116,9 +116,9 @@ const ChipInput = ({
           {label}
         </AppText>
         <TouchableOpacity onPress={toggleInput} style={styles.toggleButton}>
-          <Ionicons
-            name={isAdding ? "remove-circle-outline" : "add-circle-outline"}
+          <Icon
             size={24}
+            name={isAdding ? "removeCircle" : "addCircle"}
             color={theme.colors.primary}
           />
         </TouchableOpacity>
@@ -143,9 +143,9 @@ const ChipInput = ({
           />
           {currentValue.trim().length > 0 && (
             <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
-              <Ionicons
-                name="checkmark-circle"
+              <Icon
                 size={28}
+                name="checkmarkCircle"
                 color={theme.colors.success}
               />
             </TouchableOpacity>
@@ -173,9 +173,9 @@ const ChipInput = ({
                   onPress={() => handleRemoveItem(index)}
                   style={styles.removeButton}
                 >
-                  <Ionicons
-                    name="close-circle"
+                  <Icon
                     size={20}
+                    name="closeCircle"
                     color={theme.colors.icon}
                   />
                 </TouchableOpacity>
