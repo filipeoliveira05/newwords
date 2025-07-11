@@ -13,6 +13,7 @@ import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import Icon from "../../components/Icon";
+import * as hapticService from "../../../services/hapticService";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -100,6 +101,7 @@ const AccordionItem = ({
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleOpen = () => {
+    hapticService.selectionAsync();
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setIsOpen(!isOpen);
   };

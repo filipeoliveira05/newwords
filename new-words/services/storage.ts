@@ -115,6 +115,12 @@ export const initializeDB = async () => {
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('profile_picture_url', '');`
       );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('haptics_enabled', 'true');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('game_sounds_enabled', 'true');`
+      );
 
       // --- INDEXES FOR PERFORMANCE ---
       // Index to quickly fetch words for a specific deck.

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -13,6 +12,7 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import * as hapticService from "@/services/hapticService";
 import { shuffle } from "@/utils/arrayUtils";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -246,7 +246,9 @@ export default function CombineListsView() {
     recordAnswer(firstSelection.id, quality);
 
     if (isCorrect) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Success
+      );
       const newMatchedPairs = [...matchedPairs, firstSelection.id];
       setMatchedPairs(newMatchedPairs);
 
@@ -265,7 +267,9 @@ export default function CombineListsView() {
         );
       }
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Error
+      );
       const incorrectPairDetails =
         secondItemType === "meaning"
           ? { wordIndex: firstSelection.index, meaningIndex: secondItemIndex }

@@ -1,5 +1,11 @@
 import React, { useLayoutEffect, useState, useEffect } from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Switch,
+} from "react-native";
 import * as Updates from "expo-updates";
 import * as Application from "expo-application";
 import * as Linking from "expo-linking";
@@ -9,17 +15,27 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { deleteDatabase } from "../../../services/storage";
 import { useAlertStore } from "../../../stores/useAlertStore";
+import { useSettingsStore } from "../../../stores/useSettingsStore";
 import Icon from "../../components/Icon";
+import * as hapticService from "../../../services/hapticService";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
 const SettingsScreen = ({ navigation }: Props) => {
   const { showAlert } = useAlertStore.getState();
   const [appVersion, setAppVersion] = useState<string | null>(null);
+  const {
+    hapticsEnabled,
+    setHapticsEnabled,
+    gameSoundsEnabled,
+    setGameSoundsEnabled,
+    fetchSettings,
+  } = useSettingsStore();
 
   useEffect(() => {
     setAppVersion(Application.nativeApplicationVersion);
-  }, []);
+    fetchSettings();
+  }, [fetchSettings]);
 
   const handleResetData = () => {
     showAlert({
@@ -76,11 +92,36 @@ const SettingsScreen = ({ navigation }: Props) => {
         <View style={styles.card}>
           <View style={styles.settingItem}>
             <AppText style={styles.settingLabel}>Notificações</AppText>
-            {/* Futuramente, um switch para ligar/desligar */}
           </View>
           <View style={[styles.settingItem, { borderBottomWidth: 0 }]}>
             <AppText style={styles.settingLabel}>Sons do Jogo</AppText>
-            {/* Futuramente, um switch para ligar/desligar */}
+            <Switch
+              trackColor={{
+                false: theme.colors.disabled,
+                true: theme.colors.primary,
+              }}
+              thumbColor={theme.colors.surface}
+              onValueChange={(value) => {
+                hapticService.impactAsync();
+                setGameSoundsEnabled(value);
+              }}
+              value={gameSoundsEnabled}
+            />
+          </View>
+          <View style={[styles.settingItem]}>
+            <AppText style={styles.settingLabel}>Vibrações</AppText>
+            <Switch
+              trackColor={{
+                false: theme.colors.disabled,
+                true: theme.colors.primary,
+              }}
+              thumbColor={theme.colors.surface}
+              onValueChange={(value) => {
+                hapticService.impactAsync();
+                setHapticsEnabled(value);
+              }}
+              value={hapticsEnabled}
+            />
           </View>
         </View>
       </View>

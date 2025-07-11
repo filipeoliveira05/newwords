@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
-import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,6 +7,7 @@ import Animated, {
   interpolate,
   runOnJS,
 } from "react-native-reanimated";
+import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -82,9 +82,13 @@ export default function FlashcardView() {
   const handleAnswer = (quality: number) => {
     // Quality < 3 is incorrect, >= 3 is correct
     if (quality >= 3) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Success
+      );
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Error
+      );
     }
     // Use the new SM-2 based function
     recordAnswer(currentWord.id, quality);

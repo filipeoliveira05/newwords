@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
 import { shuffle } from "@/utils/arrayUtils";
@@ -79,9 +79,13 @@ export default function MultipleChoiceView() {
     recordAnswer(currentWord.id, quality);
 
     if (isCorrect) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Success
+      );
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Error
+      );
     }
 
     // Adiciona um delay para o utilizador ver o feedback antes de avançar.

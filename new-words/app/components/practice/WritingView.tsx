@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
+import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
@@ -81,9 +81,13 @@ export default function WritingView() {
     const isCorrect = quality >= 3;
 
     if (isCorrect) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Success
+      );
     } else {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      hapticService.notificationAsync(
+        hapticService.NotificationFeedbackType.Error
+      );
     }
     setFeedback(isCorrect ? "correct" : "incorrect");
 
@@ -123,7 +127,7 @@ export default function WritingView() {
       .join(" "); // Add spaces for better readability
 
     setRevealedAnswer(revealed);
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    hapticService.impactAsync();
   };
 
   // --- Render ---

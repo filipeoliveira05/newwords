@@ -20,9 +20,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
-import * as Haptics from "expo-haptics";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
+import * as hapticService from "../../services/hapticService";
 
 import {
   DecksStackParamList,
@@ -313,7 +313,7 @@ export default function AppNavigator() {
           }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              hapticService.impactAsync();
               e.preventDefault();
               navigation.navigate("Home", { screen: "HomeDashboard" });
             },
@@ -334,7 +334,7 @@ export default function AppNavigator() {
           }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              hapticService.impactAsync();
               e.preventDefault();
               navigation.navigate("Decks", { screen: "DecksList" });
             },
@@ -351,7 +351,7 @@ export default function AppNavigator() {
           }}
           listeners={({ navigation }) => ({
             tabPress: (e) => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              hapticService.impactAsync();
               e.preventDefault();
               navigation.navigate("Practice", { screen: "PracticeHub" });
             },
@@ -372,7 +372,7 @@ export default function AppNavigator() {
           }}
           listeners={{
             tabPress: () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              hapticService.impactAsync();
             },
           }}
         />
@@ -392,7 +392,7 @@ export default function AppNavigator() {
           }}
           listeners={{
             tabPress: () => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              hapticService.impactAsync();
             },
           }}
         />
