@@ -17,6 +17,7 @@ import MultipleChoiceView from "../../components/practice/MultipleChoiceView";
 import WritingView from "../../components/practice/WritingView";
 import CombineListsView from "../../components/practice/CombineListsView";
 import SessionResults from "../../components/practice/SessionResults";
+import XpFeedbackManager from "../../components/practice/XpFeedbackManager";
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -118,13 +119,16 @@ export default function PracticeGameScreen({ route }: Props) {
 
   if (sessionState === "in-progress" && gameMode) {
     return (
-      <View style={styles.container}>
+      <View style={styles.rootContainer}>
+        <View style={styles.contentContainer}>
+          <ProgressBar key={sessionState} />
+          {gameMode === "flashcard" && <FlashcardView />}
+          {gameMode === "multiple-choice" && <MultipleChoiceView />}
+          {gameMode === "writing" && <WritingView />}
+          {gameMode === "combine-lists" && <CombineListsView />}
+        </View>
         <GameHeader mode={gameMode} onBackPress={() => navigation.goBack()} />
-        <ProgressBar key={sessionState} />
-        {gameMode === "flashcard" && <FlashcardView />}
-        {gameMode === "multiple-choice" && <MultipleChoiceView />}
-        {gameMode === "writing" && <WritingView />}
-        {gameMode === "combine-lists" && <CombineListsView />}
+        <XpFeedbackManager />
       </View>
     );
   }
@@ -135,11 +139,15 @@ export default function PracticeGameScreen({ route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  rootContainer: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  contentContainer: {
     flex: 1,
     alignItems: "center",
-    backgroundColor: theme.colors.background,
-    paddingTop: 100, // Increased padding to create more space for the absolute header
+    // Padding to ensure content is below the absolute header
+    paddingTop: 100,
   },
   loadingContainer: {
     flex: 1,
