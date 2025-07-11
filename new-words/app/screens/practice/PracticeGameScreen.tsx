@@ -86,8 +86,7 @@ export default function PracticeGameScreen({ route }: Props) {
 
         showAlert({
           title: "Sair da Prática?",
-          message:
-            "O seu progresso nesta ronda não será guardado. Tem a certeza que quer sair?",
+          message: "Tem a certeza que quer sair?",
           buttons: [
             { text: "Ficar", style: "cancel", onPress: () => {} },
             {
