@@ -18,6 +18,7 @@ import { useAlertStore } from "../../../stores/useAlertStore";
 import { useSettingsStore } from "../../../stores/useSettingsStore";
 import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
+import * as soundService from "../../../services/soundService";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
@@ -103,6 +104,7 @@ const SettingsScreen = ({ navigation }: Props) => {
               thumbColor={theme.colors.surface}
               onValueChange={(value) => {
                 hapticService.impactAsync();
+                soundService.playSound(soundService.SoundType.Flip);
                 setGameSoundsEnabled(value);
               }}
               value={gameSoundsEnabled}
@@ -118,6 +120,7 @@ const SettingsScreen = ({ navigation }: Props) => {
               thumbColor={theme.colors.surface}
               onValueChange={(value) => {
                 hapticService.impactAsync();
+                soundService.playSound(soundService.SoundType.Flip);
                 setHapticsEnabled(value);
               }}
               value={hapticsEnabled}

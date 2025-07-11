@@ -23,6 +23,7 @@ import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
 import * as hapticService from "../../services/hapticService";
+import * as soundService from "../../services/soundService";
 
 import {
   DecksStackParamList,
@@ -271,6 +272,7 @@ export default function AppNavigator() {
   useEffect(() => {
     // Initialize league data when the app loads
     useLeagueStore.getState().checkAndInitializeLeagues();
+    soundService.loadSounds();
   }, []);
 
   if (!fontsLoaded) {

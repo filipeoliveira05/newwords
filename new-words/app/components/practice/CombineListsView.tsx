@@ -12,6 +12,7 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { usePracticeStore } from "@/stores/usePracticeStore";
+import * as soundService from "@/services/soundService";
 import * as hapticService from "@/services/hapticService";
 import { shuffle } from "@/utils/arrayUtils";
 import AppText from "../AppText";
@@ -249,6 +250,7 @@ export default function CombineListsView() {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Success
       );
+      soundService.playSound(soundService.SoundType.Correct);
       const newMatchedPairs = [...matchedPairs, firstSelection.id];
       setMatchedPairs(newMatchedPairs);
 
@@ -270,6 +272,7 @@ export default function CombineListsView() {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Error
       );
+      soundService.playSound(soundService.SoundType.Incorrect);
       const incorrectPairDetails =
         secondItemType === "meaning"
           ? { wordIndex: firstSelection.index, meaningIndex: secondItemIndex }

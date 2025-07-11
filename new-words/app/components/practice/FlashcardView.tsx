@@ -7,6 +7,7 @@ import Animated, {
   interpolate,
   runOnJS,
 } from "react-native-reanimated";
+import * as soundService from "@/services/soundService";
 import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
@@ -66,6 +67,7 @@ export default function FlashcardView() {
   }
 
   const handleReveal = () => {
+    soundService.playSound(soundService.SoundType.Flip);
     // Anima a rotação para o lado oposto
     rotation.value = withTiming(rotation.value === 0 ? 180 : 0, {
       duration: 600,
@@ -85,10 +87,12 @@ export default function FlashcardView() {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Success
       );
+      soundService.playSound(soundService.SoundType.Correct);
     } else {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Error
       );
+      soundService.playSound(soundService.SoundType.Incorrect);
     }
     // Use the new SM-2 based function
     recordAnswer(currentWord.id, quality);

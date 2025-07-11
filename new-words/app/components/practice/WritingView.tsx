@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import * as soundService from "@/services/soundService";
 import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import AppText from "../AppText";
@@ -84,10 +85,12 @@ export default function WritingView() {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Success
       );
+      soundService.playSound(soundService.SoundType.Correct);
     } else {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Error
       );
+      soundService.playSound(soundService.SoundType.Incorrect);
     }
     setFeedback(isCorrect ? "correct" : "incorrect");
 

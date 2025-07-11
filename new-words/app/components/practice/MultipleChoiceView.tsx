@@ -11,6 +11,7 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
+import * as soundService from "@/services/soundService";
 import * as hapticService from "@/services/hapticService";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { useWordStore } from "@/stores/wordStore";
@@ -82,10 +83,12 @@ export default function MultipleChoiceView() {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Success
       );
+      soundService.playSound(soundService.SoundType.Correct);
     } else {
       hapticService.notificationAsync(
         hapticService.NotificationFeedbackType.Error
       );
+      soundService.playSound(soundService.SoundType.Incorrect);
     }
 
     // Adiciona um delay para o utilizador ver o feedback antes de avançar.
