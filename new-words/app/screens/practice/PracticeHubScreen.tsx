@@ -334,6 +334,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    marginBottom: 16,
   },
   loadingContainer: {
     flex: 1,

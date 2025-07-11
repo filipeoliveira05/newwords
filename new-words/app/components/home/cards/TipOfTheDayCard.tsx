@@ -32,7 +32,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: "row",
     alignItems: "flex-start", // Align to top for longer text
-    marginTop: 16,
   },
   textContainer: {
     flex: 1,

@@ -135,7 +135,12 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.dynamicCardContainer}>
           <DynamicActionCard />
         </View>
-        <LeagueWidget />
+        <View style={styles.section}>
+          <AppText variant="bold" style={styles.sectionTitle}>
+            Liga Semanal
+          </AppText>
+          <LeagueWidget />
+        </View>
 
         {/*
           ==================================================================
@@ -146,15 +151,17 @@ export default function HomeScreen({ navigation }: Props) {
           <AppText variant="bold" style={styles.sectionTitle}>
             As Suas Metas
           </AppText>
-          {dailyGoals.map((goal) => (
-            <DailyGoalProgress
-              key={goal.id}
-              icon={goal.icon}
-              title={goal.title}
-              target={goal.target}
-              current={goal.current}
-            />
-          ))}
+          <View style={styles.goalCard}>
+            {dailyGoals.map((goal) => (
+              <DailyGoalProgress
+                key={goal.id}
+                icon={goal.icon}
+                title={goal.title}
+                target={goal.target}
+                current={goal.current}
+              />
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -173,6 +180,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    marginBottom: 50,
   },
   loadingContainer: {
     flex: 1,
@@ -195,7 +203,7 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   dynamicCardContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   section: {
     marginTop: 32,
@@ -204,5 +212,13 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.xxl,
     color: theme.colors.text,
     marginBottom: 16,
+  },
+  goalCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: theme.colors.borderLight,
   },
 });
