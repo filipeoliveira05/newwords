@@ -24,6 +24,7 @@ import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
 import * as hapticService from "../../services/hapticService";
 import * as soundService from "../../services/soundService";
+import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import {
   DecksStackParamList,
@@ -284,123 +285,125 @@ export default function AppNavigator() {
     );
   }
   return (
-    <View style={{ flex: 1 }}>
-      <Tab.Navigator
-        tabBar={(props) => <AnimatedTabBar {...props} />}
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: false,
-          tabBarActiveTintColor: theme.colors.primary,
-          tabBarInactiveTintColor: theme.colors.textSecondary,
-          tabBarStyle: {
-            backgroundColor: theme.colors.surface,
-            height: TAB_BAR_HEIGHT,
-            borderTopWidth: 0, // A sombra já cria uma separação visual
-            ...shadowStyle,
-          },
-        }}
-      >
-        <Tab.Screen
-          name="Home"
-          component={HomeStack}
-          options={{
-            tabBarIcon: ({ focused, color }) => (
-              <AnimatedTabBarIcon
-                focused={focused}
-                name="home"
-                size={28}
-                color={color}
-              />
-            ),
-          }}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              hapticService.impactAsync();
-              e.preventDefault();
-              navigation.navigate("Home", { screen: "HomeDashboard" });
-            },
-          })}
-        />
-        <Tab.Screen
-          name="Decks"
-          component={DecksStack}
-          options={{
-            tabBarIcon: ({ focused, color }) => (
-              <AnimatedTabBarIcon
-                focused={focused}
-                name="decks"
-                size={28}
-                color={color}
-              />
-            ),
-          }}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              hapticService.impactAsync();
-              e.preventDefault();
-              navigation.navigate("Decks", { screen: "DecksList" });
-            },
-          })}
-        />
-        <Tab.Screen
-          name="Practice"
-          component={PracticeStack}
-          options={{
-            tabBarIcon: () => (
-              <Icon name="practice" size={32} color={theme.colors.surface} />
-            ),
-            tabBarButton: (props) => <CustomTabBarButton {...props} />,
-          }}
-          listeners={({ navigation }) => ({
-            tabPress: (e) => {
-              hapticService.impactAsync();
-              e.preventDefault();
-              navigation.navigate("Practice", { screen: "PracticeHub" });
-            },
-          })}
-        />
-        <Tab.Screen
-          name="Stats"
-          component={StatsScreen}
-          options={{
-            tabBarIcon: ({ focused, color }) => (
-              <AnimatedTabBarIcon
-                focused={focused}
-                name="stats"
-                size={28}
-                color={color}
-              />
-            ),
-          }}
-          listeners={{
-            tabPress: () => {
-              hapticService.impactAsync();
-            },
-          }}
-        />
-        <Tab.Screen
-          name="Profile"
-          component={ProfileStack}
-          options={{
+    <BottomSheetModalProvider>
+      <View style={{ flex: 1 }}>
+        <Tab.Navigator
+          tabBar={(props) => <AnimatedTabBar {...props} />}
+          screenOptions={{
             headerShown: false,
-            tabBarIcon: ({ focused, color }) => (
-              <AnimatedTabBarIcon
-                focused={focused}
-                name="profile"
-                size={28}
-                color={color}
-              />
-            ),
-          }}
-          listeners={{
-            tabPress: () => {
-              hapticService.impactAsync();
+            tabBarShowLabel: false,
+            tabBarActiveTintColor: theme.colors.primary,
+            tabBarInactiveTintColor: theme.colors.textSecondary,
+            tabBarStyle: {
+              backgroundColor: theme.colors.surface,
+              height: TAB_BAR_HEIGHT,
+              borderTopWidth: 0, // A sombra já cria uma separação visual
+              ...shadowStyle,
             },
           }}
-        />
-      </Tab.Navigator>
-      <CustomAlert />
-      <LevelUpOverlay />
-    </View>
+        >
+          <Tab.Screen
+            name="Home"
+            component={HomeStack}
+            options={{
+              tabBarIcon: ({ focused, color }) => (
+                <AnimatedTabBarIcon
+                  focused={focused}
+                  name="home"
+                  size={28}
+                  color={color}
+                />
+              ),
+            }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                hapticService.impactAsync();
+                e.preventDefault();
+                navigation.navigate("Home", { screen: "HomeDashboard" });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="Decks"
+            component={DecksStack}
+            options={{
+              tabBarIcon: ({ focused, color }) => (
+                <AnimatedTabBarIcon
+                  focused={focused}
+                  name="decks"
+                  size={28}
+                  color={color}
+                />
+              ),
+            }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                hapticService.impactAsync();
+                e.preventDefault();
+                navigation.navigate("Decks", { screen: "DecksList" });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="Practice"
+            component={PracticeStack}
+            options={{
+              tabBarIcon: () => (
+                <Icon name="practice" size={32} color={theme.colors.surface} />
+              ),
+              tabBarButton: (props) => <CustomTabBarButton {...props} />,
+            }}
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
+                hapticService.impactAsync();
+                e.preventDefault();
+                navigation.navigate("Practice", { screen: "PracticeHub" });
+              },
+            })}
+          />
+          <Tab.Screen
+            name="Stats"
+            component={StatsScreen}
+            options={{
+              tabBarIcon: ({ focused, color }) => (
+                <AnimatedTabBarIcon
+                  focused={focused}
+                  name="stats"
+                  size={28}
+                  color={color}
+                />
+              ),
+            }}
+            listeners={{
+              tabPress: () => {
+                hapticService.impactAsync();
+              },
+            }}
+          />
+          <Tab.Screen
+            name="Profile"
+            component={ProfileStack}
+            options={{
+              headerShown: false,
+              tabBarIcon: ({ focused, color }) => (
+                <AnimatedTabBarIcon
+                  focused={focused}
+                  name="profile"
+                  size={28}
+                  color={color}
+                />
+              ),
+            }}
+            listeners={{
+              tabPress: () => {
+                hapticService.impactAsync();
+              },
+            }}
+          />
+        </Tab.Navigator>
+        <CustomAlert />
+        <LevelUpOverlay />
+      </View>
+    </BottomSheetModalProvider>
   );
 }

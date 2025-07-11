@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -26,6 +32,11 @@ import WordEditModal from "../../components/WordEditModal";
 import AppText from "../../components/AppText";
 import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
 const EMPTY_ARRAY: number[] = [];
@@ -152,13 +163,13 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [practiceModalVisible, setPracticeModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     criterion: "createdAt",
     direction: "desc",
   });
 
+  const practiceBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatListRef = useRef<FlatList<Word>>(null);
   const sortScrollViewRef = useRef<ScrollView>(null);
 
@@ -392,7 +403,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   const handleStartPractice = (
     mode: "flashcard" | "multiple-choice" | "writing" | "combine-lists"
   ) => {
-    setPracticeModalVisible(false); // Fecha o modal imediatamente
+    practiceBottomSheetRef.current?.dismiss(); // Fecha o BottomSheet
 
     // Use getParent() to access the parent Tab Navigator
     navigation
@@ -467,6 +478,18 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     setSortModalVisible(false);
   };
 
+  const practiceSnapPoints = useMemo(() => ["60%"], []);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    []
+  );
   const renderEmptyComponent = () => {
     if (loading) {
       return (
@@ -612,7 +635,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         {wordsForCurrentDeck.length > 0 && (
           <TouchableOpacity
             style={[styles.fab, styles.practiceFab]}
-            onPress={() => setPracticeModalVisible(true)}
+            onPress={() => practiceBottomSheetRef.current?.present()}
             activeOpacity={0.8}
           >
             <Icon name="flash" size={28} color={theme.colors.surface} />
@@ -639,97 +662,6 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         initialData={editingWord}
         isSaving={isSaving}
       />
-
-      {/* Practice Mode Selection Modal */}
-      <Modal
-        visible={practiceModalVisible}
-        transparent
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent={true}
-        onRequestClose={() => setPracticeModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setPracticeModalVisible(false)}
-          />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <AppText variant="bold" style={styles.modalTitle}>
-                Escolha um Modo
-              </AppText>
-              <TouchableOpacity
-                onPress={() => setPracticeModalVisible(false)}
-                style={styles.closeButton}
-              >
-                <Icon name="close" size={24} color={theme.colors.icon} />
-              </TouchableOpacity>
-            </View>
-
-            <TouchableOpacity
-              style={styles.modeButton}
-              onPress={() => handleStartPractice("flashcard")}
-            >
-              <Icon name="albums" size={24} style={styles.modeIcon} />
-              <View style={styles.modeTextContainer}>
-                <AppText variant="bold" style={styles.modeTitle}>
-                  Revisão Clássica
-                </AppText>
-                <AppText style={styles.modeDescription}>
-                  Flashcards simples: veja a palavra, adivinhe o significado
-                </AppText>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modeButton}
-              onPress={() => handleStartPractice("multiple-choice")}
-            >
-              <Icon name="list" size={24} style={styles.modeIcon} />
-              <View style={styles.modeTextContainer}>
-                <AppText variant="bold" style={styles.modeTitle}>
-                  Escolha Múltipla
-                </AppText>
-                <AppText style={styles.modeDescription}>
-                  Escolha o significado correto entre 4 opções
-                </AppText>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modeButton}
-              onPress={() => handleStartPractice("writing")}
-            >
-              <Icon name="pencil" size={24} style={styles.modeIcon} />
-              <View style={styles.modeTextContainer}>
-                <AppText variant="bold" style={styles.modeTitle}>
-                  Jogo da Escrita
-                </AppText>
-                <AppText style={styles.modeDescription}>
-                  Nós mostramos o significado, você escreve a palavra
-                </AppText>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modeButton}
-              onPress={() => handleStartPractice("combine-lists")}
-            >
-              <Icon name="gitCompare" size={24} style={styles.modeIcon} />
-              <View style={styles.modeTextContainer}>
-                <AppText variant="bold" style={styles.modeTitle}>
-                  Combinar Listas
-                </AppText>
-                <AppText style={styles.modeDescription}>
-                  Combine as palavras com os seus significados
-                </AppText>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Sort Options Modal */}
       <Modal
@@ -781,6 +713,92 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* Bottom Sheet Prática de Deck */}
+      <BottomSheetModal
+        ref={practiceBottomSheetRef}
+        snapPoints={practiceSnapPoints} // Controlado por present() e dismiss()
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.modalHandle}
+      >
+        <BottomSheetScrollView
+          contentContainerStyle={styles.bottomSheetContent}
+        >
+          <View style={styles.modalHeader}>
+            <AppText variant="bold" style={styles.modalTitle}>
+              Escolha um Modo
+            </AppText>
+            <TouchableOpacity
+              onPress={() => practiceBottomSheetRef.current?.dismiss()}
+              style={styles.closeButton}
+            >
+              <Icon name="close" size={24} color={theme.colors.icon} />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() => handleStartPractice("flashcard")}
+          >
+            <Icon name="albums" size={24} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Revisão Clássica
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Flashcards simples: veja a palavra, adivinhe o significado
+              </AppText>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() => handleStartPractice("multiple-choice")}
+          >
+            <Icon name="list" size={24} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Escolha Múltipla
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Escolha o significado correto entre 4 opções
+              </AppText>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() => handleStartPractice("writing")}
+          >
+            <Icon name="pencil" size={24} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Jogo da Escrita
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Nós mostramos o significado, você escreve a palavra
+              </AppText>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.modeButton}
+            onPress={() => handleStartPractice("combine-lists")}
+          >
+            <Icon name="gitCompare" size={24} style={styles.modeIcon} />
+            <View style={styles.modeTextContainer}>
+              <AppText variant="bold" style={styles.modeTitle}>
+                Combinar Listas
+              </AppText>
+              <AppText style={styles.modeDescription}>
+                Combine as palavras com os seus significados
+              </AppText>
+            </View>
+          </TouchableOpacity>
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -919,11 +937,17 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.overlay,
     justifyContent: "flex-end", // Alinha o modal na parte inferior
   },
+  bottomSheetBackground: {
+    backgroundColor: theme.colors.surface,
+  },
+  bottomSheetContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 24, // Adiciona espaço no final da lista para um scroll mais suave
+  },
   modalContainer: {
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
     paddingTop: 12,
   },
   modalHandle: {
@@ -939,6 +963,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
+    paddingHorizontal: 20,
   },
   modalTitle: {
     fontSize: theme.fontSizes["2xl"],
