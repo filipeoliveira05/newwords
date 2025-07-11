@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
-// import ConfettiCannon from "react-native-confetti-cannon";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import {
   updateUserPracticeMetrics,
@@ -150,16 +149,6 @@ export default function SessionResults({
   }
   return (
     <View style={styles.container}>
-      {/* Confetti for perfect rounds! */}
-      {/* {isPerfectRound && (
-        <ConfettiCannon
-          count={200}
-          origin={{ x: -10, y: 0 }}
-          autoStart={true}
-          fadeOut={true}
-        />
-      )} */}
-
       <AppText variant="bold" style={styles.title}>
         {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
       </AppText>

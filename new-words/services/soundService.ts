@@ -20,7 +20,7 @@ const canPlaySound = (): boolean => {
 };
 
 export const loadSounds = async () => {
-  console.log("A carregar sons...");
+  // console.log("A carregar sons...");
   for (const key in soundFiles) {
     const soundType = Number(key) as SoundType;
     try {
@@ -33,7 +33,7 @@ export const loadSounds = async () => {
       );
     }
   }
-  console.log("Sons carregados.");
+  // console.log("Sons carregados.");
 };
 
 export const playSound = async (type: SoundType) => {
