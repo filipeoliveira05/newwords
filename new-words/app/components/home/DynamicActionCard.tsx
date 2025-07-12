@@ -5,16 +5,10 @@ import { useUserStore } from "../../../stores/useUserStore";
 import WeeklySummaryCard from "./cards/WeeklySummaryCard";
 import ChallengingWordsCard from "./cards/ChallengingWordsCard";
 import UrgentReviewCard from "./cards/UrgentReviewCard";
-import ContinueLearningCard from "./cards/ContinueLearningCard";
 import DefaultPracticeCard from "./cards/DefaultPracticeCard";
 
 const DynamicActionCard = () => {
-  const {
-    weeklySummary,
-    challengingWords,
-    lastPracticedDeck,
-    urgentWordsCount,
-  } = useUserStore();
+  const { weeklySummary, challengingWords, urgentWordsCount } = useUserStore();
 
   // useMemo ensures this logic only runs when the underlying data changes.
   const ActionCard = useMemo(() => {
@@ -37,14 +31,9 @@ const DynamicActionCard = () => {
       return <UrgentReviewCard count={urgentWordsCount} />;
     }
 
-    // Priority 4: Continue Learning
-    if (lastPracticedDeck) {
-      return <ContinueLearningCard deck={lastPracticedDeck} />;
-    }
-
     // Fallback: Default Practice Card
     return <DefaultPracticeCard />;
-  }, [weeklySummary, challengingWords, urgentWordsCount, lastPracticedDeck]);
+  }, [weeklySummary, challengingWords, urgentWordsCount]);
 
   return ActionCard;
 };

@@ -15,6 +15,7 @@ import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
 import LeagueWidget from "../../components/home/LeagueWidget";
 import DynamicActionCard from "../../components/home/DynamicActionCard";
 import OnThisDayCard from "../../components/home/cards/OnThisDayCard";
+import ContinueLearningCard from "../../components/home/cards/ContinueLearningCard";
 import TipOfTheDayCard from "../../components/home/cards/TipOfTheDayCard";
 import GamificationHeader from "../../components/home/GamificationHeader";
 import {
@@ -33,6 +34,7 @@ export default function HomeScreen({ navigation }: Props) {
     lastPracticeDate,
     todaysPractice,
     totalWords,
+    lastPracticedDeck,
     onThisDayWord,
     loading,
     fetchUserStats,
@@ -135,6 +137,11 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={styles.dynamicCardContainer}>
           <DynamicActionCard />
         </View>
+        {lastPracticedDeck && (
+          <View style={styles.staticCardContainer}>
+            <ContinueLearningCard deck={lastPracticedDeck} />
+          </View>
+        )}
         <View style={styles.section}>
           <AppText variant="bold" style={styles.sectionTitle}>
             Liga Semanal
@@ -142,11 +149,6 @@ export default function HomeScreen({ navigation }: Props) {
           <LeagueWidget />
         </View>
 
-        {/*
-          ==================================================================
-          SECÇÃO 4: JORNADA DE APRENDIZAGEM E DESCOBERTA
-          ==================================================================
-        */}
         <View style={styles.section}>
           <AppText variant="bold" style={styles.sectionTitle}>
             As Suas Metas
@@ -203,7 +205,10 @@ const styles = StyleSheet.create({
     paddingTop: 0,
   },
   dynamicCardContainer: {
-    marginBottom: 10,
+    marginBottom: 16,
+  },
+  staticCardContainer: {
+    marginBottom: 16,
   },
   section: {
     marginTop: 32,

@@ -34,7 +34,7 @@ const ContinueLearningCard = ({ deck }: Props) => {
           Continue a Aprender
         </AppText>
         <AppText style={styles.subtitle}>
-          Pratique o conjunto {deck.title}
+          Pratique o conjunto <AppText variant="bold">{deck.title}</AppText>
         </AppText>
       </View>
       <Icon name="forward" size={22} color={theme.colors.textMuted} />
