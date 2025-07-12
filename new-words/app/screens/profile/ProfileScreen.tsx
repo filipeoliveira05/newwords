@@ -47,6 +47,12 @@ const ProfileScreen = ({ navigation }: Props) => {
       color: theme.colors.primary,
     },
     {
+      title: "Estatísticas",
+      icon: "stats" as IconName,
+      screen: "Stats",
+      color: theme.colors.textMedium,
+    },
+    {
       title: "Definições",
       icon: "settings" as IconName,
       screen: "Settings",

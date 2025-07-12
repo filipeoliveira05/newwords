@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -15,7 +21,7 @@ import Animated, {
   runOnJS,
   Easing,
 } from "react-native-reanimated";
-import { useNavigation } from "@react-navigation/native";
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import Toast from "react-native-toast-message";
 import { format, parseISO } from "date-fns";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -39,7 +45,10 @@ import {
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../../services/storage";
-import { RootTabParamList } from "../../../types/navigation";
+import {
+  RootTabParamList,
+  ProfileStackParamList,
+} from "../../../types/navigation";
 import { eventStore } from "@/stores/eventStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { pt } from "date-fns/locale";
@@ -62,7 +71,9 @@ type MarkedDates = {
   };
 };
 
-export default function StatsScreen() {
+type Props = NativeStackScreenProps<ProfileStackParamList, "Stats">;
+
+export default function StatsScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [userMetrics, setUserMetrics] = useState<UserPracticeMetrics | null>(
@@ -93,8 +104,18 @@ export default function StatsScreen() {
     (Achievement & { unlocked: boolean; isNew: boolean })[]
   >([]);
 
-  const navigation =
-    useNavigation<BottomTabNavigationProp<RootTabParamList, "Stats">>();
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      title: "Estatísticas",
+      headerStyle: { backgroundColor: theme.colors.background },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
+      headerShadowVisible: false,
+      headerBackTitle: "Perfil",
+    });
+  }, [navigation]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -343,16 +364,17 @@ export default function StatsScreen() {
 
     // Navega para o ecrã de prática, passando apenas as palavras desafiadoras.
     // O modo 'multiple-choice' é ótimo para uma revisão focada.
-    navigation.navigate("Practice", {
-      // Navega para o separador de prática
-      screen: "PracticeLoading", // Inicia o ecrã de carregamento
-      params: {
-        mode: "multiple-choice",
-        sessionType: "free", // Prática de palavras específicas é sempre 'free'
-        words: challengingWords,
-        origin: "Stats",
-      },
-    });
+    navigation
+      .getParent<BottomTabNavigationProp<RootTabParamList>>()
+      ?.navigate("Practice", {
+        screen: "PracticeLoading",
+        params: {
+          mode: "multiple-choice",
+          sessionType: "free", // Prática de palavras específicas é sempre 'free'
+          words: challengingWords,
+          origin: "Stats",
+        },
+      });
   };
 
   // Configura o calendário para português
@@ -384,15 +406,7 @@ export default function StatsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <AppText variant="bold" style={styles.title}>
-          As suas Estatísticas
-        </AppText>
-        <AppText style={styles.subtitle}>
-          Acompanhe o seu progresso e conquistas.
-        </AppText>
-      </View>
-      <ScrollView contentContainerStyle={styles.contentContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContentContainer}>
         {/* Secção 1: Métricas Principais */}
         <View style={styles.statsGrid}>
           <StatCard
@@ -629,28 +643,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  contentContainer: {
+  scrollContentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 40,
-  },
-  header: {
-    paddingTop: 60, // Safe area
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-  },
-  title: {
-    fontSize: theme.fontSizes["4xl"],
-    color: theme.colors.text,
+    paddingTop: 20,
   },
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    marginBottom: 20,
-    marginTop: 24, // Add margin to separate from header
+    marginBottom: 20, // Add margin to separate from header
   },
   section: {
     backgroundColor: theme.colors.surface,
@@ -715,11 +717,6 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 10,
     color: theme.colors.textSecondary,
-  },
-  subtitle: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.textSecondary,
-    marginTop: 4,
   },
   modalOverlay: {
     flex: 1,

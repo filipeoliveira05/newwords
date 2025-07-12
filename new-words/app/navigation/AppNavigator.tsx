@@ -32,6 +32,7 @@ import {
   HomeStackParamList,
   ProfileStackParamList,
   RootTabParamList,
+  CommunityStackParamList,
 } from "../../types/navigation";
 
 import HomeScreen from "../screens/home/HomeScreen";
@@ -46,6 +47,7 @@ import PracticeHubScreen from "../screens/practice/PracticeHubScreen";
 import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
 import PracticeLoadingScreen from "../screens/practice/PracticeLoadingScreen";
 
+import CommunityScreen from "../screens/community/CommunityScreen";
 import StatsScreen from "../screens/stats/StatsScreen";
 
 import ProfileScreen from "../screens/profile/ProfileScreen";
@@ -122,6 +124,7 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
     "LeagueDetails",
     "Account",
     "EditAccount",
+    "Stats",
     "Settings",
     "Help",
   ];
@@ -240,6 +243,23 @@ function PracticeStack() {
   );
 }
 
+const CommunityStackNav = createNativeStackNavigator<CommunityStackParamList>();
+
+function CommunityStack() {
+  return (
+    <CommunityStackNav.Navigator
+      screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
+    >
+      <CommunityStackNav.Screen
+        name="CommunityHub"
+        component={CommunityScreen}
+        options={{ headerShown: false }}
+      />
+      {/* Futuramente: LeagueDetails, DuelingScreen, etc. */}
+    </CommunityStackNav.Navigator>
+  );
+}
+
 const ProfileStackNav = createNativeStackNavigator<ProfileStackParamList>();
 
 function ProfileStack() {
@@ -252,6 +272,7 @@ function ProfileStack() {
         component={ProfileScreen}
         options={{ headerShown: false }}
       />
+      <ProfileStackNav.Screen name="Stats" component={StatsScreen} />
       <ProfileStackNav.Screen name="Account" component={AccountScreen} />
       <ProfileStackNav.Screen
         name="EditAccount"
@@ -362,23 +383,23 @@ export default function AppNavigator() {
             })}
           />
           <Tab.Screen
-            name="Stats"
-            component={StatsScreen}
+            name="Community"
+            component={CommunityStack}
             options={{
               tabBarIcon: ({ focused, color }) => (
                 <AnimatedTabBarIcon
                   focused={focused}
-                  name="stats"
+                  name="community"
                   size={28}
                   color={color}
                 />
               ),
             }}
-            listeners={{
+            listeners={({ navigation }) => ({
               tabPress: () => {
                 hapticService.impactAsync();
               },
-            }}
+            })}
           />
           <Tab.Screen
             name="Profile"

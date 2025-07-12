@@ -18,6 +18,8 @@ export const iconMap = {
   decks: { name: "layers", library: "ionicons" },
   decksOutline: { name: "layers-outline", library: "ionicons" },
   practice: { name: "zap", library: "feather" },
+  community: { name: "globe", library: "ionicons" },
+  communityOutline: { name: "globe-outline", library: "ionicons" },
   stats: { name: "stats-chart", library: "ionicons" },
   statsOutline: { name: "stats-chart-outline", library: "ionicons" },
   profile: { name: "person", library: "ionicons" },
@@ -80,6 +82,7 @@ export const iconMap = {
   text: { name: "text-outline", library: "ionicons" },
   chat: { name: "chatbox-ellipses-outline", library: "ionicons" },
 
+  cloudOffline: { name: "cloud-offline-outline", library: "ionicons" },
   // Practice & Learning
   school: { name: "school-outline", library: "ionicons" },
   trendingUp: { name: "trending-up-outline", library: "ionicons" },

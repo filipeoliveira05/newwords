@@ -37,18 +37,24 @@ export type PracticeStackParamList = {
   };
 };
 
+export type CommunityStackParamList = {
+  CommunityHub: undefined;
+  // Futuramente: LeagueDetails, DuelingScreen, etc.
+};
+
 export type ProfileStackParamList = {
   ProfileMain: undefined;
   Settings: undefined;
   Account: undefined;
   EditAccount: undefined;
   Help: undefined;
+  Stats: undefined;
 };
 
 export type RootTabParamList = {
   Home: NavigatorScreenParams<HomeStackParamList> | undefined;
   Decks: NavigatorScreenParams<DecksStackParamList> | undefined;
   Practice: NavigatorScreenParams<PracticeStackParamList> | undefined;
-  Stats: undefined;
+  Community: NavigatorScreenParams<CommunityStackParamList> | undefined;
   Profile: NavigatorScreenParams<ProfileStackParamList> | undefined;
 };
