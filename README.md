@@ -56,47 +56,53 @@ The application has a solid and scalable foundation, with the following features
 
 ## 🗺️ Development Roadmap
 
-With a robust foundation for practice and statistics, the focus now shifts to making the app more interactive, rewarding, and intelligent.
+Com uma base sólida para a prática e estatísticas, o foco agora muda para tornar a aplicação mais interativa, recompensadora e inteligente. A visão está organizada em níveis, começando com o polimento da experiência principal e evoluindo para funcionalidades sociais e de IA.
 
 ### 🎯 Current Priorities
 
-#### Level 1: Core Experience & Polish (High-Impact)
+#### Nível 1: Experiência Principal e Polimento (Alto Impacto)
 
-- [ ] 📊 **Visible Gamification Stats:** Display key stats like total words, day streak, and a new XP/Level metric in a prominent place (e.g., the main screen's header) to constantly motivate the user.
-- [ ] 🌙 **Dark Mode:** Implement a full dark theme for the application.
 - [ ] 🎨 **UI/UX Enhancements:**
-  - [ ] Improve the design of the "Combine Lists" game mode to be more intuitive and visually appealing, similar to Duolingo's interface.
-  - [ ] Refine screen transitions to use a consistent slide-right for forward navigation and slide-left for backward navigation.
-- [ ] 🧠 **Refined Mastery System:** Improve the logic for `masteryLevel`. For example, a word might only be considered "mastered" after being answered correctly 5 times in a row.
+  - [ ] **Design do "Combinar Listas":** Melhorar o design do modo de jogo para ser mais intuitivo e visualmente apelativo, semelhante à interface do Duolingo.
+  - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda para a revisão de flashcards, tornando as sessões mais rápidas e envolventes.
+  - [ ] **Animações e Feedback:** Adicionar animações com Lottie aos ícones da Tab Bar, expandir o uso de feedback háptico e criar uma animação especial ao apagar um conjunto.
+  - [ ] **Modernizar UI:** Substituir os modais antigos por `Bottom Sheets` para uma experiência mais nativa e fluida.
+  - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
+- [ ] 🧠 **Sistema de Maestria Refinado:** Melhorar a lógica do `masteryLevel`. Por exemplo, uma palavra só será considerada "Dominada" após 5 respostas corretas consecutivas.
+- [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
+  - [ ] **"Continuar a Estudar":** Adicionar uma secção que mostra conjuntos com progresso a meio, permitindo ao utilizador retomar a prática rapidamente.
+  - [ ] **Widget da Liga Offline:** Garantir que o widget mostra sempre os últimos dados em cache quando offline, com um indicador visual claro.
+- [ ] 🔀 **Ordenação Avançada de Conjuntos:** Adicionar opções para ordenar os conjuntos por "Mais Difícil", "Menos Revisto" ou "Mais Antigo".
 
-#### Level 2: The Habit Hook (Getting the User to Come Back)
+#### Nível 2: O Hábito (Engajamento e Retenção)
 
 - [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
 - [ ] 📖 **"All Words" Library:** Create a dedicated screen where users can view and search all words in the database, regardless of deck, and tap to see their details.
 - [ ] 🎲 **New Game Modes:**
-  - [ ] **Time Sprint:** A fast-paced mode: "How many words can you answer in 60 seconds?"
-  - [ ] **Complete the Phrase:** A sentence appears with a blank space in which the user must insert a word with the appropriate meaning.
-  - [ ] **Combine Lists Variant:** A version of the existing mode with a countdown timer and score multipliers for combos.
-- [ ] 🏆 **Shareable Milestones:** When a user unlocks an important achievement or reaches a new level, generate a beautiful, shareable image for social media to encourage sharing and organic growth.
-- [ ] ⬅️ ➡️ **Tinder-Style Review:** Implement a fast and fluid swipe-right/swipe-left interface for flashcard review, making practice sessions more engaging.
+  - [ ] **Sprint Contra o Tempo:** Um modo rápido: "Quantas palavras consegue acertar em 60 segundos?".
+  - [ ] **Completa a Frase:** Uma frase aparece com um espaço em branco, e o utilizador deve escolher a palavra correta para o preencher.
+  - [ ] **Prática com "Apostas" (Stakes):** O utilizador "aposta" parte do seu XP na sua performance. Se tiver uma sessão perfeita, duplica o XP; se falhar, perde-o.
+- [ ] 🏆 **Marcos Partilháveis:** Quando um utilizador atinge um marco importante (ex: nível 20), gerar uma imagem bonita e partilhável para as redes sociais.
+- [ ] 🎉 **Eventos Semanais Temáticos:** Lançar um tema semanal (ex: "Semana do Espaço"). As palavras praticadas que pertençam a esse tema valem o dobro do XP.
 
-#### Level 3: Content Depth & Community
+#### Nível 3: Comunidade e Conteúdo Social
 
-- [x] 📈 **XP & Leveling System:** Implement a comprehensive XP and leveling system to reward users for all learning activities (adding words, practicing, completing goals).
-- [x] 🥇 **Leaderboards & Leagues:** Introduce weekly leagues based on XP earned, fostering friendly competition and long-term retention.
+- [ ] 🏪 **Marketplace da Comunidade:**
+- [ ] **Partilha de Conjuntos e Palavras:** Permitir que os utilizadores publiquem os seus próprios conjuntos e palavras para que outros possam adicionar à sua biblioteca.
+- [ ] **Rankings e Votação:** Os utilizadores podem votar (upvote) nos melhores conjuntos, com abas para "Mais Populares", "Tendências" e "Recentes".
+- [ ] ⚔️ **Duelos de Vocabulário (1v1):** Um modo de jogo onde um utilizador pode desafiar um amigo. Ambos respondem às mesmas 10 perguntas num sprint contra o tempo.
+- [ ] 💬 **Interação nos Conjuntos:** Permitir que os utilizadores deixem comentários, dicas ou frases de exemplo nos conjuntos partilhados pela comunidade.
+- [ ] 👤 **Perfis de Utilizador Personalizáveis:** Permitir que os utilizadores personalizem o seu perfil com a sua palavra favorita, a palavra mais treinada, etc.
 
-#### Level 4: 🤖 AI Magic
+#### Nível 4: 🤖 Magia com IA (O Tutor Inteligente)
 
-- [ ] **Automatic Flashcard Creation:** Use an LLM API to assist in creating flashcards (`WordOverview` and `WordDetailsScreen`). The user writes the word, and an LLM API suggests the definition, identifies if it's an adjective, noun, verb, etc., generates 3 sentences with increasing difficulties showing how to use the word, generates synonyms and antonyms.
-- [ ] **Synonyms Finder:** In `WordDetailsScreen`, a button that makes the AI to find and display synonyms of that word, adding them to the word database if the user wants.
-- [ ] **Smart Scanner (OCR + NLP):** The user takes a photo of a text and the AI (using OCR to read the text and NLP to understand it) identifies and highlights the less common or more complex words. The user simply taps on the words they want to learn, and the app automatically creates flashcards.
-- [ ] **Conversational Tutor:** Option to open a chat with an AI tutor that plays out like this:
-  - _AI Tutor:_ “Hello! Today's word is ‘resilience.’ Can you use this word in a sentence about sports?”
-  - _User:_ “The athlete showed great resilience by finishing the race.”
-  - _AI Tutor:_ “Perfect! Your sentence is grammatically correct and the context is ideal. Now, how about one about a personal challenge?”
-- [] **Contextual Story Generator:** The user selects 3 to 5 words and the AI creates a micro-story or paragraph that uses those words in a cohesive and memorable way.
+- [ ] **Criação Automática de Flashcards:** O utilizador insere uma palavra, e uma IA gera automaticamente o significado, categoria gramatical, sinónimos, antónimos e 3 frases de exemplo com dificuldade crescente.
+- [ ] **Scanner Inteligente (OCR + NLP):** O utilizador tira uma foto a um texto, e a IA identifica e destaca as palavras mais complexas. O utilizador toca nas palavras que quer aprender, e a app cria os flashcards automaticamente.
+- [ ] **Tutor Conversacional:** Um chat com uma IA que testa o conhecimento do utilizador de forma interativa. Ex: "A palavra de hoje é 'resiliência'. Consegues usá-la numa frase sobre desporto?".
+- [ ] **Gerador de Histórias Contextuais:** O utilizador seleciona 3 a 5 palavras, e a IA cria um micro-conto que usa essas palavras de forma coesa e memorável.
+- [ ] **Constelações de Palavras:** Uma vista gráfica e interativa onde as palavras são "estrelas" ligadas por relações (sinónimos, antónimos, etc.), ajudando a visualizar as conexões do vocabulário.
 
-#### Level 5: Polish and Growth
+#### Nível 5: Escalabilidade e Crescimento
 
 - [ ] ☁️ **Authentication and Cloud Sync.**
 
