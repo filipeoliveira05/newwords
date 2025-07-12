@@ -129,7 +129,7 @@ export default function SessionResults({
       navigation.goBack();
       navigation.navigate("Decks");
     } else if (origin === "Stats") {
-      navigation.navigate("Stats");
+      navigation.navigate("Profile", { screen: "Stats" });
     } else {
       // Comportamento padrão: voltar para o hub de prática.
       // goBack() é seguro aqui porque o hub é a tela anterior na stack de prática.

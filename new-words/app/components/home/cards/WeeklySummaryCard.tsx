@@ -16,7 +16,7 @@ const WeeklySummaryCard = ({ summary }: Props) => {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   const handlePress = () => {
-    navigation.navigate("Stats");
+    navigation.navigate("Profile", { screen: "Stats" });
   };
 
   return (
