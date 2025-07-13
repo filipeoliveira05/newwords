@@ -12,7 +12,7 @@ interface AnimatedTabBarIconProps {
   focused: boolean;
   size: number;
   color: string;
-  name: "home" | "decks" | "community" | "profile"; // Base names for icons that have outline/filled versions
+  name: "home" | "library" | "community" | "profile"; // Base names for icons that have outline/filled versions
 }
 
 const AnimatedTabBarIcon: React.FC<AnimatedTabBarIconProps> = ({

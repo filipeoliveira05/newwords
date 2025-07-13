@@ -36,6 +36,7 @@ export const iconMap = {
   search: { name: "search-outline", library: "ionicons" },
   searchCircle: { name: "search-circle-outline", library: "ionicons" },
   closeCircle: { name: "close-circle", library: "ionicons" },
+  scan: { name: "scan", library: "ionicons" },
   swapVertical: { name: "swap-vertical-outline", library: "ionicons" },
   ellipsis: { name: "ellipsis-vertical", library: "ionicons" },
 
@@ -105,7 +106,8 @@ export const iconMap = {
   walk: { name: "walk-outline", library: "ionicons" },
   shieldCheckmark: { name: "shield-checkmark-outline", library: "ionicons" },
   archive: { name: "archive-outline", library: "ionicons" },
-  library: { name: "library-outline", library: "ionicons" },
+  library: { name: "library", library: "ionicons" },
+  libraryOutline: { name: "library-outline", library: "ionicons" },
   book: { name: "book-outline", library: "ionicons" },
   shield: { name: "shield", library: "ionicons" },
   shieldOutline: { name: "shield-outline", library: "ionicons" },

@@ -8,7 +8,6 @@ import React, {
 import {
   View,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   Modal,
   ActivityIndicator,
@@ -16,8 +15,7 @@ import {
   Pressable,
   TextInput,
 } from "react-native";
-import { format, parseISO } from "date-fns";
-import { pt } from "date-fns/locale";
+import { FlatList } from "react-native-gesture-handler";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useWordStore } from "../../../stores/wordStore";
@@ -30,105 +28,24 @@ import {
 import WordOverview from "../../components/WordOverview";
 import WordEditModal from "../../components/WordEditModal";
 import AppText from "../../components/AppText";
-import Icon, { IconName } from "../../components/Icon";
+import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
 import {
   BottomSheetModal,
   BottomSheetBackdrop,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import {
+  useWordSorting,
+  getDisplayDataForWord,
+  sortOptions,
+  SortConfig,
+} from "../../../services/wordSorting";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
 const EMPTY_ARRAY: number[] = [];
 
-type SortCriterion =
-  | "createdAt"
-  | "isFavorite"
-  | "masteryLevel"
-  | "timesTrained"
-  | "timesCorrect"
-  | "timesIncorrect"
-  | "lastAnswerCorrect"
-  | "lastTrained"
-  | "name";
-
-type SortDirection = "asc" | "desc";
-
-interface SortConfig {
-  criterion: SortCriterion;
-  direction: SortDirection;
-}
 type Props = NativeStackScreenProps<DecksStackParamList, "DeckDetail">;
-
-const sortOptions: {
-  label: string;
-  criterion: SortCriterion;
-  direction: SortDirection;
-}[] = [
-  { label: "Favoritos Primeiro", criterion: "isFavorite", direction: "desc" },
-  {
-    label: "Data de Criação (Mais Recentes)",
-    criterion: "createdAt",
-    direction: "desc",
-  },
-  {
-    label: "Data de Criação (Mais Antigas)",
-    criterion: "createdAt",
-    direction: "asc",
-  },
-  { label: "Ordem Alfabética (A-Z)", criterion: "name", direction: "asc" },
-  { label: "Ordem Alfabética (Z-A)", criterion: "name", direction: "desc" },
-  {
-    label: "Nível (Ascendente)",
-    criterion: "masteryLevel",
-    direction: "asc",
-  },
-  {
-    label: "Nível (Descendente)",
-    criterion: "masteryLevel",
-    direction: "desc",
-  },
-  {
-    label: "Vezes Praticadas (Menos)",
-    criterion: "timesTrained",
-    direction: "asc",
-  },
-  {
-    label: "Vezes Praticadas (Mais)",
-    criterion: "timesTrained",
-    direction: "desc",
-  },
-  {
-    label: "Respostas Corretas (Mais)",
-    criterion: "timesCorrect",
-    direction: "desc",
-  },
-  {
-    label: "Respostas Incorretas (Mais)",
-    criterion: "timesIncorrect",
-    direction: "desc",
-  },
-  {
-    label: "Última Resposta (Erradas primeiro)",
-    criterion: "lastAnswerCorrect",
-    direction: "asc",
-  },
-  {
-    label: "Última Resposta (Certas primeiro)",
-    criterion: "lastAnswerCorrect",
-    direction: "desc",
-  },
-  {
-    label: "Última Prática (Mais Recente)",
-    criterion: "lastTrained",
-    direction: "desc",
-  },
-  {
-    label: "Última Prática (Mais Antiga)",
-    criterion: "lastTrained",
-    direction: "asc",
-  },
-];
 
 export default function DeckDetailScreen({ navigation, route }: Props) {
   const { deckId, title, author, openAddWordModal } = route.params;
@@ -163,88 +80,37 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   const [isSaving, setIsSaving] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [sortModalVisible, setSortModalVisible] = useState(false);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    criterion: "createdAt",
-    direction: "desc",
-  });
 
   const practiceBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatListRef = useRef<FlatList<Word>>(null);
   const sortScrollViewRef = useRef<ScrollView>(null);
 
-  const displayWords = useMemo(() => {
-    // 1. Filter based on search query
-    let wordsToDisplay = [...wordsForCurrentDeck];
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      wordsToDisplay = wordsToDisplay.filter(
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300); // Atraso de 300ms
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
+
+  const filteredWords = useMemo(() => {
+    if (debouncedQuery) {
+      const query = debouncedQuery.toLowerCase();
+      return wordsForCurrentDeck.filter(
         (word: Word) =>
           word.name.toLowerCase().includes(query) ||
           word.meaning.toLowerCase().includes(query)
       );
     }
+    return wordsForCurrentDeck;
+  }, [wordsForCurrentDeck, debouncedQuery]);
 
-    // 2. Sort the filtered list
-    const { criterion, direction } = sortConfig;
-    const dir = direction === "asc" ? 1 : -1;
-    const masteryMap = { new: 1, learning: 2, mastered: 3 };
-
-    wordsToDisplay.sort((wordA, wordB) => {
-      let comparison = 0;
-      switch (criterion) {
-        case "isFavorite":
-          // This sort is always descending (favorites first)
-          comparison = wordB.isFavorite - wordA.isFavorite;
-          break;
-        case "name":
-          comparison = wordA.name.localeCompare(wordB.name) * dir;
-          break;
-        case "masteryLevel":
-          comparison =
-            (masteryMap[wordA.masteryLevel] - masteryMap[wordB.masteryLevel]) *
-            dir;
-          break;
-        case "createdAt":
-          // Assumes createdAt is never null
-          comparison =
-            (new Date(wordA.createdAt).getTime() -
-              new Date(wordB.createdAt).getTime()) *
-            dir;
-          break;
-        case "lastTrained":
-          // Treat null as the oldest date (comes first in asc)
-          const dateA = wordA.lastTrained
-            ? new Date(wordA.lastTrained).getTime()
-            : 0;
-          const dateB = wordB.lastTrained
-            ? new Date(wordB.lastTrained).getTime()
-            : 0;
-          comparison = (dateA - dateB) * dir;
-          break;
-        case "lastAnswerCorrect":
-          // Treat null as a third category (-1)
-          const answerA = wordA.lastAnswerCorrect ?? -1;
-          const answerB = wordB.lastAnswerCorrect ?? -1;
-          comparison = (answerA - answerB) * dir;
-          break;
-        case "timesTrained":
-        case "timesCorrect":
-        case "timesIncorrect":
-          comparison = (wordA[criterion] - wordB[criterion]) * dir;
-          break;
-      }
-
-      // Tie-breaker: if primary comparison is equal, sort by name alphabetically
-      if (comparison === 0 && criterion !== "name") {
-        return wordA.name.localeCompare(wordB.name);
-      }
-
-      return comparison;
-    });
-
-    return wordsToDisplay;
-  }, [wordsForCurrentDeck, searchQuery, sortConfig]);
+  const { sortedWords, sortConfig, setSortConfig } =
+    useWordSorting(filteredWords);
 
   const closeModal = () => {
     setIsModalVisible(false);
@@ -420,59 +286,6 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       });
   };
 
-  const getDisplayDataForWord = (
-    word: Word,
-    criterion: SortCriterion
-  ): {
-    value?: string | number;
-    label?: string;
-    displayIcon?: { name: IconName; color: string };
-  } => {
-    const formatNullableDate = (dateString: string | null) => {
-      if (!dateString) return "Nunca";
-      try {
-        return format(parseISO(dateString), "dd MMM", { locale: pt });
-      } catch (e) {
-        console.error("Data com formato nulo.", e);
-        return "Inválida";
-      }
-    };
-
-    switch (criterion) {
-      case "timesTrained":
-        return { value: word.timesTrained, label: "vezes" };
-      case "timesCorrect":
-        return { value: word.timesCorrect, label: "certas" };
-      case "timesIncorrect":
-        return { value: word.timesIncorrect, label: "erradas" };
-      case "masteryLevel":
-        return {};
-      case "lastTrained":
-        return {
-          value: formatNullableDate(word.lastTrained),
-          label: "últ. prática",
-        };
-      case "createdAt":
-        return { value: formatNullableDate(word.createdAt), label: "criação" };
-      case "lastAnswerCorrect":
-        if (word.lastAnswerCorrect === null)
-          return { value: "N/A", label: "últ. resp." };
-        return {
-          displayIcon: {
-            name:
-              word.lastAnswerCorrect === 1 ? "checkmarkCircle" : "closeCircle",
-            color:
-              word.lastAnswerCorrect === 1
-                ? theme.colors.success
-                : theme.colors.danger,
-          },
-          label: "últ. resp.",
-        };
-      default:
-        return {};
-    }
-  };
-
   const handleSortSelect = (config: SortConfig) => {
     setSortConfig(config);
     setSortModalVisible(false);
@@ -500,7 +313,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       );
     }
 
-    if (searchQuery) {
+    if (debouncedQuery) {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="searchCircle" size={60} color={theme.colors.iconMuted} />
@@ -508,7 +321,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             Nenhum resultado
           </AppText>
           <AppText style={styles.emptySubtitle}>
-            Não encontrámos palavras para `{searchQuery}`.
+            Não encontrámos palavras para `{debouncedQuery}`.
           </AppText>
         </View>
       );
@@ -601,7 +414,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
       </View>
       <FlatList
         ref={flatListRef}
-        data={displayWords}
+        data={sortedWords}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => {
           const { value, label, displayIcon } = getDisplayDataForWord(

@@ -12,7 +12,9 @@ export type HomeStackParamList = {
 };
 
 export type DecksStackParamList = {
-  DecksList: undefined;
+  LibraryHub: undefined;
+  DecksList: undefined; // Continua a ser a lista de conjuntos
+  AllWords: undefined; // O novo ecrã para todas as palavras
   DeckDetail: {
     deckId: number;
     title: string;

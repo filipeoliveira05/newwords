@@ -18,6 +18,7 @@ export interface DeckWithCount extends Deck {
 interface DeckState {
   decks: DeckWithCount[];
   loading: boolean;
+  isInitialized: boolean;
   fetchDecks: () => Promise<void>;
   addDeck: (title: string, author: string) => Promise<void>;
   updateDeck: (id: number, title: string, author: string) => Promise<void>;
@@ -29,9 +30,15 @@ interface DeckState {
 
 export const useDeckStore = create<DeckState>((set, get) => ({
   decks: [],
-  loading: true,
+  loading: false,
+  isInitialized: false,
 
   fetchDecks: async () => {
+    // Só faz a busca inicial se os dados ainda não foram carregados.
+    // As atualizações (add, update, delete) são reativas e não precisam de um refetch.
+    if (get().isInitialized) {
+      return;
+    }
     set({ loading: true });
     try {
       const decksData = await dbGetDecks();
@@ -42,10 +49,10 @@ export const useDeckStore = create<DeckState>((set, get) => ({
           masteredCount: await countMasteredWordsByDeck(deck.id),
         }))
       );
-      set({ decks: decksWithCounts, loading: false });
+      set({ decks: decksWithCounts, loading: false, isInitialized: true });
     } catch (error) {
       console.error("Erro ao obter decks no store", error);
-      set({ decks: [], loading: false });
+      set({ decks: [], loading: false, isInitialized: false }); // Permite tentar de novo em caso de erro
     }
   },
 

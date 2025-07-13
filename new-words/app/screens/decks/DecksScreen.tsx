@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useLayoutEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -23,6 +23,19 @@ type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 export default function DecksScreen({ navigation }: Props) {
   const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
   const [isSeeding, setIsSeeding] = useState(false);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerStyle: { backgroundColor: theme.colors.background },
+      headerTitleStyle: {
+        fontFamily: theme.fonts.bold,
+        fontSize: theme.fontSizes["2xl"],
+      },
+      headerShadowVisible: false,
+      headerBackTitle: "Biblioteca",
+      headerTintColor: theme.colors.text,
+    });
+  }, [navigation]);
 
   useEffect(() => {
     fetchDecks();
@@ -102,14 +115,6 @@ export default function DecksScreen({ navigation }: Props) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <AppText variant="bold" style={styles.title}>
-          Meus Conjuntos
-        </AppText>
-        <AppText style={styles.subtitle}>
-          Continue a sua jornada de aprendizagem.
-        </AppText>
-      </View>
       <ScrollView contentContainerStyle={styles.list}>
         {decks.map((deck) => (
           <DeckOverview
@@ -184,25 +189,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    backgroundColor: theme.colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.borderLight,
-  },
-  title: {
-    fontSize: theme.fontSizes["4xl"],
-    color: theme.colors.text,
-  },
-  subtitle: {
-    fontSize: theme.fontSizes.md,
-    color: theme.colors.textSecondary,
-    marginTop: 4,
-  },
   list: {
     paddingHorizontal: 16,
+    paddingTop: 6,
     paddingBottom: 100, // Space for the FAB
   },
   emptyContainer: {

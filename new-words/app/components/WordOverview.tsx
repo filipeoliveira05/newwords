@@ -1,5 +1,5 @@
 import React, { useRef, memo } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import {
   Menu,
   MenuOptions,
@@ -7,7 +7,7 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import Icon, { IconName } from "./Icon";
-import { Swipeable } from "react-native-gesture-handler";
+import { Swipeable, TouchableOpacity } from "react-native-gesture-handler";
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
 
@@ -47,18 +47,34 @@ const WordOverview = ({
     swipeableRef.current?.close();
   };
 
+  const handleDeletePress = () => {
+    if (onDelete) {
+      onDelete();
+    }
+    swipeableRef.current?.close();
+  };
+
   const renderRightActions = () => {
+    // Não renderiza as ações se nenhuma função for fornecida
+    if (!onEdit && !onDelete) return null;
+
     return (
       <View style={styles.rightActionContainer}>
+        {onEdit && (
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={handleEditPress}
+          >
+            <Icon name="pencil" size={22} color="#fff" />
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
-          onPress={handleEditPress}
-        >
-          <Icon name="pencil" size={22} color="#fff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
-          onPress={onDelete}
+          style={[
+            styles.actionButton,
+            styles.deleteButton,
+            !onEdit && styles.deleteButtonAlone,
+          ]}
+          onPress={handleDeletePress}
         >
           <Icon name="trash" size={22} color="#fff" />
         </TouchableOpacity>
@@ -73,7 +89,10 @@ const WordOverview = ({
   }[masteryLevel];
 
   return (
-    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions}>
+    <Swipeable
+      ref={swipeableRef}
+      renderRightActions={onEdit || onDelete ? renderRightActions : undefined}
+    >
       <View style={styles.container}>
         <View
           style={[styles.masteryIndicator, { backgroundColor: masteryColor }]}
@@ -147,12 +166,18 @@ const WordOverview = ({
                 </AppText>
               </View>
             </MenuOption>
-            <MenuOption onSelect={onEdit}>
-              <View style={styles.menuItem}>
-                <Icon name="pencil" size={18} color={theme.colors.textMedium} />
-                <AppText style={styles.menuText}>Editar</AppText>
-              </View>
-            </MenuOption>
+            {onEdit && (
+              <MenuOption onSelect={onEdit}>
+                <View style={styles.menuItem}>
+                  <Icon
+                    name="pencil"
+                    size={18}
+                    color={theme.colors.textMedium}
+                  />
+                  <AppText style={styles.menuText}>Editar</AppText>
+                </View>
+              </MenuOption>
+            )}
             <View style={styles.separator} />
             <MenuOption onSelect={onDelete}>
               <View style={styles.menuItem}>
@@ -252,13 +277,13 @@ const styles = StyleSheet.create({
   },
   rightActionContainer: {
     flexDirection: "row",
-    width: 120, // Largura total para os dois botões
     marginBottom: 12, // Para alinhar com o margin do container principal
   },
   actionButton: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    width: 60,
   },
   editButton: {
     backgroundColor: theme.colors.textMuted,
@@ -269,5 +294,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.danger,
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
+  },
+  deleteButtonAlone: {
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
   },
 });

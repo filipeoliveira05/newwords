@@ -38,6 +38,8 @@ import {
 import HomeScreen from "../screens/home/HomeScreen";
 import LeagueScreen from "../screens/home/LeagueScreen";
 
+import LibraryHubScreen from "../screens/decks/LibraryHubScreen";
+import AllWordsScreen from "../screens/decks/AllWordsScreen";
 import DecksScreen from "../screens/decks/DecksScreen";
 import DeckDetailScreen from "../screens/decks/DeckDetailScreen";
 import AddOrEditDeckScreen from "../screens/decks/AddOrEditDeckScreen";
@@ -116,6 +118,8 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
 
   // Lista de ecrãs onde a tab bar deve ser escondida.
   const screensWithHiddenTabBar = [
+    "DecksList",
+    "AllWords",
     "DeckDetail",
     "WordDetails",
     "AddOrEditDeck",
@@ -194,9 +198,19 @@ function DecksStack() {
       screenOptions={{ animation: "slide_from_right", animationDuration: 100 }}
     >
       <DecksStackNav.Screen
+        name="LibraryHub"
+        component={LibraryHubScreen}
+        options={{ headerShown: false }}
+      />
+      <DecksStackNav.Screen
         name="DecksList"
         component={DecksScreen}
-        options={{ headerShown: false }}
+        options={{ title: "Meus Conjuntos" }}
+      />
+      <DecksStackNav.Screen
+        name="AllWords"
+        component={AllWordsScreen}
+        options={{ title: "Todo o Vocabulário" }}
       />
       <DecksStackNav.Screen
         name="DeckDetail"
@@ -351,7 +365,7 @@ export default function AppNavigator() {
               tabBarIcon: ({ focused, color }) => (
                 <AnimatedTabBarIcon
                   focused={focused}
-                  name="decks"
+                  name="library"
                   size={28}
                   color={color}
                 />
@@ -361,7 +375,7 @@ export default function AppNavigator() {
               tabPress: (e) => {
                 hapticService.impactAsync();
                 e.preventDefault();
-                navigation.navigate("Decks", { screen: "DecksList" });
+                navigation.navigate("Decks", { screen: "LibraryHub" });
               },
             })}
           />
