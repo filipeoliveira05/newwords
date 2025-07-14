@@ -43,6 +43,7 @@ module.exports = {
       ],
       "expo-sqlite",
       "sentry-expo",
+      "expo-audio",
     ],
     experiments: {
       typedRoutes: true,
