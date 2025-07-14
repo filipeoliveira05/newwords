@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { getMetaValue } from "../../services/storage";
+import { getMetaValue, initializeDB } from "../../services/storage";
 import AppNavigator from "./AppNavigator";
 import OnboardingScreen from "../screens/onboarding/OnboardingScreen";
 import { RootStackParamList } from "../../types/navigation";
@@ -14,11 +14,20 @@ const RootNavigator = () => {
   >(null);
 
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      const status = await getMetaValue("has_completed_onboarding");
-      setHasCompletedOnboarding(status === "true");
+    const prepareApp = async () => {
+      try {
+        // 1. Garante que a base de dados e as tabelas existem antes de qualquer leitura.
+        await initializeDB();
+        // 2. Agora é seguro ler da base de dados.
+        const status = await getMetaValue("has_completed_onboarding");
+        setHasCompletedOnboarding(status === "true");
+      } catch (error) {
+        console.error("Falha ao preparar a aplicação:", error);
+        // Se a inicialização falhar, assumimos que o onboarding não foi feito para não bloquear o utilizador.
+        setHasCompletedOnboarding(false);
+      }
     };
-    checkOnboardingStatus();
+    prepareApp();
   }, []);
 
   if (hasCompletedOnboarding === null) {
