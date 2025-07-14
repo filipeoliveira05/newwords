@@ -41,7 +41,8 @@ export type PracticeStackParamList = {
 
 export type CommunityStackParamList = {
   CommunityHub: undefined;
-  // Futuramente: LeagueDetails, DuelingScreen, etc.
+  LeagueDetails: undefined;
+  // Futuramente: DuelingScreen, etc.
 };
 
 export type ProfileStackParamList = {

@@ -50,11 +50,11 @@ import PracticeGameScreen from "../screens/practice/PracticeGameScreen";
 import PracticeLoadingScreen from "../screens/practice/PracticeLoadingScreen";
 
 import CommunityScreen from "../screens/community/CommunityScreen";
-import StatsScreen from "../screens/stats/StatsScreen";
 
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AccountScreen from "../screens/profile/AccountScreen";
 import EditAccountScreen from "../screens/profile/EditAccountScreen";
+import StatsScreen from "../screens/stats/StatsScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
 
@@ -269,7 +269,7 @@ function CommunityStack() {
         component={CommunityScreen}
         options={{ headerShown: false }}
       />
-      {/* Futuramente: LeagueDetails, DuelingScreen, etc. */}
+      <CommunityStackNav.Screen name="LeagueDetails" component={LeagueScreen} />
     </CommunityStackNav.Navigator>
   );
 }
