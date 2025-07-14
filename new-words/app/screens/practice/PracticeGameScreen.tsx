@@ -5,6 +5,8 @@ import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
+import { updateUserPracticeMetrics } from "../../../services/storage";
+import { eventStore } from "../../../stores/eventStore";
 import {
   PracticeStackParamList,
   RootTabParamList,
@@ -69,6 +71,9 @@ export default function PracticeGameScreen({ route }: Props) {
   const deckId = usePracticeStore((state) => state.deckId);
   const endSession = usePracticeStore((state) => state.endSession);
   const startNextRound = usePracticeStore((state) => state.startNextRound);
+  const highestStreakThisRound = usePracticeStore(
+    (state) => state.highestStreakThisRound
+  );
 
   // Limpa a sessão quando o ecrã é desmontado.
   useEffect(() => endSession, [endSession]);
@@ -93,7 +98,12 @@ export default function PracticeGameScreen({ route }: Props) {
             {
               text: "Sair",
               style: "destructive",
-              onPress: () => {
+              onPress: async () => {
+                // Salva as estatísticas antes de sair
+                await updateUserPracticeMetrics(highestStreakThisRound, deckId);
+                // Publica o evento para que outros ecrãs (como o HomeScreen) atualizem os seus dados.
+                eventStore.getState().publish("practiceSessionCompleted", {});
+
                 // Marca que a saída foi confirmada para não mostrar o alerta novamente.
                 hasConfirmedExit.current = true;
                 // Executa a ação de navegação original que foi prevenida (ex: voltar atrás).
@@ -103,7 +113,7 @@ export default function PracticeGameScreen({ route }: Props) {
           ],
         });
       }),
-    [navigation, sessionState, showAlert]
+    [navigation, sessionState, showAlert, highestStreakThisRound, deckId]
   );
 
   if (sessionState === "finished") {

@@ -70,11 +70,15 @@ export default function HomeScreen({ navigation }: Props) {
     const unsubWordDeleted = eventStore
       .getState()
       .subscribe("wordDeleted", fetchUserStats);
+    const unsubAchievement = eventStore
+      .getState()
+      .subscribe("achievementUnlocked", fetchUserStats);
 
     return () => {
       unsubPractice();
       unsubWordAdded();
       unsubWordDeleted();
+      unsubAchievement();
     };
   }, [fetchUserStats]);
 

@@ -257,6 +257,9 @@ export default function StatsScreen({ navigation }: Props) {
           if (newlyUnlocked.length > 0) {
             const newIds = newlyUnlocked.map((ach) => ach.id);
             await unlockAchievements(newIds);
+            // Publica um evento para que o HomeScreen possa atualizar o header.
+            eventStore.getState().publish("achievementUnlocked", {});
+
             // Mostra uma notificação para cada nova conquista!
             newlyUnlocked.forEach((ach, index) => {
               // Adiciona um pequeno delay para não sobrepor as notificações
