@@ -7,8 +7,26 @@
 │   │   ├── ChipInput.tsx
 │   │   ├── CustomAlert.tsx
 │   │   ├── DeckOverview.tsx
+│   │   ├── Icon.tsx
+│   │   ├── LevelUpOverlay.tsx
+│   │   ├── LinearProgressBar.tsx
+│   │   ├── OfflinePlaceholder.tsx
 │   │   ├── WordEditModal.tsx
 │   │   ├── WordOverview.tsx
+│   │   ├── community
+│   │   │   └── CommunityDeckCard.tsx
+│   │   ├── home
+│   │   │   ├── DynamicActionCard.tsx
+│   │   │   ├── GamificationHeader.tsx
+│   │   │   ├── LeagueWidget.tsx
+│   │   │   └── cards
+│   │   ├── modals
+│   │   │   └── CategorySelectionModal.tsx
+│   │   ├── navigation
+│   │   │   └── AnimatedTabBarIcon.tsx
+│   │   ├── onboarding
+│   │   │   ├── OnboardingPaginator.tsx
+│   │   │   └── OnboardingSlide.tsx
 │   │   ├── practice
 │   │   │   ├── CombineListsView.tsx
 │   │   │   ├── FlashcardView.tsx
@@ -16,25 +34,40 @@
 │   │   │   ├── ProgressBar.tsx
 │   │   │   ├── SessionResults.tsx
 │   │   │   ├── StreakCounter.tsx
-│   │   │   └── WritingView.tsx
+│   │   │   ├── WritingView.tsx
+│   │   │   ├── XpFeedback.tsx
+│   │   │   └── XpFeedbackManager.tsx
 │   │   └── stats
 │   │       ├── AchievementBadge.tsx
 │   │       ├── DailyGoalProgress.tsx
 │   │       └── StatCard.tsx
 │   ├── navigation
-│   │   └── AppNavigator.tsx
+│   │   ├── AppNavigator.tsx
+│   │   └── RootNavigator.tsx
 │   └── screens
+│       ├── auth
+│       ├── community
+│       │   └── CommunityScreen.tsx
 │       ├── decks
 │       │   ├── AddOrEditDeckScreen.tsx
+│       │   ├── AllWordsScreen.tsx
 │       │   ├── DeckDetailScreen.tsx
 │       │   ├── DecksScreen.tsx
+│       │   ├── LibraryHubScreen.tsx
 │       │   └── WordDetailsScreen.tsx
 │       ├── home
-│       │   └── HomeScreen.tsx
+│       │   ├── HomeScreen.tsx
+│       │   └── LeagueScreen.tsx
+│       ├── onboarding
+│       │   └── OnboardingScreen.tsx
 │       ├── practice
 │       │   ├── PracticeGameScreen.tsx
-│       │   └── PracticeHubScreen.tsx
+│       │   ├── PracticeHubScreen.tsx
+│       │   └── PracticeLoadingScreen.tsx
 │       ├── profile
+│       │   ├── AccountScreen.tsx
+│       │   ├── EditAccountScreen.tsx
+│       │   ├── HelpScreen.tsx
 │       │   ├── ProfileScreen.tsx
 │       │   └── SettingsScreen.tsx
 │       └── stats
@@ -43,21 +76,31 @@
 ├── config
 │   ├── achievements.ts
 │   ├── dailyGoals.ts
+│   ├── leagues.ts
 │   └── theme.ts
+├── declarations.d.ts
 ├── eas.json
 ├── eslint.config.js
 ├── expo-env.d.ts
+├── metro.config.js
 ├── package-lock.json
 ├── package.json
 ├── projectStructure.txt
 ├── services
+│   ├── deckSorting.ts
+│   ├── hapticService.ts
 │   ├── seeder.ts
-│   └── storage.ts
+│   ├── soundService.ts
+│   ├── storage.ts
+│   ├── welcomeMessageService.ts
+│   └── wordSorting.ts
 ├── stores
 │   ├── deckStore.ts
 │   ├── eventStore.ts
 │   ├── useAlertStore.ts
+│   ├── useLeagueStore.ts
 │   ├── usePracticeStore.ts
+│   ├── useSettingsStore.ts
 │   ├── useUserStore.ts
 │   └── wordStore.ts
 ├── tsconfig.json
@@ -68,4 +111,4 @@
     ├── arrayUtils.ts
     └── sm2.ts
 
-16 directories, 52 files
+25 directories, 86 files
