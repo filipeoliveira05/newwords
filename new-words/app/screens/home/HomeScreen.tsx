@@ -155,7 +155,7 @@ export default function HomeScreen({ navigation }: Props) {
 
         <View style={styles.section}>
           <AppText variant="bold" style={styles.sectionTitle}>
-            As Suas Metas
+            Metas Diárias
           </AppText>
           <View style={styles.goalCard}>
             {dailyGoals.map((goal) => (
