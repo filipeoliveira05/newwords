@@ -3,8 +3,10 @@ import {
   View,
   StyleSheet,
   ScrollView,
+  Modal,
   TouchableOpacity,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -15,14 +17,25 @@ import { useAlertStore } from "../../../stores/useAlertStore";
 import DeckOverview from "../../components/DeckOverview";
 import { seedDatabase } from "../../../services/seeder";
 import { theme } from "../../../config/theme";
+import {
+  useDeckSorting,
+  deckSortOptions,
+  SortConfig,
+} from "../../../services/deckSorting";
 import { DecksStackParamList } from "../../../types/navigation";
 import Icon from "../../components/Icon";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
 export default function DecksScreen({ navigation }: Props) {
-  const { decks, loading, fetchDecks, deleteDeck } = useDeckStore();
+  const { decks: allDecks, loading, fetchDecks, deleteDeck } = useDeckStore();
   const [isSeeding, setIsSeeding] = useState(false);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  const { sortedDecks, sortConfig, setSortConfig } = useDeckSorting(allDecks);
+  const decks = sortedDecks;
+
+  const { showAlert } = useAlertStore.getState();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -34,13 +47,20 @@ export default function DecksScreen({ navigation }: Props) {
       headerShadowVisible: false,
       headerBackTitle: "Biblioteca",
       headerTintColor: theme.colors.text,
+      headerRight: () => (
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => setSortModalVisible(true)}
+        >
+          <Icon name="swapVertical" size={24} color={theme.colors.textMedium} />
+        </TouchableOpacity>
+      ),
     });
-  }, [navigation]);
+  }, [navigation, setSortModalVisible]);
 
   useEffect(() => {
     fetchDecks();
   }, [fetchDecks]);
-  const { showAlert } = useAlertStore.getState();
 
   const handleSeedData = async () => {
     setIsSeeding(true);
@@ -70,6 +90,11 @@ export default function DecksScreen({ navigation }: Props) {
       </View>
     );
   }
+
+  const handleSortSelect = (config: SortConfig) => {
+    setSortConfig(config);
+    setSortModalVisible(false);
+  };
 
   if (!decks || decks.length === 0) {
     return (
@@ -176,6 +201,57 @@ export default function DecksScreen({ navigation }: Props) {
       >
         <Icon name="add" size={32} color={theme.colors.surface} />
       </TouchableOpacity>
+
+      {/* Sort Options Modal */}
+      <Modal
+        visible={sortModalVisible}
+        transparent
+        animationType="fade"
+        presentationStyle="overFullScreen"
+        statusBarTranslucent={true}
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setSortModalVisible(false)}
+          />
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHandle} />
+            <View style={styles.modalHeader}>
+              <AppText variant="bold" style={styles.modalTitle}>
+                Ordenar Por
+              </AppText>
+              <TouchableOpacity
+                onPress={() => setSortModalVisible(false)}
+                style={styles.closeButton}
+              >
+                <Icon name="close" size={24} color={theme.colors.icon} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 400 }}>
+              {deckSortOptions.map((option, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.sortOptionButton}
+                  onPress={() => handleSortSelect(option)}
+                >
+                  <AppText
+                    style={[
+                      styles.sortOptionText,
+                      sortConfig.criterion === option.criterion &&
+                        sortConfig.direction === option.direction &&
+                        styles.sortOptionTextActive,
+                    ]}
+                  >
+                    {option.label}
+                  </AppText>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -237,6 +313,57 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     elevation: 8,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: theme.colors.overlay,
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: theme.colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 12,
+  },
+  modalHandle: {
+    width: 40,
+    height: 5,
+    backgroundColor: theme.colors.border,
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginBottom: 16,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  modalTitle: {
+    fontSize: theme.fontSizes["2xl"],
+  },
+  closeButton: {
+    padding: 8,
+  },
+  sortOptionButton: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.borderLight,
+  },
+  sortOptionText: {
+    fontSize: theme.fontSizes.lg,
+    color: theme.colors.textMedium,
+    textAlign: "center",
+  },
+  sortOptionTextActive: {
+    color: theme.colors.primary,
+    fontFamily: theme.fonts.bold,
+  },
+  headerButton: {
+    padding: 8,
+    marginRight: 8,
   },
   seedButtonEmptyState: {
     flexDirection: "row",

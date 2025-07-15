@@ -72,12 +72,12 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
   - [ ] **"Continuar a Estudar":** Adicionar uma secção que mostra conjuntos com progresso a meio, permitindo ao utilizador retomar a prática rapidamente.
   - [ ] **Widget da Liga Offline:** Garantir que o widget mostra sempre os últimos dados em cache quando offline, com um indicador visual claro.
-- [ ] 🔀 **Ordenação Avançada de Conjuntos:** Adicionar opções para ordenar os conjuntos por "Mais Difícil", "Menos Revisto" ou "Mais Antigo".
+- [x] 🔀 **Ordenação Avançada de Conjuntos:** Adicionar opções para ordenar os conjuntos por "Mais Difícil", "Menos Revisto" ou "Mais Antigo".
 
 #### Nível 2: O Hábito (Engajamento e Retenção)
 
 - [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
-- [ ] 📖 **"All Words" Library:** Create a dedicated screen where users can view and search all words in the database, regardless of deck, and tap to see their details.
+- [x] 📖 **"All Words" Library:** Create a dedicated screen where users can view and search all words in the database, regardless of deck, and tap to see their details.
 - [ ] 🎲 **New Game Modes:**
   - [ ] **Sprint Contra o Tempo:** Um modo rápido: "Quantas palavras consegue acertar em 60 segundos?".
   - [ ] **Completa a Frase:** Uma frase aparece com um espaço em branco, e o utilizador deve escolher a palavra correta para o preencher.
