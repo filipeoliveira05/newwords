@@ -6,6 +6,7 @@ import {
   deleteDeck as dbDeleteDeck,
   getWordCountByDeck,
   countMasteredWordsByDeck,
+  getWordsOfDeck,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Deck } from "../types/database";
@@ -87,12 +88,18 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
   deleteDeck: async (id) => {
     try {
+      // 1. Obter a contagem de palavras do deck ANTES de o apagar da DB.
+      const wordsInDeck = await getWordsOfDeck(id);
+
       await dbDeleteDeck(id);
       set((state) => ({
         decks: state.decks.filter((deck) => deck.id !== id),
       }));
       // Publica um evento para que outros stores (como o wordStore) possam reagir.
       eventStore.getState().publish("deckDeleted", { deckId: id });
+      wordsInDeck.forEach(() => {
+        eventStore.getState().publish("wordDeleted", { deckId: id });
+      });
     } catch (error) {
       console.error("Erro ao apagar deck no store", error);
       throw error;
