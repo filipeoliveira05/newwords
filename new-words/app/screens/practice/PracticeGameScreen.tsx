@@ -19,7 +19,7 @@ import MultipleChoiceView from "../../components/practice/MultipleChoiceView";
 import WritingView from "../../components/practice/WritingView";
 import CombineListsView from "../../components/practice/CombineListsView";
 import SessionResults from "../../components/practice/SessionResults";
-import XpFeedbackManager from "../../components/practice/XpFeedbackManager";
+// import XpFeedbackManager from "../../components/practice/XpFeedbackManager";
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -138,7 +138,7 @@ export default function PracticeGameScreen({ route }: Props) {
           {gameMode === "combine-lists" && <CombineListsView />}
         </View>
         <GameHeader mode={gameMode} onBackPress={() => navigation.goBack()} />
-        <XpFeedbackManager />
+        {/* <XpFeedbackManager /> */}
       </View>
     );
   }
