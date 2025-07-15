@@ -87,7 +87,7 @@ export default function LeagueWidget() {
     statusIconColor = theme.colors.successLight; // Verde para promoção
   } else if (isDemotion) {
     rankColor = theme.colors.dangerLight;
-    rankDescription = "Em zona de despromoção";
+    rankDescription = "Zona de despromoção";
     statusIcon = "caretDown";
     statusIconColor = theme.colors.dangerLight; // Vermelho para despromoção
   }
