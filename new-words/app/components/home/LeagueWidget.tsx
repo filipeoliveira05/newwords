@@ -26,6 +26,7 @@ import Icon, { IconName } from "../Icon";
 
 const mascotSource = {
   promotion: require("../../../assets/images/mascot/mascot_happy3.png"),
+  demotion: require("../../../assets/images/mascot/mascot_sad.png"),
 };
 
 type LeagueNavigationProp = NativeStackNavigationProp<
@@ -80,7 +81,7 @@ export default function LeagueWidget() {
 
   let rankColor = theme.colors.surface;
   let rankDescription = "Posição na Liga";
-  let statusIcon: IconName = "swapVertical";
+  let statusIcon: IconName = "remove";
   let statusIconColor = theme.colors.surface; // Cor para o ícone neutro
 
   if (isPromotion) {
@@ -133,9 +134,12 @@ export default function LeagueWidget() {
         </View>
 
         <View />
-        {/* A mascote aparece no canto inferior direito se o utilizador estiver na zona de promoção */}
+        {/* A mascote variável aparece no canto inferior direito */}
         {isPromotion && (
           <Image source={mascotSource.promotion} style={styles.mascot} />
+        )}
+        {isDemotion && (
+          <Image source={mascotSource.demotion} style={styles.mascot} />
         )}
       </LinearGradient>
       {/* Elemento de brilho que se move por cima */}

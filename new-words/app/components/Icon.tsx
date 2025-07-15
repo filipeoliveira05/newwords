@@ -79,6 +79,7 @@ export const iconMap = {
   caretUp: { name: "caret-up", library: "ionicons" },
   caretDown: { name: "caret-down", library: "ionicons" },
   person: { name: "person-outline", library: "ionicons" },
+  remove: { name: "remove-outline", library: "ionicons" },
   removeCircle: { name: "remove-circle-outline", library: "ionicons" },
   text: { name: "text-outline", library: "ionicons" },
   chat: { name: "chatbox-ellipses-outline", library: "ionicons" },
