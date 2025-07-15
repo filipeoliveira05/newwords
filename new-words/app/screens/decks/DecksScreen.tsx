@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Pressable,
+  Image,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -24,6 +25,7 @@ import {
 } from "../../../services/deckSorting";
 import { DecksStackParamList } from "../../../types/navigation";
 import Icon from "../../components/Icon";
+import images from "../../../services/imageService";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
@@ -47,16 +49,21 @@ export default function DecksScreen({ navigation }: Props) {
       headerShadowVisible: false,
       headerBackTitle: "Biblioteca",
       headerTintColor: theme.colors.text,
-      headerRight: () => (
-        <TouchableOpacity
-          style={styles.headerButton}
-          onPress={() => setSortModalVisible(true)}
-        >
-          <Icon name="swapVertical" size={24} color={theme.colors.textMedium} />
-        </TouchableOpacity>
-      ),
+      headerRight: () =>
+        allDecks.length > 0 ? (
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => setSortModalVisible(true)}
+          >
+            <Icon
+              name="swapVertical"
+              size={24}
+              color={theme.colors.textMedium}
+            />
+          </TouchableOpacity>
+        ) : null,
     });
-  }, [navigation, setSortModalVisible]);
+  }, [navigation, setSortModalVisible, allDecks.length]);
 
   useEffect(() => {
     fetchDecks();
@@ -99,7 +106,7 @@ export default function DecksScreen({ navigation }: Props) {
   if (!decks || decks.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Icon name="fileTrayStacked" size={80} color={theme.colors.iconMuted} />
+        <Image source={images.mascotSleep} style={styles.mascot} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhum conjunto encontrado
         </AppText>
@@ -115,25 +122,23 @@ export default function DecksScreen({ navigation }: Props) {
             Criar Primeiro Conjunto
           </AppText>
         </TouchableOpacity>
-        {/* Botão para carregar dados de teste, apenas em modo de desenvolvimento */}
-        {__DEV__ && (
-          <TouchableOpacity
-            style={styles.seedButtonEmptyState}
-            onPress={handleSeedData}
-            disabled={isSeeding}
-          >
-            {isSeeding ? (
-              <ActivityIndicator color={theme.colors.primary} />
-            ) : (
-              <>
-                <Icon name="leaf" size={18} color={theme.colors.primary} />
-                <AppText style={styles.seedButtonText}>
-                  Carregar dados de teste
-                </AppText>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
+        {/* Botão para carregar dados de teste */}
+        <TouchableOpacity
+          style={styles.seedButtonEmptyState}
+          onPress={handleSeedData}
+          disabled={isSeeding}
+        >
+          {isSeeding ? (
+            <ActivityIndicator color={theme.colors.primary} />
+          ) : (
+            <>
+              <Icon name="leaf" size={18} color={theme.colors.primary} />
+              <AppText style={styles.seedButtonText}>
+                Carregar dados de teste
+              </AppText>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
     );
   }
@@ -278,12 +283,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   emptyTitle: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes["2xl"],
     color: theme.colors.text,
     marginTop: 24,
   },
   emptySubtitle: {
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.lg,
     color: theme.colors.textMuted,
     textAlign: "center",
     marginTop: 8,
@@ -299,7 +304,7 @@ const styles = StyleSheet.create({
   },
   emptyButtonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.base,
+    fontSize: theme.fontSizes.xl,
     marginLeft: 8,
   },
   fab: {
@@ -376,5 +381,12 @@ const styles = StyleSheet.create({
     color: theme.colors.primary,
     fontSize: theme.fontSizes.sm,
     fontFamily: theme.fonts.medium,
+  },
+  mascot: {
+    width: "90%", // Largura relativa para se adaptar melhor a diferentes ecrãs
+    aspectRatio: 1, // Garante que a imagem mantém a sua proporção (1:1)
+    height: undefined, // A altura será calculada com base na largura e na proporção
+    resizeMode: "contain", // Garante que a imagem inteira é visível, sem cortes
+    marginBottom: -30,
   },
 });

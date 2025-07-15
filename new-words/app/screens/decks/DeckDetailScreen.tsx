@@ -14,6 +14,7 @@ import {
   ScrollView,
   Pressable,
   TextInput,
+  Image,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -41,6 +42,7 @@ import {
   sortOptions,
   SortConfig,
 } from "../../../services/wordSorting";
+import images from "../../../services/imageService";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
 const EMPTY_ARRAY: number[] = [];
@@ -329,7 +331,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.emptyContainer}>
-        <Icon name="documentText" size={60} color={theme.colors.iconMuted} />
+        <Image source={images.mascotSleep} style={styles.mascot} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhuma palavra ainda
         </AppText>
@@ -684,19 +686,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
-    marginTop: 40,
+    marginTop: 10,
   },
   emptyTitle: {
     fontSize: theme.fontSizes["2xl"],
     color: theme.colors.textMedium,
-    marginTop: 16,
   },
   emptySubtitle: {
     fontSize: theme.fontSizes.lg,
     color: theme.colors.textMuted,
     textAlign: "center",
-    marginTop: 8,
-    marginBottom: 24,
+    marginTop: 4,
+    marginBottom: 40,
     maxWidth: "80%",
   },
   emptyButton: {
@@ -831,5 +832,12 @@ const styles = StyleSheet.create({
   headerButton: {
     padding: 8,
     marginLeft: 8,
+  },
+  mascot: {
+    width: "90%", // Largura relativa para se adaptar melhor a diferentes ecrãs
+    aspectRatio: 1, // Garante que a imagem mantém a sua proporção (1:1)
+    height: undefined, // A altura será calculada com base na largura e na proporção
+    resizeMode: "contain", // Garante que a imagem inteira é visível, sem cortes
+    marginBottom: -20,
   },
 });

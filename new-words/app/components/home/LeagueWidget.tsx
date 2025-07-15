@@ -23,11 +23,7 @@ import { HomeStackParamList } from "../../../types/navigation";
 import { theme } from "../../../config/theme";
 import AppText from "../AppText";
 import Icon, { IconName } from "../Icon";
-
-const mascotSource = {
-  promotion: require("../../../assets/images/mascot/mascot_happy3.png"),
-  demotion: require("../../../assets/images/mascot/mascot_sad.png"),
-};
+import images from "../../../services/imageService";
 
 type LeagueNavigationProp = NativeStackNavigationProp<
   HomeStackParamList,
@@ -135,11 +131,12 @@ export default function LeagueWidget() {
 
         <View />
         {/* A mascote variável aparece no canto inferior direito */}
-        {isPromotion && (
-          <Image source={mascotSource.promotion} style={styles.mascot} />
-        )}
-        {isDemotion && (
-          <Image source={mascotSource.demotion} style={styles.mascot} />
+        {isPromotion ? (
+          <Image source={images.mascotHappy} style={styles.mascot} />
+        ) : isDemotion ? (
+          <Image source={images.mascotSad} style={styles.mascot} />
+        ) : (
+          <Image source={images.mascotNeutral} style={styles.mascot} />
         )}
       </LinearGradient>
       {/* Elemento de brilho que se move por cima */}
