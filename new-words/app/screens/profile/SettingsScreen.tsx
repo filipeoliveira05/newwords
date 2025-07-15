@@ -159,22 +159,17 @@ const SettingsScreen = ({ navigation }: Props) => {
         </View>
       </View>
 
-      {/* Botão de desenvolvimento para apagar os dados */}
-      {__DEV__ && (
-        <View style={styles.section}>
-          <AppText variant="bold" style={styles.sectionTitle}>
-            Desenvolvimento
+      {/* Botão para apagar os dados */}
+      <View style={styles.section}>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Desenvolvimento
+        </AppText>
+        <TouchableOpacity style={styles.resetButton} onPress={handleResetData}>
+          <AppText variant="bold" style={styles.resetButtonText}>
+            Apagar Todos os Dados
           </AppText>
-          <TouchableOpacity
-            style={styles.resetButton}
-            onPress={handleResetData}
-          >
-            <AppText variant="bold" style={styles.resetButtonText}>
-              Apagar Todos os Dados
-            </AppText>
-          </TouchableOpacity>
-        </View>
-      )}
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 };
