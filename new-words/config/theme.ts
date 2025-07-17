@@ -56,6 +56,7 @@ export const colors = {
   primaryDarker: palette.blueDarker,
   background: palette.background,
   surface: palette.white,
+  backgroundGradient: [palette.blueLighter, palette.white],
 
   text: palette.textDark,
   textMedium: palette.textMedium,
@@ -140,6 +141,7 @@ export const fontSizes = {
   "2xl": 24,
   "3xl": 28,
   "4xl": 32,
+  "5xl": 36,
 };
 
 export const fonts = {

@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
   ActivityIndicator,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import LottieView from "lottie-react-native";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import {
   updateUserPracticeMetrics,
@@ -18,8 +21,10 @@ import { RootTabParamList } from "../../../types/navigation";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 import Icon from "../Icon";
+import images from "../../../services/imageService";
 
 type SessionResultsProps = {
+  confettiAnimation: any;
   onPlayAgain: () => void;
   onExit: () => void;
   deckId?: number;
@@ -31,6 +36,7 @@ export default function SessionResults({
   deckId,
   onExit,
   origin,
+  confettiAnimation,
 }: SessionResultsProps) {
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
@@ -53,6 +59,8 @@ export default function SessionResults({
   );
   const [remainingUrgent, setRemainingUrgent] = useState(0);
   const [isCheckingStats, setIsCheckingStats] = useState(true);
+
+  const animation = useRef(null);
 
   // Use an effect to save the stats to the database when results are shown
   useEffect(() => {
@@ -149,9 +157,38 @@ export default function SessionResults({
   }
   return (
     <View style={styles.container}>
-      <AppText variant="bold" style={styles.title}>
-        {isPerfectRound ? "Ronda Perfeita!" : "Resultados da Sessão"}
-      </AppText>
+      <LinearGradient
+        colors={[theme.colors.primaryLighter, theme.colors.surface]}
+        style={StyleSheet.absoluteFill}
+      />
+      {isPerfectRound && (
+        <AppText variant="bold" style={styles.title}>
+          Ronda Perfeita!
+        </AppText>
+      )}
+
+      {isPerfectRound && confettiAnimation && (
+        <LottieView
+          // @ts-ignore
+          ref={animation}
+          style={styles.confetti}
+          source={confettiAnimation}
+          autoPlay
+          loop={false}
+        />
+      )}
+
+      {/* Variantes da mascote */}
+      <Image
+        source={
+          isPerfectRound
+            ? images.mascotHappy
+            : scorePercentage > 40
+            ? images.mascotNeutral
+            : images.mascotSad
+        }
+        style={styles.mascot}
+      />
 
       {isUrgentSessionTrulyComplete ? (
         <View style={styles.summaryCard}>
@@ -225,6 +262,7 @@ export default function SessionResults({
             style={[styles.button, styles.secondaryButton, styles.halfButton]}
             onPress={handleExit}
           >
+            <Icon name="exit" size={20} color={theme.colors.text} />
             <AppText variant="bold" style={styles.secondaryButtonText}>
               Sair
             </AppText>
@@ -251,7 +289,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-    paddingTop: 60,
     width: "100%",
   },
   loadingText: {
@@ -260,9 +297,10 @@ const styles = StyleSheet.create({
     color: theme.colors.textMedium,
   },
   title: {
-    fontSize: theme.fontSizes["4xl"],
+    fontSize: theme.fontSizes["5xl"],
     color: theme.colors.text,
     marginBottom: 20,
+    zIndex: 1,
   },
   summaryCard: {
     backgroundColor: theme.colors.surface,
@@ -275,6 +313,7 @@ const styles = StyleSheet.create({
     shadowColor: theme.colors.text,
     shadowOpacity: 0.1,
     shadowRadius: 10,
+    zIndex: 2,
   },
   scoreText: {
     fontSize: theme.fontSizes.xl,
@@ -357,10 +396,13 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: theme.colors.border,
+    flexDirection: "row",
+    justifyContent: "center",
   },
   secondaryButtonText: {
     color: theme.colors.textMedium,
     fontSize: theme.fontSizes.md,
+    marginLeft: 8,
   },
   progressContainer: {
     width: "100%",
@@ -391,5 +433,22 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     textAlign: "center",
     marginTop: 6,
+  },
+  mascot: {
+    width: "100%", // Largura relativa para se adaptar
+    maxWidth: 280, // Tamanho máximo para ecrãs maiores
+    height: undefined, // A altura é calculada automaticamente
+    aspectRatio: 1, // Mantém a proporção da imagem (quadrada)
+    resizeMode: "contain",
+    marginBottom: -120, // Ajusta para um espaçamento consistente
+    zIndex: 1, // Garante que a mascote fica por baixo do card
+  },
+  confetti: {
+    position: "absolute",
+    width: 600,
+    height: 600,
+    top: -10,
+    alignSelf: "center",
+    zIndex: 0,
   },
 });

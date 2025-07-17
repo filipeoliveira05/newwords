@@ -19,6 +19,7 @@ import MultipleChoiceView from "../../components/practice/MultipleChoiceView";
 import WritingView from "../../components/practice/WritingView";
 import CombineListsView from "../../components/practice/CombineListsView";
 import SessionResults from "../../components/practice/SessionResults";
+import confettiAnimation from "../../../assets/animations/confetti.json";
 // import XpFeedbackManager from "../../components/practice/XpFeedbackManager";
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
@@ -123,6 +124,7 @@ export default function PracticeGameScreen({ route }: Props) {
         onExit={endSession}
         deckId={deckId}
         origin={origin}
+        confettiAnimation={confettiAnimation}
       />
     );
   }

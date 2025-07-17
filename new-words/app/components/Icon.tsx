@@ -81,6 +81,7 @@ export const iconMap = {
   person: { name: "person-outline", library: "ionicons" },
   remove: { name: "remove-outline", library: "ionicons" },
   removeCircle: { name: "remove-circle-outline", library: "ionicons" },
+  exit: { name: "exit-outline", library: "ionicons" },
   text: { name: "text-outline", library: "ionicons" },
   chat: { name: "chatbox-ellipses-outline", library: "ionicons" },
 
