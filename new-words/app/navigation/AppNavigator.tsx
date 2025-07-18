@@ -384,7 +384,7 @@ export default function AppNavigator() {
             component={PracticeStack}
             options={{
               tabBarIcon: () => (
-                <Icon name="practice" size={32} color={theme.colors.surface} />
+                <Icon name="flash" size={32} color={theme.colors.surface} />
               ),
               tabBarButton: (props) => <CustomTabBarButton {...props} />,
             }}
