@@ -318,7 +318,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     if (debouncedQuery) {
       return (
         <View style={styles.emptyContainer}>
-          <Icon name="searchCircle" size={60} color={theme.colors.iconMuted} />
+          <Image source={images.mascotConfused} style={styles.mascot} />
           <AppText variant="bold" style={styles.emptyTitle}>
             Nenhum resultado
           </AppText>

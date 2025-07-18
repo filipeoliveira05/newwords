@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useLayoutEffect } from "react";
-import { View, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -22,6 +22,7 @@ import {
   getPersonalizedWelcomeMessage,
   WelcomeMessageContext,
 } from "../../../services/welcomeMessageService";
+import LoadingScreen from "../LoadingScreen";
 
 type Props = CompositeScreenProps<
   NativeStackScreenProps<HomeStackParamList, "HomeDashboard">,
@@ -122,11 +123,7 @@ export default function HomeScreen({ navigation }: Props) {
   }, [navigation]);
 
   if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
+    return <LoadingScreen visible={loading} />;
   }
 
   return (
@@ -188,12 +185,12 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
     marginBottom: 50,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
+  // loadingContainer: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   backgroundColor: theme.colors.background,
+  // },
   header: {
     paddingTop: 24,
     paddingHorizontal: 20,

@@ -2,7 +2,6 @@ import React, { useLayoutEffect, useEffect, useState, useMemo } from "react";
 import {
   View,
   StyleSheet,
-  ActivityIndicator,
   TextInput,
   TouchableOpacity,
   Modal,
@@ -24,7 +23,9 @@ import {
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
+import images from "@/services/imageService";
 import WordOverview from "../../components/WordOverview";
+import LoadingScreen from "../LoadingScreen";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "AllWords">;
 
@@ -138,9 +139,11 @@ const AllWordsScreen = ({ navigation }: Props) => {
   const renderEmptyComponent = () => {
     if (loading) {
       return (
-        <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color={theme.colors.primary} />
-        </View>
+        <LoadingScreen
+          visible={loading}
+          loadingText="A carregar palavras..."
+          mascotImage={images.mascotNeutral}
+        />
       );
     }
 

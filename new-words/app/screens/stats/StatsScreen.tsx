@@ -9,7 +9,6 @@ import {
   View,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   TouchableOpacity,
   Modal,
   Pressable,
@@ -59,6 +58,7 @@ import AchievementBadge from "../../components/stats/AchievementBadge";
 import AppText from "../../components/AppText";
 import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
+import LoadingScreen from "../LoadingScreen";
 
 // Define the type for the marked dates object locally.
 // This is necessary because the version of `react-native-calendars`
@@ -400,10 +400,10 @@ export default function StatsScreen({ navigation }: Props) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={theme.colors.text} />
-        <AppText style={styles.loadingText}>A calcular estatísticas...</AppText>
-      </View>
+      <LoadingScreen
+        visible={loading}
+        loadingText="A calcular estatísticas..."
+      />
     );
   }
 
@@ -641,11 +641,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  centerContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  // centerContent: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
   scrollContentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 40,
@@ -717,10 +717,10 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.md,
     marginLeft: 8,
   },
-  loadingText: {
-    marginTop: 10,
-    color: theme.colors.textSecondary,
-  },
+  // loadingText: {
+  //   marginTop: 10,
+  //   color: theme.colors.textSecondary,
+  // },
   modalOverlay: {
     flex: 1,
     backgroundColor: theme.colors.overlay,

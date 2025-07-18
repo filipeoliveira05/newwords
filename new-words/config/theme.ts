@@ -142,6 +142,7 @@ export const fontSizes = {
   "3xl": 28,
   "4xl": 32,
   "5xl": 36,
+  loadingDots: 80,
 };
 
 export const fonts = {

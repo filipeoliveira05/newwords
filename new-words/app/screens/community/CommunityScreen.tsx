@@ -2,7 +2,6 @@ import React, { useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
-  ActivityIndicator,
   ScrollView,
   TouchableOpacity,
   GestureResponderEvent,
@@ -18,11 +17,13 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
+import images from "@/services/imageService";
 import OfflinePlaceholder from "@/app/components/OfflinePlaceholder";
 import Icon from "@/app/components/Icon";
 import { CommunityStackParamList } from "@/types/navigation";
 import CommunityDeckCard from "@/app/components/community/CommunityDeckCard";
 import { useAlertStore } from "@/stores/useAlertStore";
+import LoadingScreen from "../LoadingScreen";
 
 import LeagueWidget from "@/app/components/home/LeagueWidget";
 
@@ -182,10 +183,11 @@ const CommunityScreen = ({ navigation }: Props) => {
   // Estado de carregamento inicial ou durante uma nova tentativa
   if (netInfo.isConnected === null || isRetrying) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <AppText style={styles.loadingText}>A ligar à comunidade...</AppText>
-      </View>
+      <LoadingScreen
+        visible={true}
+        loadingText="A ligar à comunidade..."
+        mascotImage={images.mascotNeutral}
+      />
     );
   }
 
@@ -303,17 +305,17 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     marginTop: 4,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: theme.colors.background,
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: theme.fontSizes.lg,
-    color: theme.colors.textSecondary,
-  },
+  // loadingContainer: {
+  //   flex: 1,
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  //   backgroundColor: theme.colors.background,
+  // },
+  // loadingText: {
+  //   marginTop: 16,
+  //   fontSize: theme.fontSizes.lg,
+  //   color: theme.colors.textSecondary,
+  // },
   widgetContainer: {
     marginBottom: 32,
   },

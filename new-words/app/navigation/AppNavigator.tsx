@@ -1,10 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import {
   createBottomTabNavigator,
   BottomTabBarButtonProps,
@@ -67,6 +62,7 @@ import Icon from "../components/Icon";
 import SatoshiRegular from "../../assets/fonts/Satoshi-Regular.otf";
 import SatoshiMedium from "../../assets/fonts/Satoshi-Medium.otf";
 import SatoshiBold from "../../assets/fonts/Satoshi-Bold.otf";
+import LoadingScreen from "../screens/LoadingScreen";
 
 // --- Estilos e Componentes da Tab Bar ---
 
@@ -312,12 +308,7 @@ export default function AppNavigator() {
   }, []);
 
   if (!fontsLoaded) {
-    // Pode mostrar um ecrã de loading mais elaborado, mas por agora isto é suficiente.
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+    return <LoadingScreen visible={!fontsLoaded} />;
   }
   return (
     <BottomSheetModalProvider>

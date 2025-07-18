@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
-  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
@@ -22,6 +21,7 @@ import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 import Icon from "../Icon";
 import images from "../../../services/imageService";
+import LoadingScreen from "@/app/screens/LoadingScreen";
 
 type SessionResultsProps = {
   confettiAnimation: any;
@@ -147,12 +147,10 @@ export default function SessionResults({
 
   if (isCheckingStats) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <AppText variant="bold" style={styles.loadingText}>
-          A guardar o seu progresso...
-        </AppText>
-      </View>
+      <LoadingScreen
+        visible={isCheckingStats}
+        loadingText="A guardar o progresso..."
+      />
     );
   }
   return (
@@ -291,11 +289,11 @@ const styles = StyleSheet.create({
     padding: 20,
     width: "100%",
   },
-  loadingText: {
-    marginTop: 20,
-    fontSize: theme.fontSizes.lg,
-    color: theme.colors.textMedium,
-  },
+  // loadingText: {
+  //   marginTop: 20,
+  //   fontSize: theme.fontSizes.lg,
+  //   color: theme.colors.textMedium,
+  // },
   title: {
     fontSize: theme.fontSizes["5xl"],
     color: theme.colors.text,

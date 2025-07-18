@@ -26,6 +26,7 @@ import {
 import { DecksStackParamList } from "../../../types/navigation";
 import Icon from "../../components/Icon";
 import images from "../../../services/imageService";
+import LoadingScreen from "../LoadingScreen";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
@@ -91,10 +92,7 @@ export default function DecksScreen({ navigation }: Props) {
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centerContent]}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <AppText style={{ marginTop: 8 }}>A carregar conjuntos...</AppText>
-      </View>
+      <LoadingScreen visible={loading} loadingText="A carregar conjuntos..." />
     );
   }
 
@@ -266,10 +264,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  centerContent: {
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  // centerContent: {
+  //   justifyContent: "center",
+  //   alignItems: "center",
+  // },
   list: {
     paddingHorizontal: 16,
     paddingTop: 6,

@@ -167,11 +167,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: theme.colors.background,
   },
-  loadingText: {
-    marginTop: 20,
-    fontSize: theme.fontSizes.lg,
-    color: theme.colors.textMedium,
-  },
+  // loadingText: {
+  //   marginTop: 20,
+  //   fontSize: theme.fontSizes.lg,
+  //   color: theme.colors.textMedium,
+  // },
   headerContainer: {
     width: "100%",
     flexDirection: "row",
