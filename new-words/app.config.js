@@ -15,7 +15,7 @@ module.exports = {
     slug: "new-words",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/mascot/mascot_happy3.png",
+    icon: "./assets/images/mascot/mascot_neutral.png",
     scheme: "newwords",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
@@ -45,6 +45,7 @@ module.exports = {
     },
 
     plugins: [
+      "expo-dev-client",
       "expo-router",
       [
         "expo-splash-screen",

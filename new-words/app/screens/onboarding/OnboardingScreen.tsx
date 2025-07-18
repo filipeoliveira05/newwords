@@ -17,11 +17,11 @@ import { theme } from "../../../config/theme";
 import { setMetaValue } from "../../../services/storage";
 import OnboardingSlide from "../../components/onboarding/OnboardingSlide";
 import OnboardingPaginator from "../../components/onboarding/OnboardingPaginator";
-import { IconName } from "../../components/Icon";
+import { ImageName } from "@/services/imageService";
 
 interface Slide {
   id: string;
-  icon: IconName;
+  image: ImageName;
   title: string;
   description: string;
 }
@@ -29,28 +29,28 @@ interface Slide {
 const slides: Slide[] = [
   {
     id: "1",
-    icon: "albums",
+    image: "mascotOnboarding1",
     title: "Crie os Seus Conjuntos",
     description:
       "Organize o seu vocabulário em conjuntos personalizados. Adicione palavras, significados e muito mais.",
   },
   {
     id: "2",
-    icon: "flashOutline",
+    image: "mascotOnboarding2",
     title: "Prática Inteligente",
     description:
       "O nosso sistema de Repetição Espaçada mostra-lhe as palavras certas na altura certa para maximizar a sua memorização.",
   },
   {
     id: "3",
-    icon: "gameController",
+    image: "mascotOnboarding3",
     title: "Vários Modos de Jogo",
     description:
       "Mantenha a aprendizagem divertida com flashcards, escolha múltipla, escrita e combinação de listas.",
   },
   {
     id: "4",
-    icon: "trophy",
+    image: "mascotOnboarding4",
     title: "Suba na Liga",
     description:
       "Ganhe XP com cada resposta correta, suba de nível e compita com outros utilizadores na liga semanal.",
@@ -99,7 +99,7 @@ const OnboardingScreen = ({ navigation }: Props) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={{ flex: 3 }}>
+      <View style={{ flex: 5 }}>
         <Animated.FlatList
           ref={slidesRef}
           data={slides}

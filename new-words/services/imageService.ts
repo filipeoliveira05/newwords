@@ -8,12 +8,16 @@
  */
 const images = {
   // --- Mascotes ---
-  mascotHappy: require("../assets/images/mascot/mascot_happy3.png"),
+  mascotAmazed: require("../assets/images/mascot/mascot_amazed.png"),
   mascotNeutral: require("../assets/images/mascot/mascot_neutral.png"),
   mascotSad: require("../assets/images/mascot/mascot_sad.png"),
   mascotConfused: require("../assets/images/mascot/mascot_confused.png"),
   mascotBored: require("../assets/images/mascot/mascot_bored.png"),
   mascotSleep: require("../assets/images/mascot/mascot_sleep.png"),
+  mascotOnboarding1: require("../assets/images/mascot/mascot_books.png"),
+  mascotOnboarding2: require("../assets/images/mascot/mascot_think.png"),
+  mascotOnboarding3: require("../assets/images/mascot/mascot_play.png"),
+  mascotOnboarding4: require("../assets/images/mascot/mascot_trophy.png"),
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/adaptive-icon.png"),

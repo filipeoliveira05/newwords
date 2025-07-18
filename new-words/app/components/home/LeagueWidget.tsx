@@ -132,7 +132,7 @@ export default function LeagueWidget() {
         <View />
         {/* A mascote variável aparece no canto inferior direito */}
         {isPromotion ? (
-          <Image source={images.mascotHappy} style={styles.mascot} />
+          <Image source={images.mascotAmazed} style={styles.mascot} />
         ) : isDemotion ? (
           <Image source={images.mascotSad} style={styles.mascot} />
         ) : (

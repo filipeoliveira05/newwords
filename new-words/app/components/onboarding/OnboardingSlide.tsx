@@ -1,13 +1,13 @@
 import React from "react";
-import { View, StyleSheet, useWindowDimensions } from "react-native";
+import { View, StyleSheet, useWindowDimensions, Image } from "react-native";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
-import Icon, { IconName } from "../Icon";
+import images, { ImageName } from "@/services/imageService";
 
 interface OnboardingSlideProps {
   item: {
     id: string;
-    icon: IconName;
+    image: ImageName;
     title: string;
     description: string;
   };
@@ -18,16 +18,17 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ item }) => {
 
   return (
     <View style={[styles.container, { width }]}>
-      <Icon
-        name={item.icon}
-        size={120}
-        color={theme.colors.primary}
-        style={styles.icon}
+      <Image
+        source={images[item.image]}
+        style={styles.mascot}
+        resizeMode="contain"
       />
-      <AppText variant="bold" style={styles.title}>
-        {item.title}
-      </AppText>
-      <AppText style={styles.description}>{item.description}</AppText>
+      <View style={styles.textContainer}>
+        <AppText variant="bold" style={styles.title}>
+          {item.title}
+        </AppText>
+        <AppText style={styles.description}>{item.description}</AppText>
+      </View>
     </View>
   );
 };
@@ -35,20 +36,30 @@ const OnboardingSlide: React.FC<OnboardingSlideProps> = ({ item }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 40,
   },
-  icon: {
+  textContainer: {
+    flex: 1,
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  mascot: {
+    flex: 1.2,
+    justifyContent: "flex-end",
+    width: "100%", // Ajusta a largura da imagem conforme necessário
+    alignSelf: "center", // Centraliza a imagem horizontalmente
+    transform: [{ scale: 1.8 }],
+    marginTop: 100,
     marginBottom: 40,
   },
   title: {
-    fontSize: theme.fontSizes["4xl"],
+    fontSize: theme.fontSizes["5xl"],
     textAlign: "center",
-    marginBottom: 20,
+    marginBottom: 10,
   },
   description: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes.xxl,
     textAlign: "center",
     lineHeight: 24,
   },

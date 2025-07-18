@@ -182,7 +182,7 @@ export default function SessionResults({
       <Image
         source={
           isPerfectRound
-            ? images.mascotHappy
+            ? images.mascotAmazed
             : scorePercentage > 40
             ? images.mascotNeutral
             : images.mascotSad
