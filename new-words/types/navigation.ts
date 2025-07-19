@@ -1,5 +1,6 @@
 import { Word } from "@/types/database";
 import { NavigatorScreenParams } from "@react-navigation/native";
+import { WeeklySummary } from "../services/storage";
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -9,6 +10,7 @@ export type RootStackParamList = {
 export type HomeStackParamList = {
   HomeDashboard: undefined;
   LeagueDetails: undefined;
+  WeeklyRecap: { summary: WeeklySummary };
 };
 
 export type DecksStackParamList = {
@@ -32,7 +34,7 @@ export type PracticeStackParamList = {
     deckId?: number;
     sessionType: "urgent" | "free" | "wrong" | "favorite";
     words?: Word[];
-    origin?: "DeckDetail" | "Stats";
+    origin?: "HomeDashboard" | "DeckDetail" | "Stats";
   };
   PracticeGame: {
     origin?: "DeckDetail" | "Stats"; // De onde a prática foi iniciada, para o ecrã de resultados saber para onde voltar.

@@ -32,6 +32,7 @@ import {
 
 import HomeScreen from "../screens/home/HomeScreen";
 import LeagueScreen from "../screens/home/LeagueScreen";
+import WeeklyRecapScreen from "../screens/home/WeeklyRecapScreen";
 
 import LibraryHubScreen from "../screens/decks/LibraryHubScreen";
 import AllWordsScreen from "../screens/decks/AllWordsScreen";
@@ -114,6 +115,8 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
 
   // Lista de ecrãs onde a tab bar deve ser escondida.
   const screensWithHiddenTabBar = [
+    "LeagueDetails",
+    "WeeklyRecap",
     "DecksList",
     "AllWords",
     "DeckDetail",
@@ -121,7 +124,6 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
     "AddOrEditDeck",
     "PracticeGame",
     "PracticeLoading",
-    "LeagueDetails",
     "Account",
     "EditAccount",
     "Stats",
@@ -182,6 +184,11 @@ function HomeStack() {
         options={{ headerShown: true }}
       />
       <HomeStackNav.Screen name="LeagueDetails" component={LeagueScreen} />
+      <HomeStackNav.Screen
+        name="WeeklyRecap"
+        component={WeeklyRecapScreen}
+        options={{ presentation: "modal", headerShown: false }}
+      />
     </HomeStackNav.Navigator>
   );
 }

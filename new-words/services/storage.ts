@@ -65,6 +65,15 @@ export const initializeDB = async () => {
         );
       `);
       await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS practice_log (
+            id INTEGER PRIMARY KEY NOT NULL,
+            word_id INTEGER NOT NULL,
+            practice_date TEXT NOT NULL,
+            was_correct INTEGER NOT NULL,
+            FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
+        );
+      `);
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS unlocked_achievements (
             achievement_id TEXT PRIMARY KEY NOT NULL,
             unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
@@ -138,6 +147,10 @@ export const initializeDB = async () => {
       // Index to quickly find words answered incorrectly.
       await db.runAsync(
         `CREATE INDEX IF NOT EXISTS idx_words_lastAnswerCorrect ON words(lastAnswerCorrect);`
+      );
+      // Index to quickly query practice logs by date.
+      await db.runAsync(
+        `CREATE INDEX IF NOT EXISTS idx_practice_log_date ON practice_log(practice_date);`
       );
     });
   } catch (e) {
@@ -743,6 +756,12 @@ export async function updateWordStatsWithQuality(
       [todayStr]
     );
 
+    // Log the individual practice event in the new table
+    await db.runAsync(
+      `INSERT INTO practice_log (word_id, practice_date, was_correct) VALUES (?, ?, ?);`,
+      [wordId, todayStr, quality >= 3 ? 1 : 0]
+    );
+
     await db.runAsync(
       `UPDATE words SET
         timesTrained = timesTrained + 1,
@@ -917,31 +936,116 @@ export async function getAchievementsCount(): Promise<number> {
   }
 }
 
-export interface WeeklySummaryStats {
+/**
+ * Representa um resumo detalhado das estatísticas do utilizador para a semana passada,
+ * incluindo dados comparativos com a semana anterior.
+ */
+export interface WeeklySummary {
   wordsLearned: number;
   wordsTrained: number;
+  practiceDaysCount: number;
+  achievementsUnlockedCount: number;
+  mostProductiveDay: { date: string; wordsTrained: number } | null;
+  mostTrainedWord: { name: string; timesTrained: number } | null;
+  mostChallengingWord: { name: string; timesIncorrect: number } | null;
+  comparison: {
+    wordsTrained: number;
+    practiceDaysCount: number;
+  } | null;
 }
 
-export async function getWeeklySummaryStats(): Promise<WeeklySummaryStats> {
+export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
   try {
-    const startOfThisWeek = format(
-      startOfWeek(new Date(), { weekStartsOn: 1 }),
+    const now = new Date();
+    // Define os intervalos de tempo para a semana passada e a semana anterior a essa.
+    const startOfCurrentWeek = startOfWeek(now, { weekStartsOn: 1 });
+    const startOfLastWeek = addDays(startOfCurrentWeek, -7);
+    const startOfWeekBeforeLast = addDays(startOfLastWeek, -7);
+
+    const startOfCurrentWeekStr = format(startOfCurrentWeek, "yyyy-MM-dd");
+    const startOfLastWeekStr = format(startOfLastWeek, "yyyy-MM-dd");
+    const startOfWeekBeforeLastStr = format(
+      startOfWeekBeforeLast,
       "yyyy-MM-dd"
     );
 
-    const practiceResult = await db.getFirstAsync<{ total_trained: number }>(
-      `SELECT SUM(words_trained) as total_trained FROM practice_history WHERE date >= ?`,
-      [startOfThisWeek]
-    );
+    // --- Queries para a SEMANA PASSADA ---
+    const [
+      lastWeekPractice,
+      lastWeekLearned,
+      lastWeekPracticeDays,
+      lastWeekAchievements,
+      mostProductiveDay,
+      mostTrainedWord,
+      mostChallengingWord,
+    ] = await Promise.all([
+      db.getFirstAsync<{ total: number }>(
+        `SELECT SUM(words_trained) as total FROM practice_history WHERE date >= ? AND date < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ total: number }>(
+        `SELECT COUNT(*) as total FROM words WHERE date(createdAt) >= ? AND date(createdAt) < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ total: number }>(
+        `SELECT COUNT(DISTINCT date) as total FROM practice_history WHERE date >= ? AND date < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ total: number }>(
+        `SELECT COUNT(*) as total FROM unlocked_achievements WHERE date(unlocked_at) >= ? AND date(unlocked_at) < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ date: string; words_trained: number }>(
+        `SELECT date, words_trained FROM practice_history WHERE date >= ? AND date < ? ORDER BY words_trained DESC LIMIT 1`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ name: string; timesTrained: number }>(
+        `SELECT w.name, COUNT(pl.word_id) as timesTrained
+         FROM practice_log pl JOIN words w ON w.id = pl.word_id
+         WHERE pl.practice_date >= ? AND pl.practice_date < ?
+         GROUP BY pl.word_id ORDER BY timesTrained DESC LIMIT 1;`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ name: string; timesIncorrect: number }>(
+        `SELECT w.name, COUNT(pl.word_id) as timesIncorrect
+         FROM practice_log pl JOIN words w ON w.id = pl.word_id
+         WHERE pl.practice_date >= ? AND pl.practice_date < ? AND pl.was_correct = 0
+         GROUP BY pl.word_id ORDER BY timesIncorrect DESC LIMIT 1;`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+    ]);
 
-    const wordsResult = await db.getFirstAsync<{ count: number }>(
-      `SELECT COUNT(*) as count FROM words WHERE date(createdAt) >= ?`,
-      [startOfThisWeek]
-    );
+    // --- Queries para a SEMANA ANTERIOR (para comparação) ---
+    const [prevWeekPractice, prevWeekPracticeDays] = await Promise.all([
+      db.getFirstAsync<{ total: number }>(
+        `SELECT SUM(words_trained) as total FROM practice_history WHERE date >= ? AND date < ?`,
+        [startOfWeekBeforeLastStr, startOfLastWeekStr]
+      ),
+      db.getFirstAsync<{ total: number }>(
+        `SELECT COUNT(DISTINCT date) as total FROM practice_history WHERE date >= ? AND date < ?`,
+        [startOfWeekBeforeLastStr, startOfLastWeekStr]
+      ),
+    ]);
 
     return {
-      wordsLearned: wordsResult?.count ?? 0,
-      wordsTrained: practiceResult?.total_trained ?? 0,
+      // Dados da semana passada
+      wordsLearned: lastWeekLearned?.total ?? 0,
+      wordsTrained: lastWeekPractice?.total ?? 0,
+      practiceDaysCount: lastWeekPracticeDays?.total ?? 0,
+      achievementsUnlockedCount: lastWeekAchievements?.total ?? 0,
+      mostProductiveDay: mostProductiveDay
+        ? {
+            date: mostProductiveDay.date,
+            wordsTrained: mostProductiveDay.words_trained,
+          }
+        : null,
+      mostTrainedWord: mostTrainedWord,
+      mostChallengingWord: mostChallengingWord,
+      // Dados de comparação
+      comparison: {
+        wordsTrained: prevWeekPractice?.total ?? 0,
+        practiceDaysCount: prevWeekPracticeDays?.total ?? 0,
+      },
     };
   } catch (e) {
     console.error("Erro ao obter estatísticas do resumo semanal:", e);

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useLayoutEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { isMonday } from "date-fns";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../../components/AppText";
@@ -17,6 +18,7 @@ import DynamicActionCard from "../../components/home/DynamicActionCard";
 import OnThisDayCard from "../../components/home/cards/OnThisDayCard";
 import ContinueLearningCard from "../../components/home/cards/ContinueLearningCard";
 import TipOfTheDayCard from "../../components/home/cards/TipOfTheDayCard";
+import WeeklySummaryCard from "../../components/home/cards/WeeklySummaryCard";
 import GamificationHeader from "../../components/home/GamificationHeader";
 import {
   getPersonalizedWelcomeMessage,
@@ -38,6 +40,7 @@ export default function HomeScreen({ navigation }: Props) {
     lastPracticedDeck,
     onThisDayWord,
     loading,
+    weeklySummary,
     fetchUserStats,
     dailyGoals,
     user,
@@ -135,6 +138,13 @@ export default function HomeScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.content}>
+        {isMonday(new Date()) &&
+          weeklySummary &&
+          weeklySummary.wordsTrained > 0 && (
+            <View style={styles.staticCardContainer}>
+              <WeeklySummaryCard summary={weeklySummary} />
+            </View>
+          )}
         <View style={styles.dynamicCardContainer}>
           <DynamicActionCard />
         </View>
