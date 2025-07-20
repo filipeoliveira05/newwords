@@ -64,20 +64,15 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
 
 - [ ] 🎨 **UI/UX Enhancements:**
   - [ ] **Design do "Combinar Listas":** Melhorar o design do modo de jogo para ser mais intuitivo e visualmente apelativo, semelhante à interface do Duolingo.
+  - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
   - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda para a revisão de flashcards, tornando as sessões mais rápidas e envolventes.
   - [ ] **Animações e Feedback:** Adicionar animações com Lottie aos ícones da Tab Bar, expandir o uso de feedback háptico e criar uma animação especial ao apagar um conjunto.
-  - [ ] **Modernizar UI:** Substituir os modais antigos por `Bottom Sheets` para uma experiência mais nativa e fluida.
-  - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
-- [ ] 🧠 **Sistema de Maestria Refinado:** Melhorar a lógica do `masteryLevel`. Por exemplo, uma palavra só será considerada "Dominada" após 5 respostas corretas consecutivas.
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
-  - [ ] **"Continuar a Estudar":** Adicionar uma secção que mostra conjuntos com progresso a meio, permitindo ao utilizador retomar a prática rapidamente.
   - [ ] **Widget da Liga Offline:** Garantir que o widget mostra sempre os últimos dados em cache quando offline, com um indicador visual claro.
-- [x] 🔀 **Ordenação Avançada de Conjuntos:** Adicionar opções para ordenar os conjuntos por "Mais Difícil", "Menos Revisto" ou "Mais Antigo".
 
 #### Nível 2: O Hábito (Engajamento e Retenção)
 
 - [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
-- [x] 📖 **"All Words" Library:** Create a dedicated screen where users can view and search all words in the database, regardless of deck, and tap to see their details.
 - [ ] 🎲 **New Game Modes:**
   - [ ] **Sprint Contra o Tempo:** Um modo rápido: "Quantas palavras consegue acertar em 60 segundos?".
   - [ ] **Completa a Frase:** Uma frase aparece com um espaço em branco, e o utilizador deve escolher a palavra correta para o preencher.

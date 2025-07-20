@@ -26,8 +26,10 @@ import { DecksStackParamList } from "../../../types/navigation";
 import { useWordStore } from "../../../stores/wordStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import ChipInput from "../../components/ChipInput";
-import WordEditModal from "../../components/WordEditModal";
 import CategorySelectionModal from "../../components/modals/CategorySelectionModal";
+import WordEditSheet, {
+  WordEditSheetRef,
+} from "../../components/sheets/WordEditSheet";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import Icon from "../../components/Icon";
@@ -69,14 +71,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   const [keyboardPadding, setKeyboardPadding] = useState(0);
   const scrollY = useRef(0);
   const scrollViewRef = useRef<ScrollView>(null);
-  // State for the new edit modal
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
-  const [editingWordDetails, setEditingWordDetails] = useState<{
-    name: string;
-    meaning: string;
-    category: string | null;
-  } | null>(null);
+  const wordEditSheetRef = useRef<WordEditSheetRef>(null);
 
   // State to track if there are unsaved changes
   const [isDirty, setIsDirty] = useState(false);
@@ -256,36 +251,32 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     });
   }, [wordDetails, showAlert, deleteWord, navigation]);
 
-  const closeEditModal = () => {
-    setIsEditModalVisible(false);
-    setEditingWordDetails(null);
-  };
-
   const handleEditWord = useCallback(() => {
     if (!wordDetails) return;
-    setEditingWordDetails({
-      name: wordDetails.name,
-      meaning: wordDetails.meaning,
-      category: wordDetails.category,
-    });
-    setIsEditModalVisible(true);
+    wordEditSheetRef.current?.present(wordDetails);
   }, [wordDetails]);
 
-  const handleSaveWordEdit = useCallback(
-    async (name: string, meaning: string, category: string | null) => {
+  const handleSaveWord = useCallback(
+    async (
+      {
+        name,
+        meaning,
+        category,
+      }: { name: string; meaning: string; category: string | null },
+      wordId?: number
+    ) => {
       if (!name.trim() || !meaning.trim()) {
         showAlert({
           title: "Erro",
           message: "Preenche a palavra e o significado.",
           buttons: [{ text: "OK", onPress: () => {} }],
         });
-        return;
+        return Promise.reject(new Error("Campos em falta"));
       }
-      if (!wordDetails) return;
+      if (!wordId) return Promise.reject(new Error("ID da palavra em falta"));
 
-      setIsSavingEdit(true);
       try {
-        await updateWord(wordDetails.id, name.trim(), meaning.trim(), category);
+        await updateWord(wordId, name.trim(), meaning.trim(), category);
 
         setWordDetails((prev) => {
           if (!prev) return null;
@@ -302,7 +293,8 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           text1: "Palavra atualizada!",
         });
 
-        closeEditModal();
+        wordEditSheetRef.current?.dismiss();
+        return Promise.resolve();
       } catch (error) {
         console.error("Falha ao editar a palavra:", error);
         showAlert({
@@ -310,11 +302,10 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           message: "Não foi possível editar a palavra.",
           buttons: [{ text: "OK", onPress: () => {} }],
         });
-      } finally {
-        setIsSavingEdit(false);
+        return Promise.reject(error);
       }
     },
-    [wordDetails, updateWord, showAlert]
+    [updateWord, showAlert]
   );
   const handleSave = useCallback(async () => {
     if (!wordDetails) return;
@@ -669,13 +660,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         </View>
       </ScrollView>
 
-      <WordEditModal
-        isVisible={isEditModalVisible}
-        onClose={closeEditModal}
-        onSave={handleSaveWordEdit}
-        initialData={editingWordDetails}
-        isSaving={isSavingEdit}
-      />
+      <WordEditSheet ref={wordEditSheetRef} onSave={handleSaveWord} />
       <CategorySelectionModal
         isVisible={isCategoryModalVisible}
         onClose={() => setIsCategoryModalVisible(false)}

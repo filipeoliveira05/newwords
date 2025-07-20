@@ -1,4 +1,5 @@
 import React from "react";
+import "../config/reanimated"; // Importa para executar a configuração da Reanimated
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import RootNavigator from "./navigation/RootNavigator";
 import { MenuProvider } from "react-native-popup-menu";

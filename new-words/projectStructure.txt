@@ -11,7 +11,6 @@
 │   │   ├── LevelUpOverlay.tsx
 │   │   ├── LinearProgressBar.tsx
 │   │   ├── OfflinePlaceholder.tsx
-│   │   ├── WordEditModal.tsx
 │   │   ├── WordOverview.tsx
 │   │   ├── community
 │   │   │   └── CommunityDeckCard.tsx
@@ -19,7 +18,16 @@
 │   │   │   ├── DynamicActionCard.tsx
 │   │   │   ├── GamificationHeader.tsx
 │   │   │   ├── LeagueWidget.tsx
-│   │   │   └── cards
+│   │   │   ├── cards
+│   │   │   │   ├── ChallengingWordsCard.tsx
+│   │   │   │   ├── ContinueLearningCard.tsx
+│   │   │   │   ├── DefaultPracticeCard.tsx
+│   │   │   │   ├── OnThisDayCard.tsx
+│   │   │   │   ├── TipOfTheDayCard.tsx
+│   │   │   │   ├── UrgentReviewCard.tsx
+│   │   │   │   └── WeeklySummaryCard.tsx
+│   │   │   └── recap
+│   │   │       └── RecapProgressBar.tsx
 │   │   ├── modals
 │   │   │   └── CategorySelectionModal.tsx
 │   │   ├── navigation
@@ -37,6 +45,8 @@
 │   │   │   ├── WritingView.tsx
 │   │   │   ├── XpFeedback.tsx
 │   │   │   └── XpFeedbackManager.tsx
+│   │   ├── sheets
+│   │   │   └── WordEditSheet.tsx
 │   │   └── stats
 │   │       ├── AchievementBadge.tsx
 │   │       ├── DailyGoalProgress.tsx
@@ -45,6 +55,7 @@
 │   │   ├── AppNavigator.tsx
 │   │   └── RootNavigator.tsx
 │   └── screens
+│       ├── LoadingScreen.tsx
 │       ├── auth
 │       ├── community
 │       │   └── CommunityScreen.tsx
@@ -57,7 +68,8 @@
 │       │   └── WordDetailsScreen.tsx
 │       ├── home
 │       │   ├── HomeScreen.tsx
-│       │   └── LeagueScreen.tsx
+│       │   ├── LeagueScreen.tsx
+│       │   └── WeeklyRecapScreen.tsx
 │       ├── onboarding
 │       │   └── OnboardingScreen.tsx
 │       ├── practice
@@ -77,8 +89,17 @@
 │   ├── achievements.ts
 │   ├── dailyGoals.ts
 │   ├── leagues.ts
+│   ├── reanimated.ts
 │   └── theme.ts
 ├── declarations.d.ts
+├── dist
+│   ├── _expo
+│   │   └── static
+│   │       └── js
+│   │           ├── android
+│   │           └── ios
+│   ├── assetmap.json
+│   └── metadata.json
 ├── eas.json
 ├── eslint.config.js
 ├── expo-env.d.ts
@@ -89,6 +110,7 @@
 ├── services
 │   ├── deckSorting.ts
 │   ├── hapticService.ts
+│   ├── imageService.ts
 │   ├── seeder.ts
 │   ├── soundService.ts
 │   ├── storage.ts
@@ -111,4 +133,4 @@
     ├── arrayUtils.ts
     └── sm2.ts
 
-25 directories, 86 files
+33 directories, 100 files

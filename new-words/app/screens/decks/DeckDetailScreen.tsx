@@ -9,10 +9,8 @@ import {
   View,
   StyleSheet,
   TouchableOpacity,
-  Modal,
   ActivityIndicator,
   ScrollView,
-  Pressable,
   TextInput,
   Image,
 } from "react-native";
@@ -27,7 +25,9 @@ import {
   RootTabParamList,
 } from "../../../types/navigation";
 import WordOverview from "../../components/WordOverview";
-import WordEditModal from "../../components/WordEditModal";
+import WordEditSheet, {
+  WordEditSheetRef,
+} from "../../components/sheets/WordEditSheet";
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -77,16 +77,14 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   } = useWordStore.getState();
   const { showAlert } = useAlertStore.getState();
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingWord, setEditingWord] = useState<Word | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [sortModalVisible, setSortModalVisible] = useState(false);
 
+  const wordEditSheetRef = useRef<WordEditSheetRef>(null);
   const practiceBottomSheetRef = useRef<BottomSheetModal>(null);
+  const sortBottomSheetRef = useRef<BottomSheetModal>(null);
   const flatListRef = useRef<FlatList<Word>>(null);
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const sortScrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -114,18 +112,13 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   const { sortedWords, sortConfig, setSortConfig } =
     useWordSorting(filteredWords);
 
-  const closeModal = () => {
-    setIsModalVisible(false);
-    setEditingWord(null); // Garante que o modo de edição é resetado
-  };
-
   useEffect(() => {
     if (deckId) {
       fetchWordsOfDeck(deckId);
     }
     if (openAddWordModal) {
-      setEditingWord(null); // Garante que está em modo de adição
-      setIsModalVisible(true);
+      // Abre o sheet em modo de adição
+      wordEditSheetRef.current?.present();
     }
   }, [deckId, openAddWordModal, fetchWordsOfDeck]);
 
@@ -137,9 +130,13 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     }
   }, [sortConfig]);
 
+  const handleSortSheetChange = useCallback((index: number) => {
+    setIsSortSheetOpen(index >= 0);
+  }, []);
+
   // Efeito para fazer scroll para a opção de ordenação ativa quando o modal abre.
   useEffect(() => {
-    if (sortModalVisible && sortScrollViewRef.current) {
+    if (isSortSheetOpen && sortScrollViewRef.current) {
       // Usamos um timeout para garantir que o modal e a lista já foram renderizados
       setTimeout(() => {
         const activeSortIndex = sortOptions.findIndex(
@@ -149,7 +146,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         );
 
         if (activeSortIndex > -1) {
-          const ITEM_HEIGHT = 53; // Altura aproximada de cada item da lista
+          const ITEM_HEIGHT = 53; // Altura aproximada de cada item da lista (paddingVertical: 16 + fontSize: 18 + border: 1)
           // Calcula o offset para que a opção selecionada não fique colada ao topo.
           // Mostra o item anterior, se existir.
           const yOffset = Math.max(0, activeSortIndex - 1) * ITEM_HEIGHT;
@@ -158,7 +155,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         }
       }, 100);
     }
-  }, [sortModalVisible, sortConfig]);
+  }, [isSortSheetOpen, sortConfig]);
 
   useEffect(() => {
     navigation.setOptions({
@@ -174,7 +171,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={styles.headerButton}
             activeOpacity={0.8}
-            onPress={() => setSortModalVisible(true)}
+            onPress={() => sortBottomSheetRef.current?.present()}
           >
             <Icon
               name="swapVertical"
@@ -189,8 +186,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   }, [navigation]);
 
   const handleEditWord = (word: Word) => {
-    setEditingWord(word);
-    setIsModalVisible(true);
+    wordEditSheetRef.current?.present(word);
   };
 
   const handleDeleteWord = (wordId: number) => {
@@ -234,38 +230,36 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   };
 
   const handleSaveWord = async (
-    name: string,
-    meaning: string,
-    category: string | null
+    data: { name: string; meaning: string; category: string | null },
+    wordId?: number
   ) => {
+    const { name, meaning, category } = data;
     if (!name.trim() || !meaning.trim()) {
       showAlert({
         title: "Erro",
         message: "Preenche a palavra e o significado.",
         buttons: [{ text: "OK", onPress: () => {} }],
       });
-      return;
+      // Rejeita a promessa para que o estado 'isSaving' no sheet seja atualizado
+      return Promise.reject(new Error("Campos em falta"));
     }
 
-    setIsSaving(true);
     try {
-      if (editingWord) {
-        await updateWord(editingWord.id, name.trim(), meaning.trim(), category);
+      if (wordId) {
+        await updateWord(wordId, name.trim(), meaning.trim(), category);
       } else {
         await addWord(deckId, name.trim(), meaning.trim(), category);
       }
-      closeModal();
+      wordEditSheetRef.current?.dismiss();
+      return Promise.resolve(); // Resolve a promessa em caso de sucesso
     } catch (error) {
       console.error("Falha ao guardar a palavra:", error);
       showAlert({
         title: "Erro",
-        message: editingWord
-          ? "Não foi possível editar a palavra."
-          : "Não foi possível adicionar a palavra.",
+        message: "Não foi possível guardar a palavra. Tente novamente.",
         buttons: [{ text: "OK", onPress: () => {} }],
       });
-    } finally {
-      setIsSaving(false);
+      return Promise.reject(error); // Rejeita a promessa em caso de erro
     }
   };
 
@@ -291,10 +285,10 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
   const handleSortSelect = (config: SortConfig) => {
     setSortConfig(config);
-    setSortModalVisible(false);
+    sortBottomSheetRef.current?.dismiss();
   };
 
-  const practiceSnapPoints = useMemo(() => ["60%"], []);
+  const snapPoints = useMemo(() => ["60%"], []);
 
   const renderBackdrop = useCallback(
     (props: any) => (
@@ -343,10 +337,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         <TouchableOpacity
           style={styles.emptyButton}
           activeOpacity={0.8}
-          onPress={() => {
-            setEditingWord(null);
-            setIsModalVisible(true);
-          }}
+          onPress={() => wordEditSheetRef.current?.present()}
         >
           <Icon name="add" size={20} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.emptyButtonText}>
@@ -465,81 +456,67 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={[styles.fab, styles.addFab]}
             activeOpacity={0.8}
-            onPress={() => {
-              setEditingWord(null);
-              setIsModalVisible(true);
-            }}
+            onPress={() => wordEditSheetRef.current?.present()}
           >
             <Icon name="add" size={32} color={theme.colors.surface} />
           </TouchableOpacity>
         )}
       </View>
 
-      <WordEditModal
-        isVisible={isModalVisible}
-        onClose={closeModal}
-        onSave={handleSaveWord}
-        initialData={editingWord}
-        isSaving={isSaving}
-      />
+      <WordEditSheet ref={wordEditSheetRef} onSave={handleSaveWord} />
 
-      {/* Sort Options Modal */}
-      <Modal
-        visible={sortModalVisible}
-        transparent
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent={true}
-        onRequestClose={() => setSortModalVisible(false)}
+      {/* Bottom Sheet para Ordenação */}
+      <BottomSheetModal
+        ref={sortBottomSheetRef}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.modalHandle}
+        onChange={handleSortSheetChange}
       >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setSortModalVisible(false)}
-          />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <AppText variant="bold" style={styles.modalTitle}>
-                Ordenar Por
-              </AppText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                activeOpacity={0.8}
-                onPress={() => setSortModalVisible(false)}
-              >
-                <Icon name="close" size={24} color={theme.colors.icon} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView ref={sortScrollViewRef} style={{ maxHeight: 400 }}>
-              {sortOptions.map((option, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.sortOptionButton}
-                  activeOpacity={0.8}
-                  onPress={() => handleSortSelect(option)}
-                >
-                  <AppText
-                    style={[
-                      styles.sortOptionText,
-                      sortConfig.criterion === option.criterion &&
-                        sortConfig.direction === option.direction &&
-                        styles.sortOptionTextActive,
-                    ]}
-                  >
-                    {option.label}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        <BottomSheetScrollView
+          ref={sortScrollViewRef}
+          contentContainerStyle={styles.bottomSheetContent}
+        >
+          <View style={styles.modalHeader}>
+            <AppText variant="bold" style={styles.modalTitle}>
+              Ordenar Por
+            </AppText>
+            <TouchableOpacity
+              style={styles.closeButton}
+              activeOpacity={0.8}
+              onPress={() => sortBottomSheetRef.current?.dismiss()}
+            >
+              <Icon name="close" size={24} color={theme.colors.icon} />
+            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+          {sortOptions.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.sortOptionButton}
+              activeOpacity={0.8}
+              onPress={() => handleSortSelect(option)}
+            >
+              <AppText
+                style={[
+                  styles.sortOptionText,
+                  sortConfig.criterion === option.criterion &&
+                    sortConfig.direction === option.direction &&
+                    styles.sortOptionTextActive,
+                ]}
+              >
+                {option.label}
+              </AppText>
+            </TouchableOpacity>
+          ))}
+        </BottomSheetScrollView>
+      </BottomSheetModal>
 
       {/* Bottom Sheet Prática de Deck */}
       <BottomSheetModal
         ref={practiceBottomSheetRef}
-        snapPoints={practiceSnapPoints} // Controlado por present() e dismiss()
+        snapPoints={snapPoints} // Controlado por present() e dismiss()
         enablePanDownToClose
         backdropComponent={renderBackdrop}
         backgroundStyle={styles.bottomSheetBackground}
@@ -789,7 +766,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
-    paddingHorizontal: 20,
   },
   modalTitle: {
     fontSize: theme.fontSizes["2xl"],

@@ -1,100 +1,184 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+  useState,
+  useRef,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+  useEffect,
+} from "react";
 import {
   View,
   StyleSheet,
-  Modal,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
+  Keyboard,
+  Platform,
+  BackHandler,
 } from "react-native";
-import AppText from "./AppText";
-import { theme } from "../../config/theme";
-import Icon from "./Icon";
-import CategorySelectionModal from "./modals/CategorySelectionModal";
+import {
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetBackdrop,
+} from "@gorhom/bottom-sheet";
+import AppText from "../AppText";
+import { theme } from "../../../config/theme";
+import Icon from "../Icon";
+import CategorySelectionModal from "../modals/CategorySelectionModal";
+import { Word } from "../../../types/database";
 
-interface WordEditModalProps {
-  isVisible: boolean;
-  onClose: () => void;
-  onSave: (
-    name: string,
-    meaning: string,
-    category: string | null
-  ) => Promise<void>;
-  initialData?: {
-    name: string;
-    meaning: string;
-    category: string | null;
-  } | null;
-  isSaving: boolean;
+export interface WordEditSheetRef {
+  present: (initialData?: Word | null) => void;
+  dismiss: () => void;
 }
 
-const WordEditModal: React.FC<WordEditModalProps> = ({
-  isVisible,
-  onClose,
-  onSave,
-  initialData,
-  isSaving,
-}) => {
-  const [name, setName] = useState("");
-  const [meaning, setMeaning] = useState("");
-  const [category, setCategory] = useState<string | null>(null);
-  const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
+interface WordEditSheetProps {
+  onSave: (
+    data: { name: string; meaning: string; category: string | null },
+    wordId?: number
+  ) => Promise<void>;
+}
 
-  const nameInputRef = useRef<TextInput>(null);
-  const meaningInputRef = useRef<TextInput>(null);
+const WordEditSheet = forwardRef<WordEditSheetRef, WordEditSheetProps>(
+  ({ onSave }, ref) => {
+    const bottomSheetRef = useRef<BottomSheetModal>(null);
+    const nameInputRef = useRef<TextInput>(null);
+    const meaningInputRef = useRef<TextInput>(null);
 
-  const isEditMode = !!initialData;
+    const [wordId, setWordId] = useState<number | undefined>(undefined);
+    const [name, setName] = useState("");
+    const [meaning, setMeaning] = useState("");
+    const [category, setCategory] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isCategoryModalVisible, setIsCategoryModalVisible] = useState(false);
 
-  useEffect(() => {
-    if (isVisible) {
-      // Preenche os campos quando o modal se torna visível (se for edição)
-      setName(initialData?.name || "");
-      setMeaning(initialData?.meaning || "");
-      setCategory(initialData?.category || null);
-    }
-  }, [isVisible, initialData]);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  const handleSave = () => {
-    onSave(name, meaning, category);
-  };
+    const isEditMode = !!wordId;
 
-  const getCategoryColor = (categoryName: string | null): string => {
-    if (!categoryName) {
-      return theme.colors.border; // Cor neutra para quando nada está selecionado
-    }
-    const key = categoryName as keyof typeof theme.colors.category;
-    const defaultKey = "Outro" as keyof typeof theme.colors.category;
+    const snapPoints = useMemo(() => {
+      return isKeyboardVisible ? ["81.5%"] : ["61.5%"];
+    }, [isKeyboardVisible]);
 
-    return theme.colors.category[key] || theme.colors.category[defaultKey];
-  };
+    useEffect(() => {
+      const showSubscription = Keyboard.addListener(
+        Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+        () => setIsKeyboardVisible(true)
+      );
 
-  return (
-    <Modal
-      visible={isVisible}
-      transparent
-      animationType="fade"
-      presentationStyle="overFullScreen"
-      statusBarTranslucent={true}
-      onRequestClose={onClose}
-    >
-      {/* O Pressable serve como um backdrop clicável para fechar o modal */}
-      <View style={styles.modalOverlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        {/* O KeyboardAvoidingView envolve apenas o conteúdo do modal para que ele seja empurrado para cima pelo teclado */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+      const hideSubscription = Keyboard.addListener(
+        Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+        () => setIsKeyboardVisible(false)
+      );
+
+      return () => {
+        showSubscription.remove();
+        hideSubscription.remove();
+      };
+    }, []);
+
+    // Efeito para intercetar o botão de voltar do Android
+    useEffect(() => {
+      const backAction = () => {
+        if (isSheetOpen) {
+          // Se o BottomSheet estiver aberto, fecha-o e previne a ação padrão.
+          handleClose();
+          return true; // Indica que o evento foi tratado.
+        }
+        // Se não estiver aberto, permite que o comportamento padrão (voltar no ecrã) aconteça.
+        return false;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+
+      // Limpa o listener quando o componente é desmontado.
+      return () => backHandler.remove();
+    }, [isSheetOpen]); // A dependência garante que a lógica tem sempre o estado mais recente de `isSheetOpen`.
+
+    useImperativeHandle(ref, () => ({
+      present: (initialData) => {
+        setWordId(initialData?.id);
+        setName(initialData?.name || "");
+        setMeaning(initialData?.meaning || "");
+        setCategory(initialData?.category || null);
+        bottomSheetRef.current?.present();
+      },
+      dismiss: () => {
+        bottomSheetRef.current?.dismiss();
+      },
+    }));
+
+    const handleSave = async () => {
+      setIsSaving(true);
+      try {
+        await onSave({ name, meaning, category }, wordId);
+      } catch (error) {
+        // O erro já é tratado no ecrã pai, mas paramos o estado de 'saving' aqui.
+        console.log("Save failed, handled by parent screen.", error);
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    const handleClose = () => {
+      Keyboard.dismiss();
+      bottomSheetRef.current?.dismiss();
+    };
+
+    const getCategoryColor = (categoryName: string | null): string => {
+      if (!categoryName) return theme.colors.border;
+      const key = categoryName as keyof typeof theme.colors.category;
+      const defaultKey = "Outro" as keyof typeof theme.colors.category;
+      return theme.colors.category[key] || theme.colors.category[defaultKey];
+    };
+
+    const renderBackdrop = useCallback(
+      (props: any) => (
+        <BottomSheetBackdrop
+          {...props}
+          disappearsOnIndex={-1}
+          appearsOnIndex={0}
+          pressBehavior="close"
+        />
+      ),
+      []
+    );
+
+    const handleSheetChange = useCallback((index: number) => {
+      setIsSheetOpen(index > -1);
+    }, []);
+
+    return (
+      <>
+        <BottomSheetModal
+          ref={bottomSheetRef}
+          snapPoints={snapPoints}
+          backdropComponent={renderBackdrop}
+          enablePanDownToClose
+          keyboardBehavior="interactive"
+          keyboardBlurBehavior="restore"
+          android_keyboardInputMode="adjustResize"
+          backgroundStyle={styles.modalContainer}
+          handleIndicatorStyle={styles.modalHandle}
+          onChange={handleSheetChange}
         >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHandle} />
+          <BottomSheetScrollView
+            contentContainerStyle={styles.contentContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.modalHeader}>
               <AppText variant="bold" style={styles.modalTitle}>
                 {isEditMode ? "Editar Palavra" : "Nova Palavra"}
               </AppText>
               <TouchableOpacity
-                onPress={onClose}
+                onPress={handleClose}
                 activeOpacity={0.8}
                 style={styles.closeButton}
               >
@@ -182,8 +266,8 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
                 </AppText>
               )}
             </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
+          </BottomSheetScrollView>
+        </BottomSheetModal>
         <CategorySelectionModal
           isVisible={isCategoryModalVisible}
           onClose={() => setIsCategoryModalVisible(false)}
@@ -192,23 +276,23 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
             setIsCategoryModalVisible(false);
           }}
         />
-      </View>
-    </Modal>
-  );
-};
+      </>
+    );
+  }
+);
+
+// Adiciona um nome de exibição para facilitar a depuração.
+WordEditSheet.displayName = "WordEditSheet";
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: "flex-end",
+  contentContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 32, // Este é o espaço que ficará abaixo do botão. Ajuste se necessário.
   },
   modalContainer: {
     backgroundColor: theme.colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 24,
-    paddingTop: 12,
   },
   modalHandle: {
     width: 40,
@@ -216,6 +300,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.border,
     borderRadius: 2.5,
     alignSelf: "center",
+    marginTop: 8,
     marginBottom: 16,
   },
   modalHeader: {
@@ -225,7 +310,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   modalTitle: { fontSize: theme.fontSizes["2xl"] },
-  closeButton: { padding: 8 },
+  closeButton: { padding: 8, marginRight: -8 },
   form: { marginBottom: 0 },
   inputGroup: { marginBottom: 24 },
   label: {
@@ -300,4 +385,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WordEditModal;
+export default WordEditSheet;
