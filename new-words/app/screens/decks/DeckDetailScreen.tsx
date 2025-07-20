@@ -185,49 +185,55 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
     });
   }, [navigation]);
 
-  const handleEditWord = (word: Word) => {
+  const handleEditWord = useCallback((word: Word) => {
     wordEditSheetRef.current?.present(word);
-  };
+  }, []);
 
-  const handleDeleteWord = (wordId: number) => {
-    showAlert({
-      title: "Apagar palavra",
-      message: "Tens a certeza que queres apagar esta palavra?",
-      buttons: [
-        { text: "Cancelar", style: "cancel", onPress: () => {} },
-        {
-          text: "Apagar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteWord(wordId);
-            } catch (error) {
-              console.error("Falha ao apagar a palavra:", error);
-              showAlert({
-                title: "Erro",
-                message: "Não foi possível apagar a palavra.",
-                buttons: [{ text: "OK", onPress: () => {} }],
-              });
-            }
-          },
-        },
-      ],
-    });
-  };
-
-  const handleToggleFavorite = async (wordId: number) => {
-    try {
-      // Chama a ação do store, que atualiza a DB e o estado global
-      await toggleFavoriteStatus(wordId);
-    } catch (error) {
-      console.error("Falha ao alterar o estado de favorito:", error);
+  const handleDeleteWord = useCallback(
+    (wordId: number) => {
       showAlert({
-        title: "Erro",
-        message: "Não foi possível alterar o estado de favorito da palavra.",
-        buttons: [{ text: "OK", onPress: () => {} }],
+        title: "Apagar palavra",
+        message: "Tens a certeza que queres apagar esta palavra?",
+        buttons: [
+          { text: "Cancelar", style: "cancel", onPress: () => {} },
+          {
+            text: "Apagar",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await deleteWord(wordId);
+              } catch (error) {
+                console.error("Falha ao apagar a palavra:", error);
+                showAlert({
+                  title: "Erro",
+                  message: "Não foi possível apagar a palavra.",
+                  buttons: [{ text: "OK", onPress: () => {} }],
+                });
+              }
+            },
+          },
+        ],
       });
-    }
-  };
+    },
+    [showAlert, deleteWord]
+  );
+
+  const handleToggleFavorite = useCallback(
+    async (wordId: number) => {
+      try {
+        // Chama a ação do store, que atualiza a DB e o estado global
+        await toggleFavoriteStatus(wordId);
+      } catch (error) {
+        console.error("Falha ao alterar o estado de favorito:", error);
+        showAlert({
+          title: "Erro",
+          message: "Não foi possível alterar o estado de favorito da palavra.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+      }
+    },
+    [showAlert, toggleFavoriteStatus]
+  );
 
   const handleSaveWord = async (
     data: { name: string; meaning: string; category: string | null },

@@ -1,4 +1,10 @@
-import React, { useLayoutEffect, useEffect, useState, useMemo } from "react";
+import React, {
+  useLayoutEffect,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -76,44 +82,50 @@ const AllWordsScreen = ({ navigation }: Props) => {
     setSortModalVisible(false);
   };
 
-  const handleToggleFavorite = async (wordId: number) => {
-    try {
-      await toggleFavoriteStatus(wordId);
-    } catch (error) {
-      console.error("Falha ao alterar o estado de favorito:", error);
-      showAlert({
-        title: "Erro",
-        message: "Não foi possível alterar o estado de favorito da palavra.",
-        buttons: [{ text: "OK", onPress: () => {} }],
-      });
-    }
-  };
+  const handleToggleFavorite = useCallback(
+    async (wordId: number) => {
+      try {
+        await toggleFavoriteStatus(wordId);
+      } catch (error) {
+        console.error("Falha ao alterar o estado de favorito:", error);
+        showAlert({
+          title: "Erro",
+          message: "Não foi possível alterar o estado de favorito da palavra.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+      }
+    },
+    [showAlert, toggleFavoriteStatus]
+  );
 
-  const handleDeleteWord = (wordId: number) => {
-    showAlert({
-      title: "Apagar palavra",
-      message: "Tens a certeza que queres apagar esta palavra?",
-      buttons: [
-        { text: "Cancelar", style: "cancel", onPress: () => {} },
-        {
-          text: "Apagar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteWord(wordId);
-            } catch (error) {
-              console.error("Falha ao apagar a palavra:", error);
-              showAlert({
-                title: "Erro",
-                message: "Não foi possível apagar a palavra.",
-                buttons: [{ text: "OK", onPress: () => {} }],
-              });
-            }
+  const handleDeleteWord = useCallback(
+    (wordId: number) => {
+      showAlert({
+        title: "Apagar palavra",
+        message: "Tens a certeza que queres apagar esta palavra?",
+        buttons: [
+          { text: "Cancelar", style: "cancel", onPress: () => {} },
+          {
+            text: "Apagar",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                await deleteWord(wordId);
+              } catch (error) {
+                console.error("Falha ao apagar a palavra:", error);
+                showAlert({
+                  title: "Erro",
+                  message: "Não foi possível apagar a palavra.",
+                  buttons: [{ text: "OK", onPress: () => {} }],
+                });
+              }
+            },
           },
-        },
-      ],
-    });
-  };
+        ],
+      });
+    },
+    [showAlert, deleteWord]
+  );
 
   useLayoutEffect(() => {
     navigation.setOptions({
