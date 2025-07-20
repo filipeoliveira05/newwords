@@ -195,7 +195,11 @@ const FinalSlide = ({ onFinish }: { onFinish: () => void }) => (
     <AppText style={styles.mascotSubtext}>
       A consistência é o segredo para a maestria.
     </AppText>
-    <TouchableOpacity style={styles.doneButton} onPress={onFinish}>
+    <TouchableOpacity
+      style={styles.doneButton}
+      activeOpacity={0.8}
+      onPress={onFinish}
+    >
       <AppText variant="bold" style={styles.doneButtonText}>
         Continuar
       </AppText>
@@ -279,7 +283,11 @@ const WeeklyRecapScreen = ({ route, navigation }: Props) => {
             />
           ))}
         </View>
-        <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
+        <TouchableOpacity
+          style={styles.closeButton}
+          activeOpacity={0.8}
+          onPress={handleClose}
+        >
           <Icon name="close" size={28} color={theme.colors.surface} />
         </TouchableOpacity>
       </View>
@@ -300,8 +308,16 @@ const WeeklyRecapScreen = ({ route, navigation }: Props) => {
 
       {/* Camadas de navegação por toque */}
       <View style={styles.navOverlay}>
-        <TouchableOpacity style={styles.navArea} onPress={goToPreviousSlide} />
-        <TouchableOpacity style={styles.navArea} onPress={goToNextSlide} />
+        <TouchableOpacity
+          style={styles.navArea}
+          activeOpacity={0.8}
+          onPress={goToPreviousSlide}
+        />
+        <TouchableOpacity
+          style={styles.navArea}
+          activeOpacity={0.8}
+          onPress={goToNextSlide}
+        />
       </View>
     </View>
   );

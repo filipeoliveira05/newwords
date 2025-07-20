@@ -173,6 +173,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         <View style={styles.headerRightContainer}>
           <TouchableOpacity
             style={styles.headerButton}
+            activeOpacity={0.8}
             onPress={() => setSortModalVisible(true)}
           >
             <Icon
@@ -341,6 +342,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         </AppText>
         <TouchableOpacity
           style={styles.emptyButton}
+          activeOpacity={0.8}
           onPress={() => {
             setEditingWord(null);
             setIsModalVisible(true);
@@ -373,7 +375,10 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
             placeholderTextColor={theme.colors.placeholder}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => setSearchQuery("")}
+            >
               <Icon
                 name="closeCircle"
                 size={20}
@@ -459,11 +464,11 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         {wordsForCurrentDeck.length > 0 && (
           <TouchableOpacity
             style={[styles.fab, styles.addFab]}
+            activeOpacity={0.8}
             onPress={() => {
               setEditingWord(null);
               setIsModalVisible(true);
             }}
-            activeOpacity={0.8}
           >
             <Icon name="add" size={32} color={theme.colors.surface} />
           </TouchableOpacity>
@@ -499,8 +504,9 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 Ordenar Por
               </AppText>
               <TouchableOpacity
-                onPress={() => setSortModalVisible(false)}
                 style={styles.closeButton}
+                activeOpacity={0.8}
+                onPress={() => setSortModalVisible(false)}
               >
                 <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
@@ -510,6 +516,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
                 <TouchableOpacity
                   key={index}
                   style={styles.sortOptionButton}
+                  activeOpacity={0.8}
                   onPress={() => handleSortSelect(option)}
                 >
                   <AppText
@@ -546,8 +553,9 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
               Escolha um Modo
             </AppText>
             <TouchableOpacity
-              onPress={() => practiceBottomSheetRef.current?.dismiss()}
               style={styles.closeButton}
+              activeOpacity={0.8}
+              onPress={() => practiceBottomSheetRef.current?.dismiss()}
             >
               <Icon name="close" size={24} color={theme.colors.icon} />
             </TouchableOpacity>
@@ -555,6 +563,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() => handleStartPractice("flashcard")}
           >
             <Icon name="albums" size={24} style={styles.modeIcon} />
@@ -570,6 +579,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() => handleStartPractice("multiple-choice")}
           >
             <Icon name="list" size={24} style={styles.modeIcon} />
@@ -585,6 +595,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() => handleStartPractice("writing")}
           >
             <Icon name="pencil" size={24} style={styles.modeIcon} />
@@ -600,6 +611,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() => handleStartPractice("combine-lists")}
           >
             <Icon name="gitCompare" size={24} style={styles.modeIcon} />

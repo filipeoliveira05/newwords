@@ -29,7 +29,7 @@ const CommunityDeckCard = ({
   onAddPress,
 }: CommunityDeckCardProps) => {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.6}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.8}>
       <View style={styles.header}>
         <View style={styles.categoryBadge}>
           <AppText style={styles.categoryText}>{category}</AppText>
@@ -50,7 +50,11 @@ const CommunityDeckCard = ({
           <Icon name="list" size={16} color={theme.colors.textSecondary} />
           <AppText style={styles.statText}>{wordCount} palavras</AppText>
         </View>
-        <TouchableOpacity style={styles.addButton} onPress={onAddPress}>
+        <TouchableOpacity
+          style={styles.addButton}
+          activeOpacity={0.8}
+          onPress={onAddPress}
+        >
           <Icon name="add" size={20} color={theme.colors.primary} />
         </TouchableOpacity>
       </View>

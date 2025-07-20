@@ -45,7 +45,11 @@ const OnThisDayCard = ({ word }: Props) => {
   });
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.8}
+      onPress={handlePress}
+    >
       <Icon name="calendar" size={24} color={theme.colors.primary} />
       <View style={styles.textContainer}>
         <AppText variant="bold" style={styles.title}>

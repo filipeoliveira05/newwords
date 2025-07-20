@@ -93,7 +93,11 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
               <AppText variant="bold" style={styles.modalTitle}>
                 {isEditMode ? "Editar Palavra" : "Nova Palavra"}
               </AppText>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <TouchableOpacity
+                onPress={onClose}
+                activeOpacity={0.8}
+                style={styles.closeButton}
+              >
                 <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
             </View>
@@ -141,6 +145,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
               <AppText style={styles.label}>CATEGORIA</AppText>
               <TouchableOpacity
                 style={styles.categorySelector}
+                activeOpacity={0.8}
                 onPress={() => setIsCategoryModalVisible(true)}
               >
                 <View style={styles.categorySelectorContent}>
@@ -165,6 +170,7 @@ const WordEditModal: React.FC<WordEditModalProps> = ({
 
             <TouchableOpacity
               style={[styles.saveButton, isSaving && styles.buttonDisabled]}
+              activeOpacity={0.8}
               onPress={handleSave}
               disabled={isSaving}
             >

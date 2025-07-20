@@ -47,7 +47,11 @@ const GameHeader = ({
 
   return (
     <View style={[styles.headerContainer, { paddingTop: insets.top + 15 }]}>
-      <TouchableOpacity onPress={onBackPress} style={styles.backButton}>
+      <TouchableOpacity
+        style={styles.backButton}
+        activeOpacity={0.8}
+        onPress={onBackPress}
+      >
         <Icon name="back" size={24} color={theme.colors.textMedium} />
       </TouchableOpacity>
       <AppText variant="bold" style={styles.headerTitle}>

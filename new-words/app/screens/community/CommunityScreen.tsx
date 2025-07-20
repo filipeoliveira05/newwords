@@ -40,6 +40,7 @@ const TabButton = ({
 }) => (
   <TouchableOpacity
     style={[styles.tabButton, isActive && styles.activeTabButton]}
+    activeOpacity={0.8}
     onPress={onPress}
   >
     <AppText

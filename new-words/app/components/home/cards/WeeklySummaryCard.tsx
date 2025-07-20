@@ -57,7 +57,7 @@ const WeeklySummaryCard = ({ summary }: Props) => {
     <TouchableOpacity
       style={styles.container}
       onPress={handlePress}
-      activeOpacity={0.9}
+      activeOpacity={0.8}
     >
       <LinearGradient
         // Usamos um gradiente dourado para um aspeto premium

@@ -48,6 +48,7 @@ const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
             <TouchableOpacity
               key={cat}
               style={styles.modalOption}
+              activeOpacity={0.8}
               onPress={() => onSelect(cat)}
             >
               <View style={styles.modalOptionRow}>
@@ -64,7 +65,11 @@ const CategorySelectionModal: React.FC<CategorySelectionModalProps> = ({
               </View>
             </TouchableOpacity>
           ))}
-          <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
+          <TouchableOpacity
+            style={styles.modalCancelButton}
+            activeOpacity={0.8}
+            onPress={onClose}
+          >
             <AppText variant="medium" style={styles.modalCancelButtonText}>
               Cancelar
             </AppText>

@@ -31,7 +31,7 @@ const ActionCard = ({
         onPress();
       }
     }}
-    activeOpacity={disabled ? 1 : 0.7}
+    activeOpacity={disabled ? 1 : 0.8}
   >
     <Icon
       name={icon}

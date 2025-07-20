@@ -134,7 +134,7 @@ export default function FlashcardView() {
       <TouchableOpacity
         style={styles.cardContainer}
         onPress={handleReveal} // A área de toque agora tem a sombra e a perspetiva
-        activeOpacity={0.7}
+        activeOpacity={0.8}
       >
         {/* Frente do Cartão */}
         <Animated.View
@@ -186,6 +186,7 @@ export default function FlashcardView() {
           {/* Quality 2: Incorrect */}
           <TouchableOpacity
             style={[styles.button, styles.buttonQuality2]}
+            activeOpacity={0.8}
             onPress={() => handleAnswer(2)}
           >
             <AppText variant="bold" style={styles.buttonText}>
@@ -195,6 +196,7 @@ export default function FlashcardView() {
           {/* Quality 3: Correct, but hard */}
           <TouchableOpacity
             style={[styles.button, styles.buttonQuality3]}
+            activeOpacity={0.8}
             onPress={() => handleAnswer(3)}
           >
             <AppText variant="bold" style={styles.buttonText}>
@@ -204,6 +206,7 @@ export default function FlashcardView() {
           {/* Quality 4: Correct, good recall */}
           <TouchableOpacity
             style={[styles.button, styles.buttonQuality4]}
+            activeOpacity={0.8}
             onPress={() => handleAnswer(4)}
           >
             <AppText variant="bold" style={styles.buttonText}>
@@ -213,6 +216,7 @@ export default function FlashcardView() {
           {/* Quality 5: Correct, easy recall */}
           <TouchableOpacity
             style={[styles.button, styles.buttonQuality5]}
+            activeOpacity={0.8}
             onPress={() => handleAnswer(5)}
           >
             <AppText variant="bold" style={styles.buttonText}>

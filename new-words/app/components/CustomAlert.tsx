@@ -106,6 +106,7 @@ const CustomAlert = () => {
             <React.Fragment key={index}>
               <TouchableOpacity
                 style={styles.button}
+                activeOpacity={0.8}
                 onPress={() => handleButtonPress(button)}
               >
                 <AppText

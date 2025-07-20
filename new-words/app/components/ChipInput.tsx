@@ -115,7 +115,11 @@ const ChipInput = ({
         <AppText variant="bold" style={styles.label}>
           {label}
         </AppText>
-        <TouchableOpacity onPress={toggleInput} style={styles.toggleButton}>
+        <TouchableOpacity
+          onPress={toggleInput}
+          activeOpacity={0.8}
+          style={styles.toggleButton}
+        >
           <Icon
             size={24}
             name={isAdding ? "removeCircle" : "addCircle"}
@@ -142,7 +146,11 @@ const ChipInput = ({
             multiline={layout === "stack"}
           />
           {currentValue.trim().length > 0 && (
-            <TouchableOpacity style={styles.addButton} onPress={handleAddItem}>
+            <TouchableOpacity
+              style={styles.addButton}
+              activeOpacity={0.8}
+              onPress={handleAddItem}
+            >
               <Icon
                 size={28}
                 name="checkmarkCircle"
@@ -170,8 +178,9 @@ const ChipInput = ({
                   {item}
                 </AppText>
                 <TouchableOpacity
-                  onPress={() => handleRemoveItem(index)}
                   style={styles.removeButton}
+                  onPress={() => handleRemoveItem(index)}
+                  activeOpacity={0.8}
                 >
                   <Icon
                     size={20}

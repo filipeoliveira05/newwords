@@ -108,7 +108,11 @@ const AccordionItem = ({
 
   return (
     <View style={styles.accordionItem}>
-      <TouchableOpacity style={styles.questionContainer} onPress={toggleOpen}>
+      <TouchableOpacity
+        style={styles.questionContainer}
+        activeOpacity={0.8}
+        onPress={toggleOpen}
+      >
         <AppText variant="medium" style={styles.questionText}>
           {question}
         </AppText>
@@ -210,6 +214,7 @@ const HelpScreen = ({ navigation }: Props) => {
         </AppText>
         <TouchableOpacity
           style={styles.cardButton}
+          activeOpacity={0.8}
           onPress={handleRateAppPress}
         >
           <Icon
@@ -230,6 +235,7 @@ const HelpScreen = ({ navigation }: Props) => {
         </AppText>
         <TouchableOpacity
           style={styles.contactButton}
+          activeOpacity={0.8}
           onPress={handleContactPress}
         >
           <Icon name="mail" size={22} color={theme.colors.surface} />

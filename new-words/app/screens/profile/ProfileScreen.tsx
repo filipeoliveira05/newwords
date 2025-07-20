@@ -87,6 +87,7 @@ const ProfileScreen = ({ navigation }: Props) => {
           <TouchableOpacity
             key={item.title}
             style={styles.menuItem}
+            activeOpacity={0.8}
             onPress={() => navigation.navigate(item.screen as any)}
           >
             <Icon
@@ -108,6 +109,7 @@ const ProfileScreen = ({ navigation }: Props) => {
           <TouchableOpacity
             key={item.title}
             style={styles.menuItem}
+            activeOpacity={0.8}
             onPress={handleLogout}
           >
             <Icon

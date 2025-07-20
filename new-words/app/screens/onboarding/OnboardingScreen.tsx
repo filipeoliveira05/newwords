@@ -117,7 +117,11 @@ const OnboardingScreen = ({ navigation }: Props) => {
       </View>
       <View style={styles.footer}>
         <OnboardingPaginator data={slides} scrollX={scrollX} />
-        <TouchableOpacity style={styles.button} onPress={scrollToNext}>
+        <TouchableOpacity
+          style={styles.button}
+          activeOpacity={0.8}
+          onPress={scrollToNext}
+        >
           <AppText variant="bold" style={styles.buttonText}>
             {currentIndex === slides.length - 1
               ? "Começar a Aprender"

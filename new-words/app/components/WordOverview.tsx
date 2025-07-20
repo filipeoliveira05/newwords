@@ -63,6 +63,7 @@ const WordOverview = ({
         {onEdit && (
           <TouchableOpacity
             style={[styles.actionButton, styles.editButton]}
+            activeOpacity={0.8}
             onPress={handleEditPress}
           >
             <Icon name="pencil" size={22} color="#fff" />
@@ -74,6 +75,7 @@ const WordOverview = ({
             styles.deleteButton,
             !onEdit && styles.deleteButtonAlone,
           ]}
+          activeOpacity={0.8}
           onPress={handleDeletePress}
         >
           <Icon name="trash" size={22} color="#fff" />
@@ -124,8 +126,9 @@ const WordOverview = ({
           )
         )}
         <TouchableOpacity
-          onPress={onToggleFavorite}
           style={styles.favoriteIcon}
+          onPress={onToggleFavorite}
+          activeOpacity={0.8}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Icon

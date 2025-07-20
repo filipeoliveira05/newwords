@@ -193,6 +193,7 @@ export default function WritingView() {
           (feedback || hintsUsed >= currentWord.name.length) &&
             styles.disabledButton,
         ]}
+        activeOpacity={0.8}
         onPress={handleHint}
         disabled={!!feedback || hintsUsed >= currentWord.name.length}
       >
@@ -225,6 +226,7 @@ export default function WritingView() {
 
       <TouchableOpacity
         style={[styles.button, feedback ? styles.disabledButton : {}]}
+        activeOpacity={0.8}
         onPress={handleCheckAnswer}
         disabled={!!feedback}
       >

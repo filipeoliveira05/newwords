@@ -128,6 +128,7 @@ const AllWordsScreen = ({ navigation }: Props) => {
       headerRight: () => (
         <TouchableOpacity
           style={styles.headerButton}
+          activeOpacity={0.8}
           onPress={() => setSortModalVisible(true)}
         >
           <Icon name="swapVertical" size={24} color={theme.colors.textMedium} />
@@ -187,7 +188,10 @@ const AllWordsScreen = ({ navigation }: Props) => {
           placeholderTextColor={theme.colors.placeholder}
         />
         {searchQuery.length > 0 && (
-          <TouchableOpacity onPress={() => setSearchQuery("")}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setSearchQuery("")}
+          >
             <Icon
               name="closeCircle"
               size={20}
@@ -247,8 +251,9 @@ const AllWordsScreen = ({ navigation }: Props) => {
                 Ordenar Por
               </AppText>
               <TouchableOpacity
-                onPress={() => setSortModalVisible(false)}
                 style={styles.closeButton}
+                activeOpacity={0.8}
+                onPress={() => setSortModalVisible(false)}
               >
                 <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
@@ -258,6 +263,7 @@ const AllWordsScreen = ({ navigation }: Props) => {
                 <TouchableOpacity
                   key={index}
                   style={styles.sortOptionButton}
+                  activeOpacity={0.8}
                   onPress={() => handleSortSelect(option)}
                 >
                   <AppText

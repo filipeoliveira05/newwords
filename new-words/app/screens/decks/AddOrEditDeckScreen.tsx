@@ -161,6 +161,7 @@ export default function AddOrEditDeckScreen({ navigation, route }: Props) {
 
         <TouchableOpacity
           style={[styles.button, isSaving && styles.buttonDisabled]}
+          activeOpacity={0.8}
           onPress={handleSave}
           disabled={isSaving}
         >

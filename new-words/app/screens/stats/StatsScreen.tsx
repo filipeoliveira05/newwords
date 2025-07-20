@@ -503,6 +503,7 @@ export default function StatsScreen({ navigation }: Props) {
               ))}
               <TouchableOpacity
                 style={styles.practiceButton}
+                activeOpacity={0.8}
                 onPress={handlePracticeChallengingWords}
               >
                 <Icon name="flame" size={20} color={theme.colors.surface} />
@@ -555,8 +556,9 @@ export default function StatsScreen({ navigation }: Props) {
                 Detalhes do Dia
               </AppText>
               <TouchableOpacity
-                onPress={() => setIsDayDetailModalVisible(false)}
                 style={styles.closeButton}
+                activeOpacity={0.8}
+                onPress={() => setIsDayDetailModalVisible(false)}
               >
                 <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>

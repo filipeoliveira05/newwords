@@ -140,6 +140,7 @@ const SettingsScreen = ({ navigation }: Props) => {
           </View>
           <TouchableOpacity
             style={styles.settingItem}
+            activeOpacity={0.8}
             onPress={() =>
               handleLinkPress("https://www.exemplo.com/privacidade")
             }
@@ -151,6 +152,7 @@ const SettingsScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.settingItem, { borderBottomWidth: 0 }]}
+            activeOpacity={0.8}
             onPress={() => handleLinkPress("https://www.exemplo.com/termos")}
           >
             <AppText style={styles.settingLabel}>Termos de Serviço</AppText>
@@ -164,7 +166,11 @@ const SettingsScreen = ({ navigation }: Props) => {
         <AppText variant="bold" style={styles.sectionTitle}>
           Desenvolvimento
         </AppText>
-        <TouchableOpacity style={styles.resetButton} onPress={handleResetData}>
+        <TouchableOpacity
+          style={styles.resetButton}
+          activeOpacity={0.8}
+          onPress={handleResetData}
+        >
           <AppText variant="bold" style={styles.resetButtonText}>
             Apagar Todos os Dados
           </AppText>

@@ -243,6 +243,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
           </AppText>
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() =>
               handleStartGame(
                 "flashcard",
@@ -264,6 +265,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() =>
               handleStartGame(
                 "multiple-choice",
@@ -285,6 +287,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() =>
               handleStartGame(
                 "writing",
@@ -306,6 +309,7 @@ export default function PracticeHubScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.modeButton}
+            activeOpacity={0.8}
             onPress={() =>
               handleStartGame(
                 "combine-lists",

@@ -53,7 +53,10 @@ const AccountScreen = ({ navigation }: Props) => {
       headerShadowVisible: false,
       headerBackTitle: "Perfil",
       headerRight: () => (
-        <TouchableOpacity onPress={() => navigation.navigate("EditAccount")}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("EditAccount")}
+        >
           <Icon name="pencil" size={22} color={theme.colors.textMedium} />
         </TouchableOpacity>
       ),

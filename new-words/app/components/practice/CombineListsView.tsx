@@ -130,7 +130,7 @@ const AnimatedCombineItem = ({
   });
 
   return (
-    <TouchableOpacity onPress={onPress} disabled={disabled}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} disabled={disabled}>
       <Animated.View style={[styles.item, animatedItemStyle]}>
         <AnimatedAppText
           variant="medium"

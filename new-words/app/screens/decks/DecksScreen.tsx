@@ -54,6 +54,7 @@ export default function DecksScreen({ navigation }: Props) {
         allDecks.length > 0 ? (
           <TouchableOpacity
             style={styles.headerButton}
+            activeOpacity={0.8}
             onPress={() => setSortModalVisible(true)}
           >
             <Icon
@@ -113,6 +114,7 @@ export default function DecksScreen({ navigation }: Props) {
         </AppText>
         <TouchableOpacity
           style={styles.emptyButton}
+          activeOpacity={0.8}
           onPress={() => navigation.navigate("AddOrEditDeck", {})}
         >
           <Icon name="add" size={20} color={theme.colors.surface} />
@@ -123,6 +125,7 @@ export default function DecksScreen({ navigation }: Props) {
         {/* Botão para carregar dados de teste */}
         <TouchableOpacity
           style={styles.seedButtonEmptyState}
+          activeOpacity={0.8}
           onPress={handleSeedData}
           disabled={isSeeding}
         >
@@ -200,6 +203,7 @@ export default function DecksScreen({ navigation }: Props) {
       </ScrollView>
       <TouchableOpacity
         style={styles.fab}
+        activeOpacity={0.8}
         onPress={() => navigation.navigate("AddOrEditDeck", {})}
       >
         <Icon name="add" size={32} color={theme.colors.surface} />
@@ -226,8 +230,9 @@ export default function DecksScreen({ navigation }: Props) {
                 Ordenar Por
               </AppText>
               <TouchableOpacity
-                onPress={() => setSortModalVisible(false)}
                 style={styles.closeButton}
+                activeOpacity={0.8}
+                onPress={() => setSortModalVisible(false)}
               >
                 <Icon name="close" size={24} color={theme.colors.icon} />
               </TouchableOpacity>
@@ -237,6 +242,7 @@ export default function DecksScreen({ navigation }: Props) {
                 <TouchableOpacity
                   key={index}
                   style={styles.sortOptionButton}
+                  activeOpacity={0.8}
                   onPress={() => handleSortSelect(option)}
                 >
                   <AppText

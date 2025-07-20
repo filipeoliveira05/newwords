@@ -421,6 +421,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           <View style={styles.headerIconsContainer}>
             <TouchableOpacity
               style={styles.headerIcon}
+              activeOpacity={0.8}
               onPress={async () => {
                 if (wordDetails) {
                   try {
@@ -446,12 +447,14 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIcon}
+              activeOpacity={0.8}
               onPress={handleEditWord}
             >
               <Icon name="pencil" size={22} color={theme.colors.textMedium} />
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.headerIcon}
+              activeOpacity={0.8}
               onPress={handleDeleteWord}
             >
               <Icon name="trash" size={22} color={theme.colors.dangerDark} />
@@ -522,6 +525,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           </AppText>
           <TouchableOpacity
             style={styles.categorySelector}
+            activeOpacity={0.8}
             onPress={() => setIsCategoryModalVisible(true)}
           >
             <View style={styles.categorySelectorContent}>
@@ -685,6 +689,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         <View style={styles.saveBarContainer}>
           <TouchableOpacity
             style={styles.saveBarButton}
+            activeOpacity={0.8}
             onPress={handleSave}
             disabled={isSaving}
           >

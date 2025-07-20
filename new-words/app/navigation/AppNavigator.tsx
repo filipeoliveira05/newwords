@@ -99,7 +99,11 @@ const styles = StyleSheet.create({
 
 // --- Componente para o botão central da Tab Bar ---
 const CustomTabBarButton = ({ children, onPress }: BottomTabBarButtonProps) => (
-  <TouchableOpacity style={styles.customButtonContainer} onPress={onPress}>
+  <TouchableOpacity
+    style={styles.customButtonContainer}
+    activeOpacity={0.8}
+    onPress={onPress}
+  >
     <View style={styles.customButton}>{children}</View>
   </TouchableOpacity>
 );

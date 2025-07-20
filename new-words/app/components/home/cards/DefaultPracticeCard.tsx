@@ -15,7 +15,11 @@ const DefaultPracticeCard = () => {
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.8}
+      onPress={handlePress}
+    >
       <Icon name="flash" size={24} color={theme.colors.surface} />
       <AppText variant="bold" style={styles.title}>
         Começar a Praticar

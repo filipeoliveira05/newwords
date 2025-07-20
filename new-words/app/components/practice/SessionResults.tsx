@@ -258,6 +258,7 @@ export default function SessionResults({
         <View style={styles.buttonRow}>
           <TouchableOpacity
             style={[styles.button, styles.secondaryButton, styles.halfButton]}
+            activeOpacity={0.8}
             onPress={handleExit}
           >
             <Icon name="exit" size={20} color={theme.colors.text} />
@@ -268,6 +269,7 @@ export default function SessionResults({
           {!isSessionComplete && (
             <TouchableOpacity
               style={[styles.button, styles.primaryButton, styles.halfButton]}
+              activeOpacity={0.8}
               onPress={onPlayAgain}
             >
               <AppText variant="bold" style={styles.primaryButtonText}>

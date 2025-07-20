@@ -24,7 +24,11 @@ const OfflinePlaceholder = ({ onRetry }: OfflinePlaceholderProps) => {
         Ligue-se à internet para competir nas Ligas, descobrir conjuntos criados
         por outros utilizadores e desafiar os seus amigos.
       </AppText>
-      <TouchableOpacity style={styles.button} onPress={onRetry}>
+      <TouchableOpacity
+        style={styles.button}
+        activeOpacity={0.8}
+        onPress={onRetry}
+      >
         <AppText variant="bold" style={styles.buttonText}>
           Tentar Novamente
         </AppText>

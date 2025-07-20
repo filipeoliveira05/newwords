@@ -179,6 +179,7 @@ export default function MultipleChoiceView() {
           <TouchableOpacity
             key={option.id}
             style={getButtonStyle(option.id)}
+            activeOpacity={0.8}
             onPress={() => handleAnswer(option)}
             disabled={isAnswered}
           >
