@@ -6,6 +6,7 @@ import {
   updateLeagueData,
   addWeeklyXP as dbAddWeeklyXP,
   getMetaValue,
+  setMetaValue,
 } from "../services/storage";
 import {
   LEAGUES,
@@ -176,6 +177,7 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
       const oldLeagueConfig = getLeagueByName(leagueName);
       if (oldLeagueConfig && leagueStartDate) {
         // Only do promotion if it's not the first time
+
         const finalLeaderboard = generateSimulatedLeaderboard(
           weeklyXP,
           oldLeagueConfig,
@@ -185,14 +187,18 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
         const finalRank =
           finalLeaderboard.find((u) => u.isCurrentUser)?.rank ?? 0;
 
+        let leagueResult: "promoted" | "demoted" | "maintained" = "maintained";
+        let newLeagueName = leagueName;
         const leagueIndex = getLeagueIndex(leagueName);
+
         if (finalRank > 0 && finalRank <= oldLeagueConfig.promotionZone) {
           if (leagueIndex < LEAGUES.length - 1) {
-            leagueName = LEAGUES[leagueIndex + 1].name;
+            newLeagueName = LEAGUES[leagueIndex + 1].name;
+            leagueResult = "promoted";
             Toast.show({
               type: "success",
               text1: "Promovido!",
-              text2: `Bem-vindo à Liga ${leagueName}!`,
+              text2: `Bem-vindo à Liga ${newLeagueName}!`,
             });
           }
         } else if (
@@ -200,14 +206,25 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
           finalRank > oldLeagueConfig.groupSize - oldLeagueConfig.demotionZone
         ) {
           if (leagueIndex > 0) {
-            leagueName = LEAGUES[leagueIndex - 1].name;
+            newLeagueName = LEAGUES[leagueIndex - 1].name;
+            leagueResult = "demoted";
             Toast.show({
               type: "error",
               text1: "Despromovido",
-              text2: `Você voltou para a Liga ${leagueName}.`,
+              text2: `Você voltou para a Liga ${newLeagueName}.`,
             });
           }
         }
+
+        // Guarda os resultados da semana que acabou para o ecrã de resumo
+        await Promise.all([
+          setMetaValue("last_week_final_xp", weeklyXP.toString()),
+          setMetaValue("last_week_final_rank", finalRank.toString()),
+          setMetaValue("last_week_league_result", leagueResult),
+          setMetaValue("last_week_league_name", oldLeagueConfig.name), // Guarda o nome da liga que acabou
+        ]);
+
+        leagueName = newLeagueName; // Atualiza o nome da liga para a nova semana
       }
 
       // Reset for the new week

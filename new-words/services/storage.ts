@@ -10,6 +10,8 @@ import {
   startOfWeek,
 } from "date-fns";
 import { calculateSm2Factors } from "../utils/sm2";
+import { achievements } from "../config/achievements";
+import { IconName } from "../app/components/Icon";
 
 const db = SQLite.openDatabaseSync("flashcards.db");
 
@@ -45,6 +47,7 @@ export const initializeDB = async () => {
             antonyms TEXT,
             sentences TEXT,
             isFavorite INTEGER NOT NULL DEFAULT 0,
+            masteredAt TEXT,
             easinessFactor REAL NOT NULL DEFAULT 2.5,
             interval INTEGER NOT NULL DEFAULT 0,
             repetitions INTEGER NOT NULL DEFAULT 0,
@@ -86,6 +89,18 @@ export const initializeDB = async () => {
         );
       `);
 
+      // --- MIGRATION: Add masteredAt column if it doesn't exist ---
+      // This prevents crashes on existing installations that have an older DB schema.
+      const columns = await db.getAllAsync<{ name: string }>(
+        "PRAGMA table_info(words);"
+      );
+      if (!columns.some((col) => col.name === "masteredAt")) {
+        console.log(
+          "Migrating database: Adding 'masteredAt' column to 'words' table."
+        );
+        await db.runAsync(`ALTER TABLE words ADD COLUMN masteredAt TEXT;`);
+      }
+
       // --- Insere valores padrão para gamificação se não existirem ---
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('user_xp', '0');`
@@ -111,6 +126,17 @@ export const initializeDB = async () => {
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('league_start_date', '');`
       );
+      // Novas chaves para o resumo da liga semanal
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_week_final_rank', '0');`
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_week_league_result', 'maintained');` // 'promoted', 'demoted', 'maintained'
+      );
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('last_week_league_name', '');`
+      );
+
       // Substituímos 'user_name' por campos mais detalhados
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('first_name', 'Novo');`
@@ -740,12 +766,17 @@ export async function updateWordStatsWithQuality(
     const now = new Date();
     const nextReviewDate = addDays(now, newInterval);
 
+    let masteredAtUpdate: string | null = word.masteredAt;
     // Determine mastery level based on repetitions
     let newMasteryLevel: Word["masteryLevel"] = "new";
     if (newRepetitions > 0 && newRepetitions <= 2) {
       newMasteryLevel = "learning";
     } else if (newRepetitions > 2) {
       newMasteryLevel = "mastered";
+      // If it just became mastered and wasn't before, set the date
+      if (word.masteryLevel !== "mastered") {
+        masteredAtUpdate = now.toISOString();
+      }
     }
 
     // Incrementa o contador de palavras praticadas para o dia atual.
@@ -773,7 +804,8 @@ export async function updateWordStatsWithQuality(
         interval = ?,
         repetitions = ?,
         nextReviewDate = ?,
-        masteryLevel = ?
+        masteryLevel = ?,
+        masteredAt = ?
        WHERE id = ?;`,
       [
         quality >= 3 ? 1 : 0,
@@ -785,6 +817,7 @@ export async function updateWordStatsWithQuality(
         newRepetitions,
         nextReviewDate.toISOString(),
         newMasteryLevel,
+        masteredAtUpdate,
         wordId,
       ]
     );
@@ -941,16 +974,27 @@ export async function getAchievementsCount(): Promise<number> {
  * incluindo dados comparativos com a semana anterior.
  */
 export interface WeeklySummary {
+  weeklyXpGained: number;
   wordsLearned: number;
   wordsTrained: number;
   practiceDaysCount: number;
+  practiceDays: boolean[]; // Array de 7 booleans, de Segunda a Domingo
   achievementsUnlockedCount: number;
+  unlockedAchievements: { id: string; name: string; icon: IconName }[];
   mostProductiveDay: { date: string; wordsTrained: number } | null;
   mostTrainedWord: { name: string; timesTrained: number } | null;
   mostChallengingWord: { name: string; timesIncorrect: number } | null;
+  weeklySuccessRate: number;
+  wordsMasteredThisWeek: number;
+  longestStreakThisWeek: number;
   comparison: {
     wordsTrained: number;
     practiceDaysCount: number;
+  } | null;
+  leaguePerformance: {
+    finalRank: number;
+    result: "promoted" | "demoted" | "maintained";
+    leagueName: string;
   } | null;
 }
 
@@ -973,11 +1017,19 @@ export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
     const [
       lastWeekPractice,
       lastWeekLearned,
-      lastWeekPracticeDays,
-      lastWeekAchievements,
+      lastWeekPracticeDaysCount,
+      lastWeekPracticeDates,
+      lastWeekAchievementIds,
       mostProductiveDay,
       mostTrainedWord,
       mostChallengingWord,
+      lastWeekPracticeLogs,
+      lastWeekMasteredWords,
+      lastWeekFinalXp,
+      // Novos dados para a liga
+      lastWeekFinalRank,
+      lastWeekLeagueResult,
+      lastWeekLeagueName,
     ] = await Promise.all([
       db.getFirstAsync<{ total: number }>(
         `SELECT SUM(words_trained) as total FROM practice_history WHERE date >= ? AND date < ?`,
@@ -991,8 +1043,12 @@ export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
         `SELECT COUNT(DISTINCT date) as total FROM practice_history WHERE date >= ? AND date < ?`,
         [startOfLastWeekStr, startOfCurrentWeekStr]
       ),
-      db.getFirstAsync<{ total: number }>(
-        `SELECT COUNT(*) as total FROM unlocked_achievements WHERE date(unlocked_at) >= ? AND date(unlocked_at) < ?`,
+      db.getAllAsync<{ date: string }>(
+        `SELECT date FROM practice_history WHERE date >= ? AND date < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getAllAsync<{ achievement_id: string }>(
+        `SELECT achievement_id FROM unlocked_achievements WHERE date(unlocked_at) >= ? AND date(unlocked_at) < ?`,
         [startOfLastWeekStr, startOfCurrentWeekStr]
       ),
       db.getFirstAsync<{ date: string; words_trained: number }>(
@@ -1013,6 +1069,19 @@ export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
          GROUP BY pl.word_id ORDER BY timesIncorrect DESC LIMIT 1;`,
         [startOfLastWeekStr, startOfCurrentWeekStr]
       ),
+      db.getAllAsync<{ was_correct: number }>(
+        `SELECT was_correct FROM practice_log WHERE practice_date >= ? AND practice_date < ? ORDER BY id ASC`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      db.getFirstAsync<{ total: number }>(
+        `SELECT COUNT(*) as total FROM words WHERE date(masteredAt) >= ? AND date(masteredAt) < ?`,
+        [startOfLastWeekStr, startOfCurrentWeekStr]
+      ),
+      getMetaValue("last_week_final_xp", "0"),
+      // Obter os novos dados da liga
+      getMetaValue("last_week_final_rank", "0"),
+      getMetaValue("last_week_league_result", "maintained"),
+      getMetaValue("last_week_league_name", ""),
     ]);
 
     // --- Queries para a SEMANA ANTERIOR (para comparação) ---
@@ -1027,12 +1096,76 @@ export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
       ),
     ]);
 
+    // Processar os dias de prática para um array de booleans
+    const practiceDaysArray = Array(7).fill(false);
+    const practicedDates = new Set(
+      lastWeekPracticeDates.map((d) => new Date(d.date).getUTCDay())
+    );
+    // Mapear de Domingo (0) -> 6, Segunda (1) -> 0, etc.
+    practicedDates.forEach((dayIndex) => {
+      const adjustedIndex = (dayIndex + 6) % 7; // Converte Domingo (0) para 6, Segunda (1) para 0, etc.
+      practiceDaysArray[adjustedIndex] = true;
+    });
+
+    // Mapear os IDs das conquistas para os objetos completos
+    const achievementMap = new Map(achievements.map((a) => [a.id, a]));
+    const unlockedAchievementsDetails = lastWeekAchievementIds
+      .map((record) => {
+        const achievement = achievementMap.get(record.achievement_id);
+        return achievement
+          ? {
+              id: achievement.id,
+              name: achievement.title,
+              icon: achievement.icon,
+            }
+          : null;
+      })
+      .filter((a): a is { id: string; name: string; icon: IconName } => !!a);
+
+    // Calcular taxa de sucesso e maior streak da semana
+    let weeklySuccessRate = 0;
+    let longestStreakThisWeek = 0;
+    if (lastWeekPracticeLogs && lastWeekPracticeLogs.length > 0) {
+      const correctCount = lastWeekPracticeLogs.filter(
+        (log) => log.was_correct === 1
+      ).length;
+      weeklySuccessRate = (correctCount / lastWeekPracticeLogs.length) * 100;
+
+      let currentStreak = 0;
+      for (const log of lastWeekPracticeLogs) {
+        currentStreak = log.was_correct === 1 ? currentStreak + 1 : 0;
+        if (currentStreak > longestStreakThisWeek) {
+          longestStreakThisWeek = currentStreak;
+        }
+      }
+    }
+
+    // Processar os dados da liga
+    const finalRank = parseInt(lastWeekFinalRank ?? "0", 10);
+    const leagueName = lastWeekLeagueName ?? "";
+    const leagueResult =
+      (lastWeekLeagueResult as "promoted" | "demoted" | "maintained") ??
+      "maintained";
+
+    let leaguePerformance: WeeklySummary["leaguePerformance"] = null;
+    // Só mostra o slide da liga se o utilizador teve uma classificação
+    if (finalRank > 0 && leagueName) {
+      leaguePerformance = {
+        finalRank,
+        result: leagueResult,
+        leagueName,
+      };
+    }
+
     return {
       // Dados da semana passada
+      weeklyXpGained: parseInt(lastWeekFinalXp ?? "0", 10),
       wordsLearned: lastWeekLearned?.total ?? 0,
       wordsTrained: lastWeekPractice?.total ?? 0,
-      practiceDaysCount: lastWeekPracticeDays?.total ?? 0,
-      achievementsUnlockedCount: lastWeekAchievements?.total ?? 0,
+      practiceDaysCount: lastWeekPracticeDaysCount?.total ?? 0,
+      practiceDays: practiceDaysArray,
+      achievementsUnlockedCount: unlockedAchievementsDetails.length,
+      unlockedAchievements: unlockedAchievementsDetails,
       mostProductiveDay: mostProductiveDay
         ? {
             date: mostProductiveDay.date,
@@ -1041,11 +1174,15 @@ export async function getWeeklySummaryStats(): Promise<WeeklySummary> {
         : null,
       mostTrainedWord: mostTrainedWord,
       mostChallengingWord: mostChallengingWord,
+      weeklySuccessRate: Math.round(weeklySuccessRate),
+      wordsMasteredThisWeek: lastWeekMasteredWords?.total ?? 0,
+      longestStreakThisWeek: longestStreakThisWeek,
       // Dados de comparação
       comparison: {
         wordsTrained: prevWeekPractice?.total ?? 0,
         practiceDaysCount: prevWeekPracticeDays?.total ?? 0,
       },
+      leaguePerformance,
     };
   } catch (e) {
     console.error("Erro ao obter estatísticas do resumo semanal:", e);

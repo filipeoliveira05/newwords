@@ -20,6 +20,11 @@ const images = {
   mascotStretch: require("../assets/images/mascot/mascot_stretch.png"),
   mascotStudy: require("../assets/images/mascot/mascot_study.png"),
   mascotYawn: require("../assets/images/mascot/mascot_yawn.png"),
+  mascotWalk: require("../assets/images/mascot/mascot_walk.png"),
+  mascotMeditate: require("../assets/images/mascot/mascot_meditate.png"),
+  mascotMedal: require("../assets/images/mascot/mascot_medal.png"),
+  mascotRocket: require("../assets/images/mascot/mascot_rocket.png"),
+  mascotPray: require("../assets/images/mascot/mascot_pray.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
   mascotPlay: require("../assets/images/mascot/mascot_play.png"), // Onboarding 3

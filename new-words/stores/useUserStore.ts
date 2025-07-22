@@ -15,7 +15,7 @@ import {
   getWeeklySummaryStats,
   getWordLearnedOnThisDay,
   getAchievementsCount,
-  WeeklySummaryStats,
+  WeeklySummary,
   countWordsForPractice,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
@@ -48,7 +48,7 @@ interface UserState extends GamificationStats {
   pendingLevelUpAnimation: number | null;
   clearPendingLevelUpAnimation: () => void;
   todaysPractice: PracticeHistory | null;
-  weeklySummary: WeeklySummaryStats | null;
+  weeklySummary: WeeklySummary | null;
   onThisDayWord: Word | null;
   totalAchievements: number;
   urgentWordsCount: number;

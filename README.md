@@ -69,6 +69,8 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Animações e Feedback:** Adicionar animações com Lottie aos ícones da Tab Bar, expandir o uso de feedback háptico e criar uma animação especial ao apagar um conjunto.
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
   - [ ] **Widget da Liga Offline:** Garantir que o widget mostra sempre os últimos dados em cache quando offline, com um indicador visual claro.
+- [ ] ⚡**Performance:**
+  - [ ] **Listas:** Substituir `FlatList` por `FlashList` nos ecrãs `AllWordsScreen` e `DeckDetailScreen`.
 
 #### Nível 2: O Hábito (Engajamento e Retenção)
 

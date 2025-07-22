@@ -23,6 +23,7 @@ export interface Word {
   antonyms: string | null; // Stored as JSON string
   sentences: string | null; // Stored as JSON string
   isFavorite: number;
+  masteredAt: string;
   // SM-2 Algorithm Fields
   easinessFactor: number; // How easy the word is (default: 2.5)
   interval: number; // The number of days until the next review

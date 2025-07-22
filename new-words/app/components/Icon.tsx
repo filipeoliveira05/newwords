@@ -39,6 +39,7 @@ export const iconMap = {
   scan: { name: "scan", library: "ionicons" },
   swapVertical: { name: "swap-vertical-outline", library: "ionicons" },
   ellipsis: { name: "ellipsis-vertical", library: "ionicons" },
+  share: { name: "share-social-outline", library: "ionicons" },
 
   // General UI
   bookmark: { name: "bookmark-outline", library: "ionicons" },
@@ -51,6 +52,7 @@ export const iconMap = {
   star: { name: "star", library: "ionicons" },
   starOutline: { name: "star-outline", library: "ionicons" },
   checkmarkCircle: { name: "checkmark-circle", library: "ionicons" },
+  checkmark: { name: "checkmark", library: "ionicons" },
   checkmarkCircleOutline: {
     name: "checkmark-circle-outline",
     library: "ionicons",
@@ -73,6 +75,8 @@ export const iconMap = {
   gameController: { name: "game-controller-outline", library: "ionicons" },
   volume: { name: "volume-medium-outline", library: "ionicons" },
   eye: { name: "eye-outline", library: "ionicons" },
+  play: { name: "play", library: "ionicons" },
+  pause: { name: "pause", library: "ionicons" },
   trash: { name: "trash-outline", library: "ionicons" },
   lock: { name: "lock-closed", library: "ionicons" },
   time: { name: "time-outline", library: "ionicons" },
@@ -89,6 +93,7 @@ export const iconMap = {
   // Practice & Learning
   school: { name: "school-outline", library: "ionicons" },
   trendingUp: { name: "trending-up-outline", library: "ionicons" },
+  trendingDown: { name: "trending-down-outline", library: "ionicons" },
   albums: { name: "albums-outline", library: "ionicons" },
   list: { name: "list-outline", library: "ionicons" },
   pencil: { name: "pencil-outline", library: "ionicons" },
@@ -105,6 +110,7 @@ export const iconMap = {
   ribbon: { name: "ribbon-outline", library: "ionicons" },
   diamond: { name: "diamond-outline", library: "ionicons" },
   barbell: { name: "barbell-outline", library: "ionicons" },
+  rocket: { name: "rocket-outline", library: "ionicons" },
   walk: { name: "walk-outline", library: "ionicons" },
   shieldCheckmark: { name: "shield-checkmark-outline", library: "ionicons" },
   archive: { name: "archive-outline", library: "ionicons" },
