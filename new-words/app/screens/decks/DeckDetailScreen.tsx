@@ -332,7 +332,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
     return (
       <View style={styles.emptyContainer}>
-        <Image source={images.mascotSleep} style={styles.mascot} />
+        <Image source={images.mascotSleepBook} style={styles.mascot} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhuma palavra ainda
         </AppText>

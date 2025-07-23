@@ -15,7 +15,8 @@ const images = {
   mascotMad: require("../assets/images/mascot/mascot_mad.png"),
   mascotConfused: require("../assets/images/mascot/mascot_confused.png"),
   mascotBored: require("../assets/images/mascot/mascot_bored.png"),
-  mascotSleep: require("../assets/images/mascot/mascot_sleep.png"),
+  mascotSleepBook: require("../assets/images/mascot/mascot_sleep_book.png"),
+  mascotSleepSofa: require("../assets/images/mascot/mascot_sleep_sofa.png"),
   mascotRun: require("../assets/images/mascot/mascot_run.png"),
   mascotStretch: require("../assets/images/mascot/mascot_stretch.png"),
   mascotStudy: require("../assets/images/mascot/mascot_study.png"),
@@ -25,6 +26,9 @@ const images = {
   mascotMedal: require("../assets/images/mascot/mascot_medal.png"),
   mascotRocket: require("../assets/images/mascot/mascot_rocket.png"),
   mascotPray: require("../assets/images/mascot/mascot_pray.png"),
+  mascotHero: require("../assets/images/mascot/mascot_hero.png"),
+  mascotListen: require("../assets/images/mascot/mascot_listen.png"),
+  mascotStairs: require("../assets/images/mascot/mascot_stairs.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
   mascotPlay: require("../assets/images/mascot/mascot_play.png"), // Onboarding 3

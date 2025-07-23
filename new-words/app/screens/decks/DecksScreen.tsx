@@ -105,7 +105,7 @@ export default function DecksScreen({ navigation }: Props) {
   if (!decks || decks.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Image source={images.mascotSleep} style={styles.mascot} />
+        <Image source={images.mascotSleepBook} style={styles.mascot} />
         <AppText variant="bold" style={styles.emptyTitle}>
           Nenhum conjunto encontrado
         </AppText>
@@ -270,10 +270,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  // centerContent: {
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
   list: {
     paddingHorizontal: 16,
     paddingTop: 6,
