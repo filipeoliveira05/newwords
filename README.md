@@ -60,27 +60,48 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
 
 ### 🎯 Current Priorities
 
-#### Nível 1: Experiência Principal e Polimento (Alto Impacto)
+#### Nível 1: Experiência Principal e Polimento
 
-- [ ] 🎨 **UI/UX Enhancements:**
-  - [ ] **Design do "Combinar Listas":** Melhorar o design do modo de jogo para ser mais intuitivo e visualmente apelativo, semelhante à interface do Duolingo.
+- [ ] 🎨 **UI/UX e Gamificação:**
   - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
-  - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda para a revisão de flashcards, tornando as sessões mais rápidas e envolventes.
-  - [ ] **Animações e Feedback:** Adicionar animações com Lottie aos ícones da Tab Bar, expandir o uso de feedback háptico e criar uma animação especial ao apagar um conjunto.
+  - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda em alguma parte da aplicação.
+  - [ ] **Flow de Prática Aprimorado:** Melhorar a experiência de prática com um flow adequado com ecrãs condicionais no final (subida de nível, metas diárias concluídas, alterações na liga semanal).
+  - [ ] **Animações:** Adicionar animações ao apagar itens (conjuntos, palavras).
+  - [ ] **Feedback:** Expandir o uso de feedback háptico por toda a app.
+  - [ ] **Resumo Semanal Enriquecido:** Adicionar "fun facts" (ex: "treinaste o equivalente a 2 episódios de uma série") ao `WeeklyRecapScreen`.
+  - [ ] **LevelUp Overlay Controlado:** Modificar o overlay de subida de nível para que apareça de forma controlada (ex: no final de uma sessão de prática).
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
-  - [ ] **Widget da Liga Offline:** Garantir que o widget mostra sempre os últimos dados em cache quando offline, com um indicador visual claro.
-- [ ] ⚡**Performance:**
-  - [ ] **Listas:** Substituir `FlatList` por `FlashList` nos ecrãs `AllWordsScreen` e `DeckDetailScreen`.
+  - [ ] **Widget "Palavra do Dia":** Destacar uma palavra por dia, talvez uma com a qual o utilizador tem dificuldades, com exemplos e significado.
+  - [ ] **Metas Semanais:** Adicionar um novo conjunto de metas com um ciclo semanal para incentivar a consistência a longo prazo.
+  - [ ] **Widget da Liga Robusto:** Garantir que o widget mostra sempre os últimos dados em cache quando offline e adicionar uma animação de transição quando a liga semanal é reiniciada.
+  - [ ] **Widget da Liga Animado:** Adicionar uma animação de transição quando a liga semanal é reiniciada.
+- [ ] ⚙️ **Melhorias de Funcionalidades Existentes:**
+  - [ ] **Gestão de Conjuntos UI:** Substituir o modal de ordenação por um bottom sheet.
+  - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, combinar).
+  - [ ] **Gestão de Palavras Avançada:** Permitir mover palavras entre conjuntos.
+  - [ ] **Gestão de Palavras Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, mover para outros conjuntos).
+- [ ] 🐞 **Bugs e Melhorias Técnicas:**
+  - [ ] **Correção da Streak Diária:** Corrigir a lógica para que a streak seja reiniciada corretamente após um dia de inatividade.
+  - [ ] **Correções na Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática.
+- [ ] ⚡ **Performance:**
+  - [ ] **Listas:** Substituir `FlatList` por `FlashList` nos ecrãs com listas longas (ex: `DeckDetailScreen`).
 
 #### Nível 2: O Hábito (Engajamento e Retenção)
 
-- [ ] 🔔 **Smart Push Notifications:** Implement smart reminders to help users maintain their streak (“🔥 Your 3-day streak is waiting for you!”) or review challenging words.
+- [ ] 🗺️ **Descoberta Guiada (Primeiros Passos):** Criar um sistema de missões simples para guiar os novos utilizadores pelas funcionalidades chave da aplicação.
+- [ ] 🏆 **Sistema de Conquistas Aprofundado:**
+  - [ ] **Categorias e Variedade:** Organizar as conquistas em categorias e adicionar mais para recompensar diferentes aspetos da aprendizagem.
+  - [ ] **Galeria de Conquistas:** Criar um ecrã dedicado para o utilizador ver todas as conquistas disponíveis e desbloqueadas.
+- [ ] 🎯 **Metas Diárias Diversificadas:** Criar categorias e adicionar mais tipos de metas diárias para evitar a repetição.
+- [ ] 🚶 **Jornada de Níveis Visual:** Criar um ecrã que mostre a progressão de níveis do utilizador de forma visual e interativa, destacando os marcos alcançados.
+- [ ] 🔔 **Notificações Push Inteligentes:** Implementar lembretes para manter a streak, rever palavras difíceis, etc.
 - [ ] 🎲 **New Game Modes:**
   - [ ] **Sprint Contra o Tempo:** Um modo rápido: "Quantas palavras consegue acertar em 60 segundos?".
   - [ ] **Completa a Frase:** Uma frase aparece com um espaço em branco, e o utilizador deve escolher a palavra correta para o preencher.
   - [ ] **Prática com "Apostas" (Stakes):** O utilizador "aposta" parte do seu XP na sua performance. Se tiver uma sessão perfeita, duplica o XP; se falhar, perde-o.
 - [ ] 🏆 **Marcos Partilháveis:** Quando um utilizador atinge um marco importante (ex: nível 20), gerar uma imagem bonita e partilhável para as redes sociais.
 - [ ] 🎉 **Eventos Semanais Temáticos:** Lançar um tema semanal (ex: "Semana do Espaço"). As palavras praticadas que pertençam a esse tema valem o dobro do XP.
+- [ ] 🏟️ **Transição de Liga Clara:** Adicionar um ecrã ou componente que mostre claramente a transição entre o final de uma liga e o início da nova.
 
 #### Nível 3: Comunidade e Conteúdo Social
 

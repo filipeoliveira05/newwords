@@ -27,7 +27,19 @@
 │   │   │   │   ├── UrgentReviewCard.tsx
 │   │   │   │   └── WeeklySummaryCard.tsx
 │   │   │   └── recap
-│   │   │       └── RecapProgressBar.tsx
+│   │   │       ├── RecapProgressBar.tsx
+│   │   │       └── slides
+│   │   │           ├── ComparisonSlide.tsx
+│   │   │           ├── ConsistencyHabitSlide.tsx
+│   │   │           ├── DeepDiveSlide.tsx
+│   │   │           ├── FinalSlide.tsx
+│   │   │           ├── IntroSlide.tsx
+│   │   │           ├── LeaguePerformanceSlide.tsx
+│   │   │           ├── MainHighlightSlide.tsx
+│   │   │           ├── MetricsSlide.tsx
+│   │   │           ├── PerformanceSlide.tsx
+│   │   │           ├── ShareableRecapSlide.tsx
+│   │   │           └── index.ts
 │   │   ├── modals
 │   │   │   └── CategorySelectionModal.tsx
 │   │   ├── navigation
@@ -97,7 +109,11 @@
 │   │   └── static
 │   │       └── js
 │   │           ├── android
+│   │           │   ├── entry-1edea4e8b3ee85c1c725219b53de6dc3.hbc
+│   │           │   └── entry-1edea4e8b3ee85c1c725219b53de6dc3.hbc.map
 │   │           └── ios
+│   │               ├── entry-f1193c275241652a345ffa3c9aa4dc62.hbc
+│   │               └── entry-f1193c275241652a345ffa3c9aa4dc62.hbc.map
 │   ├── assetmap.json
 │   └── metadata.json
 ├── eas.json
@@ -133,4 +149,4 @@
     ├── arrayUtils.ts
     └── sm2.ts
 
-33 directories, 100 files
+34 directories, 115 files
