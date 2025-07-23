@@ -1,16 +1,26 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, {
+  useEffect,
+  useState,
+  useLayoutEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   View,
   StyleSheet,
   ScrollView,
-  Modal,
   TouchableOpacity,
   ActivityIndicator,
-  Pressable,
   Image,
 } from "react-native";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import {
+  BottomSheetModal,
+  BottomSheetScrollView,
+  BottomSheetBackdrop,
+} from "@gorhom/bottom-sheet";
 
 import AppText from "../../components/AppText";
 import { useDeckStore } from "../../../stores/deckStore";
@@ -33,7 +43,10 @@ type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 export default function DecksScreen({ navigation }: Props) {
   const { decks: allDecks, loading, fetchDecks, deleteDeck } = useDeckStore();
   const [isSeeding, setIsSeeding] = useState(false);
-  const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  const sortBottomSheetRef = useRef<BottomSheetModal>(null);
+  const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
+  const sortScrollViewRef = useRef<ScrollView>(null);
 
   const { sortedDecks, sortConfig, setSortConfig } = useDeckSorting(allDecks);
   const decks = sortedDecks;
@@ -55,7 +68,7 @@ export default function DecksScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.headerButton}
             activeOpacity={0.8}
-            onPress={() => setSortModalVisible(true)}
+            onPress={() => sortBottomSheetRef.current?.present()}
           >
             <Icon
               name="swapVertical"
@@ -65,7 +78,7 @@ export default function DecksScreen({ navigation }: Props) {
           </TouchableOpacity>
         ) : null,
     });
-  }, [navigation, setSortModalVisible, allDecks.length]);
+  }, [navigation, allDecks.length]);
 
   useEffect(() => {
     fetchDecks();
@@ -91,16 +104,56 @@ export default function DecksScreen({ navigation }: Props) {
     }
   };
 
+  const handleSortSheetChange = useCallback((index: number) => {
+    setIsSortSheetOpen(index >= 0);
+  }, []);
+
+  // Efeito para fazer scroll para a opção de ordenação ativa quando o modal abre.
+  useEffect(() => {
+    if (isSortSheetOpen && sortScrollViewRef.current) {
+      // Usamos um timeout para garantir que o modal e a lista já foram renderizados
+      setTimeout(() => {
+        const activeSortIndex = deckSortOptions.findIndex(
+          (option) =>
+            option.criterion === sortConfig.criterion &&
+            option.direction === option.direction
+        );
+
+        if (activeSortIndex > -1) {
+          const ITEM_HEIGHT = 53; // Altura aproximada de cada item da lista (paddingVertical: 16 + fontSize: 18 + border: 1)
+          // Calcula o offset para que a opção selecionada não fique colada ao topo.
+          // Mostra o item anterior, se existir.
+          const yOffset = Math.max(0, activeSortIndex - 1) * ITEM_HEIGHT;
+          // O scroll é feito sem animação para que a posição seja instantânea.
+          sortScrollViewRef.current?.scrollTo({ y: yOffset, animated: false });
+        }
+      }, 100);
+    }
+  }, [isSortSheetOpen, sortConfig]);
+
+  const handleSortSelect = (config: SortConfig) => {
+    setSortConfig(config);
+    sortBottomSheetRef.current?.dismiss();
+  };
+
+  const snapPoints = useMemo(() => ["49%"], []);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    []
+  );
+
   if (loading) {
     return (
       <LoadingScreen visible={loading} loadingText="A carregar conjuntos..." />
     );
   }
-
-  const handleSortSelect = (config: SortConfig) => {
-    setSortConfig(config);
-    setSortModalVisible(false);
-  };
 
   if (!decks || decks.length === 0) {
     return (
@@ -209,58 +262,53 @@ export default function DecksScreen({ navigation }: Props) {
         <Icon name="add" size={32} color={theme.colors.surface} />
       </TouchableOpacity>
 
-      {/* Sort Options Modal */}
-      <Modal
-        visible={sortModalVisible}
-        transparent
-        animationType="fade"
-        presentationStyle="overFullScreen"
-        statusBarTranslucent={true}
-        onRequestClose={() => setSortModalVisible(false)}
+      {/* Bottom Sheet para Ordenação */}
+      <BottomSheetModal
+        ref={sortBottomSheetRef}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.modalHandle}
+        onChange={handleSortSheetChange}
       >
-        <View style={styles.modalOverlay}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setSortModalVisible(false)}
-          />
-          <View style={styles.modalContainer}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <AppText variant="bold" style={styles.modalTitle}>
-                Ordenar Por
-              </AppText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                activeOpacity={0.8}
-                onPress={() => setSortModalVisible(false)}
-              >
-                <Icon name="close" size={24} color={theme.colors.icon} />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={{ maxHeight: 400 }}>
-              {deckSortOptions.map((option, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.sortOptionButton}
-                  activeOpacity={0.8}
-                  onPress={() => handleSortSelect(option)}
-                >
-                  <AppText
-                    style={[
-                      styles.sortOptionText,
-                      sortConfig.criterion === option.criterion &&
-                        sortConfig.direction === option.direction &&
-                        styles.sortOptionTextActive,
-                    ]}
-                  >
-                    {option.label}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        <BottomSheetScrollView
+          ref={sortScrollViewRef}
+          contentContainerStyle={styles.bottomSheetContent}
+        >
+          <View style={styles.modalHeader}>
+            <AppText variant="bold" style={styles.modalTitle}>
+              Ordenar Por
+            </AppText>
+            <TouchableOpacity
+              style={styles.closeButton}
+              activeOpacity={0.8}
+              onPress={() => sortBottomSheetRef.current?.dismiss()}
+            >
+              <Icon name="close" size={24} color={theme.colors.icon} />
+            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+          {deckSortOptions.map((option, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.sortOptionButton}
+              activeOpacity={0.8}
+              onPress={() => handleSortSelect(option)}
+            >
+              <AppText
+                style={[
+                  styles.sortOptionText,
+                  sortConfig.criterion === option.criterion &&
+                    sortConfig.direction === option.direction &&
+                    styles.sortOptionTextActive,
+                ]}
+              >
+                {option.label}
+              </AppText>
+            </TouchableOpacity>
+          ))}
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -319,17 +367,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 8,
   },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
+  // Bottom Sheet Styles
+  bottomSheetBackground: {
     backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 12,
+  },
+  bottomSheetContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   modalHandle: {
     width: 40,
@@ -344,7 +388,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 24,
-    paddingHorizontal: 20,
   },
   modalTitle: {
     fontSize: theme.fontSizes["2xl"],
