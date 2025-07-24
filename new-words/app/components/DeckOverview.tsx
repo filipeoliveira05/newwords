@@ -20,6 +20,9 @@ type DeckOverviewProps = {
   onEdit?: () => void;
   onAddWord?: () => void;
   onDelete?: () => void;
+  onLongPress?: () => void;
+  isSelected?: boolean;
+  isSelectionMode?: boolean;
 };
 
 const DeckOverview = ({
@@ -31,13 +34,17 @@ const DeckOverview = ({
   onEdit,
   onAddWord,
   onDelete,
+  onLongPress,
+  isSelected,
+  isSelectionMode,
 }: DeckOverviewProps) => {
   const progress = totalWords > 0 ? (masteredWords / totalWords) * 100 : 0;
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, isSelected && styles.containerSelected]}
       onPress={onPress}
       activeOpacity={0.8}
+      onLongPress={onLongPress}
       accessibilityLabel={`Abrir o conjunto ${title}, do autor ${author}`}
     >
       <View style={styles.content}>
@@ -59,44 +66,61 @@ const DeckOverview = ({
             masteredWords={masteredWords}
           />
         </View>
-        <Menu>
-          <MenuTrigger
-            customStyles={{
-              TriggerTouchableComponent: TouchableOpacity,
-              triggerWrapper: styles.menuTrigger,
-            }}
-          >
-            <Icon name="ellipsis" size={22} color={theme.colors.icon} />
-          </MenuTrigger>
-          <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
-            <MenuOption onSelect={onAddWord}>
-              <View style={styles.menuItem}>
-                <Icon name="add" size={20} color={theme.colors.text} />
-                <AppText style={styles.menuText}>Adicionar palavra</AppText>
-              </View>
-            </MenuOption>
-            <MenuOption onSelect={onEdit}>
-              <View style={styles.menuItem}>
-                <Icon name="edit" size={18} color={theme.colors.text} />
-                <AppText style={styles.menuText}>Editar detalhes</AppText>
-              </View>
-            </MenuOption>
+        {/* O menu de opções só é renderizado se não estivermos em modo de seleção. */}
+        {!isSelectionMode && (
+          <Menu>
+            <MenuTrigger
+              customStyles={{
+                TriggerTouchableComponent: TouchableOpacity,
+                triggerWrapper: styles.menuTrigger,
+              }}
+            >
+              <Icon name="ellipsis" size={22} color={theme.colors.icon} />
+            </MenuTrigger>
+            <MenuOptions customStyles={{ optionsContainer: styles.menu }}>
+              <MenuOption onSelect={onAddWord}>
+                <View style={styles.menuItem}>
+                  <Icon name="add" size={20} color={theme.colors.text} />
+                  <AppText style={styles.menuText}>Adicionar palavra</AppText>
+                </View>
+              </MenuOption>
+              <MenuOption onSelect={onEdit}>
+                <View style={styles.menuItem}>
+                  <Icon name="edit" size={18} color={theme.colors.text} />
+                  <AppText style={styles.menuText}>Editar detalhes</AppText>
+                </View>
+              </MenuOption>
 
-            <View style={styles.separator} />
+              <View style={styles.separator} />
 
-            <MenuOption onSelect={onDelete}>
-              <View style={styles.menuItem}>
-                <Icon name="trash" size={18} color={theme.colors.dangerDark} />
-                <AppText
-                  style={[styles.menuText, { color: theme.colors.dangerDark }]}
-                >
-                  Apagar
-                </AppText>
-              </View>
-            </MenuOption>
-          </MenuOptions>
-        </Menu>
+              <MenuOption onSelect={onDelete}>
+                <View style={styles.menuItem}>
+                  <Icon
+                    name="trash"
+                    size={18}
+                    color={theme.colors.dangerDark}
+                  />
+                  <AppText
+                    style={[
+                      styles.menuText,
+                      { color: theme.colors.dangerDark },
+                    ]}
+                  >
+                    Apagar
+                  </AppText>
+                </View>
+              </MenuOption>
+            </MenuOptions>
+          </Menu>
+        )}
       </View>
+      {isSelected && (
+        <View style={styles.selectionOverlay}>
+          <View style={styles.selectionIconContainer}>
+            <Icon name="checkmark" size={20} color={theme.colors.primary} />
+          </View>
+        </View>
+      )}
     </TouchableOpacity>
   );
 };
@@ -108,12 +132,18 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
     marginVertical: 8,
-    padding: 20,
+    padding: 18, // Ajustado para acomodar a borda, que agora é permanente.
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
+    borderWidth: 2, // A borda está sempre presente para evitar "saltos" no layout.
+    borderColor: "transparent", // Por defeito, a borda é invisível.
+  },
+  containerSelected: {
+    // Quando selecionado, apenas a cor da borda é alterada para ser visível.
+    borderColor: theme.colors.primary,
   },
   content: {
     flexDirection: "row",
@@ -176,5 +206,23 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: theme.colors.border,
+  },
+  selectionOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(99, 102, 241, 0.1)", // Cor primária com opacidade
+    borderRadius: 14, // Ligeiramente menor que o container para a borda ser visível
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectionIconContainer: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: theme.colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

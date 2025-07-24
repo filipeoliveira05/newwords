@@ -12,6 +12,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  BackHandler,
   Image,
 } from "react-native";
 import Animated, { ZoomOut, LinearTransition } from "react-native-reanimated";
@@ -46,40 +47,143 @@ export default function DecksScreen({ navigation }: Props) {
   const [isSeeding, setIsSeeding] = useState(false);
 
   const sortBottomSheetRef = useRef<BottomSheetModal>(null);
+  const [selectedDeckIds, setSelectedDeckIds] = useState<Set<number>>(
+    new Set()
+  );
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
   const sortScrollViewRef = useRef<ScrollView>(null);
 
   const { sortedDecks, sortConfig, setSortConfig } = useDeckSorting(allDecks);
   const decks = sortedDecks;
 
+  const isSelectionMode = selectedDeckIds.size > 0;
+
   const { showAlert } = useAlertStore.getState();
 
+  const handleCancelSelection = useCallback(() => {
+    setSelectedDeckIds(new Set());
+  }, []);
+
+  const handleDeleteSelected = useCallback(() => {
+    showAlert({
+      title: `Apagar ${selectedDeckIds.size} ${
+        selectedDeckIds.size === 1 ? "conjunto" : "conjuntos"
+      }`,
+      message: "Esta ação é irreversível. Tem a certeza?",
+      buttons: [
+        { text: "Cancelar", style: "cancel", onPress: () => {} },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: async () => {
+            for (const id of selectedDeckIds) {
+              await deleteDeck(id);
+            }
+            handleCancelSelection();
+          },
+        },
+      ],
+    });
+  }, [selectedDeckIds, showAlert, deleteDeck, handleCancelSelection]);
+
   useLayoutEffect(() => {
-    navigation.setOptions({
-      headerStyle: { backgroundColor: theme.colors.background },
-      headerTitleStyle: {
-        fontFamily: theme.fonts.bold,
-        fontSize: theme.fontSizes["2xl"],
-      },
-      headerShadowVisible: false,
-      headerBackTitle: "Biblioteca",
-      headerTintColor: theme.colors.text,
-      headerRight: () =>
-        allDecks.length > 0 ? (
+    if (isSelectionMode) {
+      navigation.setOptions({
+        title: `${selectedDeckIds.size} ${
+          selectedDeckIds.size === 1 ? "selecionado" : "selecionados"
+        }`,
+        headerTitleAlign: "center",
+        headerLeft: () => (
+          // Substituído o texto "Cancelar" por um ícone para um layout mais limpo e simétrico.
+          // Isto resolve o problema do título não ficar perfeitamente centrado.
           <TouchableOpacity
             style={styles.headerButton}
-            activeOpacity={0.8}
-            onPress={() => sortBottomSheetRef.current?.present()}
+            onPress={handleCancelSelection}
+          >
+            <Icon name="close" size={28} color={theme.colors.text} />
+          </TouchableOpacity>
+        ),
+        headerRight: () => (
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleDeleteSelected}
+            disabled={selectedDeckIds.size === 0}
           >
             <Icon
-              name="swapVertical"
+              name="trash"
               size={24}
-              color={theme.colors.textMedium}
+              color={
+                selectedDeckIds.size === 0
+                  ? theme.colors.iconMuted
+                  : theme.colors.danger
+              }
             />
           </TouchableOpacity>
-        ) : null,
-    });
-  }, [navigation, allDecks.length]);
+        ),
+        headerBackVisible: false,
+        headerTitleStyle: {
+          fontFamily: theme.fonts.bold,
+          fontSize: theme.fontSizes["2xl"],
+        },
+      });
+    } else {
+      // Reset to original header
+      navigation.setOptions({
+        title: "Meus Conjuntos",
+        headerLeft: undefined,
+        headerBackVisible: true,
+        headerStyle: { backgroundColor: theme.colors.background },
+        headerTitleStyle: {
+          fontFamily: theme.fonts.bold,
+          fontSize: theme.fontSizes["2xl"],
+        },
+        headerShadowVisible: false,
+        headerBackTitle: "Biblioteca",
+        headerTintColor: theme.colors.text,
+        headerRight: () =>
+          allDecks.length > 0 ? (
+            <TouchableOpacity // Aplicado o mesmo estilo para consistência
+              style={styles.headerButton}
+              activeOpacity={0.8}
+              onPress={() => sortBottomSheetRef.current?.present()}
+            >
+              <Icon
+                name="swapVertical"
+                size={24}
+                color={theme.colors.textMedium}
+              />
+            </TouchableOpacity>
+          ) : null,
+      });
+    }
+  }, [
+    navigation,
+    isSelectionMode,
+    selectedDeckIds,
+    allDecks.length,
+    handleCancelSelection,
+    handleDeleteSelected,
+  ]);
+
+  // Efeito para intercetar o botão de "voltar" do Android.
+  // Se estiver em modo de seleção, o botão deve cancelar a seleção em vez de sair do ecrã.
+  useEffect(() => {
+    const backAction = () => {
+      if (isSelectionMode) {
+        handleCancelSelection(); // Cancela a seleção
+        return true; // Impede a ação padrão (voltar para o ecrã anterior)
+      }
+      // Se não estiver em modo de seleção, permite a ação padrão.
+      return false;
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove(); // Limpa o listener ao desmontar o componente
+  }, [isSelectionMode, handleCancelSelection]);
 
   useEffect(() => {
     fetchDecks();
@@ -104,6 +208,37 @@ export default function DecksScreen({ navigation }: Props) {
       setIsSeeding(false);
     }
   };
+
+  const handleLongPress = useCallback((deckId: number) => {
+    setSelectedDeckIds((prev) => new Set(prev).add(deckId));
+  }, []);
+
+  const handlePress = useCallback(
+    (deck: (typeof decks)[0]) => {
+      // Se não estivermos em modo de seleção, a ação é navegar para os detalhes.
+      if (!isSelectionMode) {
+        navigation.navigate("DeckDetail", {
+          deckId: deck.id,
+          title: deck.title,
+          author: deck.author,
+        });
+        return;
+      }
+
+      // Se estivermos em modo de seleção, usamos a forma funcional do setState
+      // para garantir que operamos sobre o estado mais recente, evitando bugs.
+      setSelectedDeckIds((currentIds) => {
+        const newIds = new Set(currentIds);
+        if (newIds.has(deck.id)) {
+          newIds.delete(deck.id);
+        } else {
+          newIds.add(deck.id);
+        }
+        return newIds;
+      });
+    },
+    [isSelectionMode, navigation] // Já não dependemos diretamente de `selectedDeckIds`
+  );
 
   const handleSortSheetChange = useCallback((index: number) => {
     setIsSortSheetOpen(index >= 0);
@@ -212,16 +347,10 @@ export default function DecksScreen({ navigation }: Props) {
               author={deck.author}
               totalWords={deck.wordCount}
               masteredWords={deck.masteredCount}
-              onPress={() =>
-                navigation.navigate("DeckDetail", {
-                  deckId: deck.id,
-                  title: deck.title,
-                  author: deck.author,
-                })
-              }
-              onEdit={() =>
-                navigation.navigate("AddOrEditDeck", { deckId: deck.id })
-              }
+              onPress={() => handlePress(deck)}
+              onLongPress={() => handleLongPress(deck.id)}
+              isSelected={selectedDeckIds.has(deck.id)}
+              isSelectionMode={isSelectionMode}
               onAddWord={() =>
                 navigation.navigate("DeckDetail", {
                   deckId: deck.id,
@@ -229,6 +358,9 @@ export default function DecksScreen({ navigation }: Props) {
                   author: deck.author,
                   openAddWordModal: true,
                 })
+              }
+              onEdit={() =>
+                navigation.navigate("AddOrEditDeck", { deckId: deck.id })
               }
               onDelete={() => {
                 showAlert({
@@ -260,13 +392,15 @@ export default function DecksScreen({ navigation }: Props) {
           </Animated.View>
         ))}
       </ScrollView>
-      <TouchableOpacity
-        style={styles.fab}
-        activeOpacity={0.8}
-        onPress={() => navigation.navigate("AddOrEditDeck", {})}
-      >
-        <Icon name="add" size={32} color={theme.colors.surface} />
-      </TouchableOpacity>
+      {!isSelectionMode && (
+        <TouchableOpacity
+          style={styles.fab}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate("AddOrEditDeck", {})}
+        >
+          <Icon name="add" size={32} color={theme.colors.surface} />
+        </TouchableOpacity>
+      )}
 
       {/* Bottom Sheet para Ordenação */}
       <BottomSheetModal
@@ -416,8 +550,8 @@ const styles = StyleSheet.create({
     fontFamily: theme.fonts.bold,
   },
   headerButton: {
-    padding: 8,
-    marginRight: 8,
+    // Estilo genérico para botões de ícone no cabeçalho para garantir espaçamento consistente.
+    padding: 12,
   },
   seedButtonEmptyState: {
     flexDirection: "row",

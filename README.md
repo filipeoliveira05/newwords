@@ -76,7 +76,8 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Widget da Liga Robusto:** Garantir que o widget mostra sempre os últimos dados em cache quando offline e adicionar uma animação de transição quando a liga semanal é reiniciada.
   - [ ] **Widget da Liga Animado:** Adicionar uma animação de transição quando a liga semanal é reiniciada.
 - [ ] ⚙️ **Melhorias de Funcionalidades Existentes:**
-  - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, combinar).
+  - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações sofisticadas (combinar conjuntos).
+  - [ ] **Gestão de Conjuntos Otimização:** O ecrã de loading aparece e desaparece múltiplas vezes ao apagar vários conjuntos de uma só vez ou quando se adiciona muitos conjuntos de uma só vez, o que causa disrupção na experiência do utilizador.
   - [ ] **Gestão de Palavras Avançada:** Permitir mover palavras entre conjuntos.
   - [ ] **Gestão de Palavras Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, mover para outros conjuntos).
 - [ ] 🐞 **Bugs e Melhorias Técnicas:**
