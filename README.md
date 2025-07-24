@@ -66,7 +66,7 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
   - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda em alguma parte da aplicação.
   - [ ] **Flow de Prática Aprimorado:** Melhorar a experiência de prática com um flow adequado com ecrãs condicionais no final (subida de nível, metas diárias concluídas, alterações na liga semanal).
-  - [ ] **Animações:** Adicionar animações ao apagar itens (conjuntos, palavras).
+  - [ ] **Animações:** Adicionar animações ao apagar palavras.
   - [ ] **Feedback:** Expandir o uso de feedback háptico por toda a app.
   - [ ] **Resumo Semanal Enriquecido:** Adicionar "fun facts" (ex: "treinaste o equivalente a 2 episódios de uma série") ao `WeeklyRecapScreen`.
   - [ ] **LevelUp Overlay Controlado:** Modificar o overlay de subida de nível para que apareça de forma controlada (ex: no final de uma sessão de prática).

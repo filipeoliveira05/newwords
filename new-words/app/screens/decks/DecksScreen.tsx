@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import Animated, { ZoomOut, LinearTransition } from "react-native-reanimated";
 import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
@@ -201,57 +202,62 @@ export default function DecksScreen({ navigation }: Props) {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.list}>
         {decks.map((deck) => (
-          <DeckOverview
+          <Animated.View
             key={deck.id}
-            title={deck.title}
-            author={deck.author}
-            totalWords={deck.wordCount}
-            masteredWords={deck.masteredCount}
-            onPress={() =>
-              navigation.navigate("DeckDetail", {
-                deckId: deck.id,
-                title: deck.title,
-                author: deck.author,
-              })
-            }
-            onEdit={() =>
-              navigation.navigate("AddOrEditDeck", { deckId: deck.id })
-            }
-            onAddWord={() =>
-              navigation.navigate("DeckDetail", {
-                deckId: deck.id,
-                title: deck.title,
-                author: deck.author,
-                openAddWordModal: true,
-              })
-            }
-            onDelete={() => {
-              showAlert({
-                title: "Apagar conjunto",
-                message: "Tens a certeza que queres apagar este conjunto?",
-                buttons: [
-                  { text: "Cancelar", style: "cancel", onPress: () => {} },
-                  {
-                    text: "Apagar",
-                    style: "destructive",
-                    onPress: async () => {
-                      try {
-                        await deleteDeck(deck.id);
-                      } catch (error) {
-                        console.error("Falha ao apagar o conjunto:", error);
-                        showAlert({
-                          title: "Erro",
-                          message:
-                            "Não foi possível apagar o conjunto. Tente novamente.",
-                          buttons: [{ text: "OK", onPress: () => {} }],
-                        });
-                      }
+            layout={LinearTransition.duration(200)}
+            exiting={ZoomOut.duration(300)}
+          >
+            <DeckOverview
+              title={deck.title}
+              author={deck.author}
+              totalWords={deck.wordCount}
+              masteredWords={deck.masteredCount}
+              onPress={() =>
+                navigation.navigate("DeckDetail", {
+                  deckId: deck.id,
+                  title: deck.title,
+                  author: deck.author,
+                })
+              }
+              onEdit={() =>
+                navigation.navigate("AddOrEditDeck", { deckId: deck.id })
+              }
+              onAddWord={() =>
+                navigation.navigate("DeckDetail", {
+                  deckId: deck.id,
+                  title: deck.title,
+                  author: deck.author,
+                  openAddWordModal: true,
+                })
+              }
+              onDelete={() => {
+                showAlert({
+                  title: "Apagar conjunto",
+                  message: "Tens a certeza que queres apagar este conjunto?",
+                  buttons: [
+                    { text: "Cancelar", style: "cancel", onPress: () => {} },
+                    {
+                      text: "Apagar",
+                      style: "destructive",
+                      onPress: async () => {
+                        try {
+                          await deleteDeck(deck.id);
+                        } catch (error) {
+                          console.error("Falha ao apagar o conjunto:", error);
+                          showAlert({
+                            title: "Erro",
+                            message:
+                              "Não foi possível apagar o conjunto. Tente novamente.",
+                            buttons: [{ text: "OK", onPress: () => {} }],
+                          });
+                        }
+                      },
                     },
-                  },
-                ],
-              });
-            }}
-          />
+                  ],
+                });
+              }}
+            />
+          </Animated.View>
         ))}
       </ScrollView>
       <TouchableOpacity
