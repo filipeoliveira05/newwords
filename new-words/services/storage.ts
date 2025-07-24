@@ -452,6 +452,28 @@ export async function deleteDeck(id: number): Promise<void> {
   }
 }
 
+export async function deleteDecks(ids: number[]): Promise<void> {
+  if (ids.length === 0) {
+    return;
+  }
+  try {
+    // Usa uma transação para garantir que tanto as palavras como os decks são apagados.
+    await db.withTransactionAsync(async () => {
+      const placeholders = ids.map(() => "?").join(",");
+      // 1. Apaga as palavras associadas a todos os decks selecionados
+      await db.runAsync(
+        `DELETE FROM words WHERE deckId IN (${placeholders})`,
+        ids
+      );
+      // 2. Apaga todos os decks selecionados
+      await db.runAsync(`DELETE FROM decks WHERE id IN (${placeholders})`, ids);
+    });
+  } catch (e) {
+    console.error("Erro ao apagar múltiplos decks:", e);
+    throw e;
+  }
+}
+
 // --- Word Functions
 
 export async function getAllWords(): Promise<Word[]> {

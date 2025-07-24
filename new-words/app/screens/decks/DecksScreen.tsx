@@ -43,8 +43,16 @@ import LoadingScreen from "../LoadingScreen";
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
 export default function DecksScreen({ navigation }: Props) {
-  const { decks: allDecks, loading, fetchDecks, deleteDeck } = useDeckStore();
-  const [isSeeding, setIsSeeding] = useState(false);
+  const {
+    decks: allDecks,
+    loading,
+    fetchDecks,
+    deleteDeck,
+    deleteDecks,
+  } = useDeckStore();
+  // Estado para suprimir o ecrã de loading global durante operações em lote (apagar/adicionar múltiplos),
+  // permitindo que as animações da lista sejam visíveis.
+  const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const sortBottomSheetRef = useRef<BottomSheetModal>(null);
   const [selectedDeckIds, setSelectedDeckIds] = useState<Set<number>>(
@@ -76,15 +84,21 @@ export default function DecksScreen({ navigation }: Props) {
           text: "Apagar",
           style: "destructive",
           onPress: async () => {
-            for (const id of selectedDeckIds) {
-              await deleteDeck(id);
+            setIsBatchProcessing(true);
+            try {
+              // Usa a nova função otimizada para apagar em lote.
+              await deleteDecks(Array.from(selectedDeckIds));
+              handleCancelSelection();
+            } catch (error) {
+              console.error("Falha ao apagar conjuntos em lote:", error);
+            } finally {
+              setIsBatchProcessing(false);
             }
-            handleCancelSelection();
           },
         },
       ],
     });
-  }, [selectedDeckIds, showAlert, deleteDeck, handleCancelSelection]);
+  }, [selectedDeckIds, showAlert, deleteDecks, handleCancelSelection]);
 
   useLayoutEffect(() => {
     if (isSelectionMode) {
@@ -190,7 +204,7 @@ export default function DecksScreen({ navigation }: Props) {
   }, [fetchDecks]);
 
   const handleSeedData = async () => {
-    setIsSeeding(true);
+    setIsBatchProcessing(true);
     try {
       await seedDatabase();
       Toast.show({
@@ -205,7 +219,7 @@ export default function DecksScreen({ navigation }: Props) {
         buttons: [{ text: "OK", onPress: () => {} }],
       });
     } finally {
-      setIsSeeding(false);
+      setIsBatchProcessing(false);
     }
   };
 
@@ -285,7 +299,9 @@ export default function DecksScreen({ navigation }: Props) {
     []
   );
 
-  if (loading) {
+  // Mostra o ecrã de loading global, a menos que uma operação em lote esteja em andamento.
+  // Isto evita que o ecrã de loading cubra as animações de remoção de itens.
+  if (loading && !isBatchProcessing) {
     return (
       <LoadingScreen visible={loading} loadingText="A carregar conjuntos..." />
     );
@@ -316,9 +332,9 @@ export default function DecksScreen({ navigation }: Props) {
           style={styles.seedButtonEmptyState}
           activeOpacity={0.8}
           onPress={handleSeedData}
-          disabled={isSeeding}
+          disabled={isBatchProcessing}
         >
-          {isSeeding ? (
+          {isBatchProcessing ? (
             <ActivityIndicator color={theme.colors.primary} />
           ) : (
             <>
@@ -340,7 +356,7 @@ export default function DecksScreen({ navigation }: Props) {
           <Animated.View
             key={deck.id}
             layout={LinearTransition.duration(200)}
-            exiting={ZoomOut.duration(300)}
+            exiting={ZoomOut.duration(150)}
           >
             <DeckOverview
               title={deck.title}

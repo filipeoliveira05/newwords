@@ -65,7 +65,7 @@ export const useUserStore = create<UserState>((set) => ({
   totalWords: 0,
   wordsMastered: 0,
   lastPracticeDate: null,
-  loading: true,
+  loading: false,
   user: null,
   dailyGoals: [],
   challengingWords: [],
@@ -78,7 +78,11 @@ export const useUserStore = create<UserState>((set) => ({
   urgentWordsCount: 0,
 
   fetchUserStats: async () => {
-    set({ loading: true });
+    // Previne múltiplas chamadas em simultâneo, que podem causar o erro "Maximum update depth exceeded".
+    // Se já estiver a carregar, ignora a nova chamada.
+    if (useUserStore.getState().loading) return;
+
+    set({ loading: true }); // Define o loading para true apenas se não estiver a carregar.
     try {
       const [
         stats,

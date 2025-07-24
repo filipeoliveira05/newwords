@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo, useLayoutEffect } from "react";
 import { View, StyleSheet, ScrollView } from "react-native";
-import { CompositeScreenProps } from "@react-navigation/native";
+import { CompositeScreenProps, useIsFocused } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { isMonday } from "date-fns";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -45,6 +45,8 @@ export default function HomeScreen({ navigation }: Props) {
     dailyGoals,
     user,
   } = useUserStore();
+
+  const isFocused = useIsFocused();
 
   const learningTips = useMemo(
     () => [
@@ -125,7 +127,12 @@ export default function HomeScreen({ navigation }: Props) {
     });
   }, [navigation]);
 
-  if (loading) {
+  // Mostra o ecrã de loading apenas na primeira vez que os dados são carregados (quando o user ainda não existe).
+  // Para atualizações subsequentes (ex: após adicionar/apagar palavras), os dados são atualizados
+  // em segundo plano. A condição `&& isFocused` previne que o ecrã de loading apareça
+  // sobre outros ecrãs (como o DecksScreen) quando eventos em segundo plano (como apagar
+  // palavras) disparam uma atualização de dados.
+  if ((loading || !user) && isFocused) {
     return <LoadingScreen visible={loading} />;
   }
 

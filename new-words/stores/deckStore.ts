@@ -4,6 +4,7 @@ import {
   addDeck as dbAddDeck,
   updateDeck as dbUpdateDeck,
   deleteDeck as dbDeleteDeck,
+  deleteDecks as dbDeleteDecks,
   getWordCountByDeck,
   countMasteredWordsByDeck,
   getWordsOfDeck,
@@ -24,6 +25,7 @@ interface DeckState {
   addDeck: (title: string, author: string) => Promise<void>;
   updateDeck: (id: number, title: string, author: string) => Promise<void>;
   deleteDeck: (id: number) => Promise<void>;
+  deleteDecks: (ids: number[]) => Promise<void>;
   incrementWordCount: (id: number) => void;
   decrementWordCount: (id: number) => void;
   updateMasteredCount: (deckId: number, change: 1 | -1) => void;
@@ -102,6 +104,37 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       });
     } catch (error) {
       console.error("Erro ao apagar deck no store", error);
+      throw error;
+    }
+  },
+
+  deleteDecks: async (ids: number[]) => {
+    if (ids.length === 0) return;
+    try {
+      // Para manter a consistência do estado, precisamos de saber que palavras
+      // serão apagadas para podermos notificar outros stores (como o de estatísticas).
+      const wordsInDecks = await Promise.all(
+        ids.map((id) => getWordsOfDeck(id))
+      );
+      const allWordsToDelete = wordsInDecks.flat();
+
+      await dbDeleteDecks(ids); // A nova função que apaga tudo numa só transação.
+
+      const idsToDeleteSet = new Set(ids);
+      // Atualiza o estado uma única vez, removendo todos os decks selecionados.
+      set((state) => ({
+        decks: state.decks.filter((deck) => !idsToDeleteSet.has(deck.id)),
+      }));
+
+      // Publica os eventos necessários para que outros stores reajam.
+      ids.forEach((deckId) => {
+        eventStore.getState().publish("deckDeleted", { deckId });
+      });
+      allWordsToDelete.forEach((word) => {
+        eventStore.getState().publish("wordDeleted", { deckId: word.deckId });
+      });
+    } catch (error) {
+      console.error("Erro ao apagar múltiplos decks no store", error);
       throw error;
     }
   },
