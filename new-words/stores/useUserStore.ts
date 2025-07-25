@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   getGamificationStats,
+  checkAndResetDailyStreak,
   getTodaysActiveGoalIds,
   setTodaysActiveGoalIds,
   getTodaysPracticeStats,
@@ -82,8 +83,12 @@ export const useUserStore = create<UserState>((set) => ({
     // Se já estiver a carregar, ignora a nova chamada.
     if (useUserStore.getState().loading) return;
 
-    set({ loading: true }); // Define o loading para true apenas se não estiver a carregar.
+    set({ loading: true });
     try {
+      // Primeiro, verifica e reinicia a streak diária se necessário.
+      // Isto garante que os dados de gamificação estão corretos ANTES de serem obtidos.
+      await checkAndResetDailyStreak();
+
       const [
         stats,
         todaysPractice,

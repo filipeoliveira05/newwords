@@ -336,6 +336,27 @@ export async function addWeeklyXP(xpToAdd: number): Promise<void> {
   await setMetaValue("weekly_xp", (currentXP + xpToAdd).toString());
 }
 // A helper to set a single metadata value
+
+export async function checkAndResetDailyStreak(): Promise<void> {
+  try {
+    const lastPracticeDateStr = await getMetaValue("last_practice_date", null);
+    if (!lastPracticeDateStr) {
+      // Se nunca praticou, a streak é 0.
+      await setMetaValue("consecutive_days", "0");
+      return;
+    }
+
+    const lastPracticeDate = startOfDay(new Date(lastPracticeDateStr));
+
+    // Se a última prática não foi hoje nem ontem, a streak quebrou.
+    if (!isToday(lastPracticeDate) && !isYesterday(lastPracticeDate)) {
+      await setMetaValue("consecutive_days", "0");
+    }
+  } catch (e) {
+    console.error("Erro ao verificar e reiniciar a streak diária:", e);
+    throw e;
+  }
+}
 export async function setMetaValue(key: string, value: string): Promise<void> {
   try {
     await db.runAsync(
@@ -944,6 +965,7 @@ export async function updateUserPracticeMetrics(
       (await getMetaValue("longest_streak", "0")) ?? "0",
       10
     );
+    // A streak é verificada e reiniciada no arranque da app. Aqui apenas a incrementamos.
     const currentConsecutiveDays = parseInt(
       (await getMetaValue("consecutive_days", "0")) ?? "0",
       10
@@ -955,13 +977,11 @@ export async function updateUserPracticeMetrics(
       ? startOfDay(new Date(lastPracticeDateStr))
       : null;
 
-    let newConsecutiveDays = lastPracticeDate
-      ? isYesterday(lastPracticeDate)
-        ? currentConsecutiveDays + 1
-        : isToday(lastPracticeDate)
-        ? currentConsecutiveDays
-        : 1
-      : 1;
+    let newConsecutiveDays = currentConsecutiveDays;
+    // Só incrementa a streak se a última prática não foi hoje.
+    if (!lastPracticeDate || !isToday(lastPracticeDate)) {
+      newConsecutiveDays = currentConsecutiveDays + 1;
+    }
 
     const newLongestStreak = Math.max(currentLongestStreak, sessionStreak);
 
