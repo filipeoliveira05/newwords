@@ -70,20 +70,12 @@ export default function HomeScreen({ navigation }: Props) {
     const unsubPractice = eventStore
       .getState()
       .subscribe("practiceSessionCompleted", fetchUserStats);
-    const unsubWordAdded = eventStore
-      .getState()
-      .subscribe("wordAdded", fetchUserStats);
-    const unsubWordDeleted = eventStore
-      .getState()
-      .subscribe("wordDeleted", fetchUserStats);
     const unsubAchievement = eventStore
       .getState()
       .subscribe("achievementUnlocked", fetchUserStats);
 
     return () => {
       unsubPractice();
-      unsubWordAdded();
-      unsubWordDeleted();
       unsubAchievement();
     };
   }, [fetchUserStats]);

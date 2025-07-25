@@ -165,15 +165,25 @@ export const useUserStore = create<UserState>((set) => ({
       const { newXP, newLevel, didLevelUp } = await updateUserXP(xpToAdd);
 
       // Atualiza o estado de forma otimista
-      set(() => {
-        return {
+      set((state) => {
+        const newState: Partial<UserState> = {
           xp: newXP,
           level: newLevel,
           xpForNextLevel: getXPForNextLevel(newLevel),
-          // Se houve level up, guarda o novo nível para a animação ser mostrada mais tarde.
-          pendingLevelUpAnimation: didLevelUp ? newLevel : null,
         };
+
+        // Apenas atualiza o estado de animação pendente se houver um level up.
+        // Isto previne que um ganho de XP subsequente limpe uma animação pendente.
+        if (didLevelUp) {
+          newState.pendingLevelUpAnimation = newLevel;
+        }
+        return newState;
       });
+
+      if (didLevelUp) {
+        // Publica um evento para que a notificação toast possa aparecer.
+        eventStore.getState().publish("levelUp", { newLevel });
+      }
 
       // Publica um evento geral de atualização de XP
       eventStore.getState().publish("xpUpdated", { xp: xpToAdd });
@@ -229,4 +239,14 @@ eventStore
 
 eventStore.getState().subscribe("wordAdded", () => {
   useUserStore.getState().addXP(5);
+  // Atualiza o contador de palavras em tempo real para o header.
+  useUserStore.setState((state) => ({ totalWords: state.totalWords + 1 }));
+});
+
+// Ouve o evento de palavra apagada para manter o contador no header atualizado.
+eventStore.getState().subscribe("wordDeleted", () => {
+  useUserStore.setState((state) => ({
+    // Garante que o contador não fica negativo
+    totalWords: Math.max(0, state.totalWords - 1),
+  }));
 });

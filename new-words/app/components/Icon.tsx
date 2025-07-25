@@ -41,6 +41,7 @@ export const iconMap = {
   ellipsis: { name: "ellipsis-vertical", library: "ionicons" },
   share: { name: "share-social-outline", library: "ionicons" },
 
+  bug: { name: "bug-outline", library: "ionicons" },
   // General UI
   bookmark: { name: "bookmark-outline", library: "ionicons" },
   flash: { name: "flash", library: "ionicons" },

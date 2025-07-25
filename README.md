@@ -66,10 +66,9 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
   - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda em alguma parte da aplicação.
   - [ ] **Flow de Prática Aprimorado:** Melhorar a experiência de prática com um flow adequado com ecrãs condicionais no final (subida de nível, metas diárias concluídas, alterações na liga semanal).
-  - [ ] **Animações:** Adicionar animações ao apagar palavras.
   - [ ] **Feedback:** Expandir o uso de feedback háptico por toda a app.
   - [ ] **Resumo Semanal Enriquecido:** Adicionar "fun facts" (ex: "treinaste o equivalente a 2 episódios de uma série") ao `WeeklyRecapScreen`.
-  - [ ] **LevelUp Overlay Controlado:** Modificar o overlay de subida de nível para que apareça de forma controlada (ex: no final de uma sessão de prática).
+  - [ ] **LevelUp View:** Melhorar o design e UI do `LevelUpView`.
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
   - [ ] **Widget "Palavra do Dia":** Destacar uma palavra por dia, talvez uma com a qual o utilizador tem dificuldades, com exemplos e significado.
   - [ ] **Metas Semanais:** Adicionar um novo conjunto de metas com um ciclo semanal para incentivar a consistência a longo prazo.
@@ -79,6 +78,7 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações sofisticadas (combinar conjuntos).
   - [ ] **Gestão de Palavras Avançada:** Permitir mover palavras entre conjuntos.
   - [ ] **Gestão de Palavras Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, mover para outros conjuntos).
+  - [ ] **Gestão de Palavras Animada:** Adicionar uma animação de "fade in" às palavras quando o ecrã `AllWordsScreen` e `DeckDetailScreen` carrega pela primeira vez.
 - [ ] 🐞 **Bugs e Melhorias Técnicas:**
   - [ ] **Correções na Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática.
 - [ ] ⚡ **Performance:**

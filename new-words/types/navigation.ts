@@ -54,6 +54,7 @@ export type ProfileStackParamList = {
   EditAccount: undefined;
   Help: undefined;
   Stats: undefined;
+  LevelUpTest: undefined;
 };
 
 export type RootTabParamList = {

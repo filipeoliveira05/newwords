@@ -10,6 +10,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import LottieView from "lottie-react-native";
+import { useUserStore } from "../../../stores/useUserStore";
 import { usePracticeStore } from "../../../stores/usePracticeStore";
 import {
   updateUserPracticeMetrics,
@@ -22,6 +23,7 @@ import { theme } from "../../../config/theme";
 import Icon from "../Icon";
 import images from "../../../services/imageService";
 import LoadingScreen from "@/app/screens/LoadingScreen";
+import LevelUpView from "./LevelUpView";
 
 type SessionResultsProps = {
   confettiAnimation: any;
@@ -38,6 +40,8 @@ export default function SessionResults({
   origin,
   confettiAnimation,
 }: SessionResultsProps) {
+  const { pendingLevelUpAnimation, clearPendingLevelUpAnimation } =
+    useUserStore();
   const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
 
   // Select state and actions from the store individually to prevent re-renders
@@ -153,6 +157,17 @@ export default function SessionResults({
       />
     );
   }
+
+  // Se houver uma animação de level up pendente, mostra o ecrã de celebração primeiro.
+  if (pendingLevelUpAnimation) {
+    return (
+      <LevelUpView
+        level={pendingLevelUpAnimation}
+        onContinue={() => clearPendingLevelUpAnimation()} // Ao continuar, limpa o estado e re-renderiza para mostrar os resultados.
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <LinearGradient

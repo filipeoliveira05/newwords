@@ -53,10 +53,11 @@ import EditAccountScreen from "../screens/profile/EditAccountScreen";
 import StatsScreen from "../screens/stats/StatsScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
+import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
 
 import CustomAlert from "../components/CustomAlert";
-import LevelUpOverlay from "../components/LevelUpOverlay";
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
+import LevelUpToast from "../components/notifications/LevelUpToast";
 import Icon from "../components/Icon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
@@ -301,6 +302,10 @@ function ProfileStack() {
       />
       <ProfileStackNav.Screen name="Settings" component={SettingsScreen} />
       <ProfileStackNav.Screen name="Help" component={HelpScreen} />
+      <ProfileStackNav.Screen
+        name="LevelUpTest"
+        component={LevelUpTestScreen}
+      />
     </ProfileStackNav.Navigator>
   );
 }
@@ -439,7 +444,7 @@ export default function AppNavigator() {
           />
         </Tab.Navigator>
         <CustomAlert />
-        <LevelUpOverlay />
+        <LevelUpToast />
       </View>
     </BottomSheetModalProvider>
   );

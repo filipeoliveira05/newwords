@@ -14,6 +14,7 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
+import { eventStore } from "../../../stores/eventStore";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -132,6 +133,16 @@ const AccordionItem = ({
 };
 
 const HelpScreen = ({ navigation }: Props) => {
+  const handleTestLevelUp = () => {
+    // Dispara o evento de level up com um valor fixo para teste,
+    // sem depender do estado real do utilizador.
+    eventStore.getState().publish("levelUp", { newLevel: 10 });
+  };
+
+  const handleTestLevelUpScreen = () => {
+    navigation.navigate("LevelUpTest" as any); // Usamos 'as any' para o teste, mas o tipo deve ser adicionado
+  };
+
   useLayoutEffect(() => {
     navigation.setOptions({
       title: "Ajuda e Suporte",
@@ -244,6 +255,34 @@ const HelpScreen = ({ navigation }: Props) => {
           </AppText>
         </TouchableOpacity>
         {/* Adiciona um espaçamento no final da lista */}
+        <View style={{ height: 20 }} />
+      </View>
+
+      {/* Secção de Ferramentas de Desenvolvimento (Apenas para teste) */}
+      <View style={styles.section}>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Ferramentas de Teste
+        </AppText>
+        <TouchableOpacity
+          style={styles.contactButton}
+          activeOpacity={0.8}
+          onPress={handleTestLevelUp}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Toast de Level Up
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.contactButton, { marginTop: 12 }]}
+          activeOpacity={0.8}
+          onPress={handleTestLevelUpScreen}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Ecrã de Level Up
+          </AppText>
+        </TouchableOpacity>
         <View style={{ height: 20 }} />
       </View>
     </ScrollView>
