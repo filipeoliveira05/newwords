@@ -43,7 +43,7 @@ const slides: Slide[] = [
   },
   {
     id: "3",
-    image: "mascotPlay",
+    image: "mascotPlayGame",
     title: "Vários Modos de Jogo",
     description:
       "Mantenha a aprendizagem divertida com flashcards, escolha múltipla, escrita e combinação de listas.",
