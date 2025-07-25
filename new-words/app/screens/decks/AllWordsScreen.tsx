@@ -14,7 +14,6 @@ import {
   Pressable,
   ScrollView,
 } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { DecksStackParamList } from "../../../types/navigation";
 import { useWordStore } from "../../../stores/wordStore";
@@ -26,6 +25,7 @@ import {
   sortOptions,
   SortConfig,
 } from "../../../services/wordSorting";
+import Animated, { LinearTransition, ZoomOut } from "react-native-reanimated";
 import AppText from "../../components/AppText";
 import Icon from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -212,29 +212,32 @@ const AllWordsScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
         )}
       </View>
-      <FlatList
+      <Animated.FlatList
         data={sortedWords}
         keyExtractor={(item) => item.id.toString()}
+        itemLayoutAnimation={LinearTransition.duration(200)}
         renderItem={({ item }) => {
           const { value, label, displayIcon } = getDisplayDataForWord(
             item,
             sortConfig.criterion
           );
           return (
-            <WordOverview
-              name={item.name}
-              meaning={item.meaning}
-              masteryLevel={item.masteryLevel}
-              onViewDetails={() =>
-                navigation.navigate("WordDetails", { wordId: item.id })
-              }
-              isFavorite={item.isFavorite}
-              onToggleFavorite={() => handleToggleFavorite(item.id)}
-              onDelete={() => handleDeleteWord(item.id)}
-              displayValue={value}
-              displayLabel={label}
-              displayIcon={displayIcon}
-            />
+            <Animated.View exiting={ZoomOut.duration(300)}>
+              <WordOverview
+                name={item.name}
+                meaning={item.meaning}
+                masteryLevel={item.masteryLevel}
+                onViewDetails={() =>
+                  navigation.navigate("WordDetails", { wordId: item.id })
+                }
+                isFavorite={item.isFavorite}
+                onToggleFavorite={() => handleToggleFavorite(item.id)}
+                onDelete={() => handleDeleteWord(item.id)}
+                displayValue={value}
+                displayLabel={label}
+                displayIcon={displayIcon}
+              />
+            </Animated.View>
           );
         }}
         ListEmptyComponent={renderEmptyComponent}

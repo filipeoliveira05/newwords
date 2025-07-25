@@ -13,8 +13,8 @@ import {
   ScrollView,
   TextInput,
   Image,
+  FlatList,
 } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useWordStore } from "../../../stores/wordStore";
@@ -24,6 +24,7 @@ import {
   DecksStackParamList,
   RootTabParamList,
 } from "../../../types/navigation";
+import Animated, { LinearTransition, ZoomOut } from "react-native-reanimated";
 import WordOverview from "../../components/WordOverview";
 import WordEditSheet, {
   WordEditSheetRef,
@@ -416,31 +417,36 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           </View>
         )}
       </View>
-      <FlatList
+      <Animated.FlatList
         ref={flatListRef}
         data={sortedWords}
         keyExtractor={(item) => item.id.toString()}
+        // Anima a reorganização dos itens quando um é removido.
+        itemLayoutAnimation={LinearTransition.duration(200)}
         renderItem={({ item }) => {
           const { value, label, displayIcon } = getDisplayDataForWord(
             item,
             sortConfig.criterion
           );
           return (
-            <WordOverview
-              name={item.name}
-              meaning={item.meaning}
-              masteryLevel={item.masteryLevel}
-              onViewDetails={() =>
-                navigation.navigate("WordDetails", { wordId: item.id })
-              }
-              onEdit={() => handleEditWord(item)}
-              isFavorite={item.isFavorite}
-              onToggleFavorite={() => handleToggleFavorite(item.id)}
-              onDelete={() => handleDeleteWord(item.id)}
-              displayValue={value}
-              displayLabel={label}
-              displayIcon={displayIcon}
-            />
+            // Adiciona a animação de saída para cada item.
+            <Animated.View exiting={ZoomOut.duration(300)}>
+              <WordOverview
+                name={item.name}
+                meaning={item.meaning}
+                masteryLevel={item.masteryLevel}
+                onViewDetails={() =>
+                  navigation.navigate("WordDetails", { wordId: item.id })
+                }
+                onEdit={() => handleEditWord(item)}
+                isFavorite={item.isFavorite}
+                onToggleFavorite={() => handleToggleFavorite(item.id)}
+                onDelete={() => handleDeleteWord(item.id)}
+                displayValue={value}
+                displayLabel={label}
+                displayIcon={displayIcon}
+              />
+            </Animated.View>
           );
         }}
         ListEmptyComponent={renderEmptyComponent}
