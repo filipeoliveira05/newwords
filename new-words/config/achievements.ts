@@ -6,11 +6,19 @@ import {
 import { differenceInDays } from "date-fns";
 import { IconName } from "../app/components/Icon";
 
+export type AchievementCategory =
+  | "Primeiros Passos"
+  | "Colecionador"
+  | "Maestria"
+  | "Consistência"
+  | "Meta-Conquistas";
+
 export type Achievement = {
   id: string;
   title: string;
   description: string;
   icon: IconName;
+  category: AchievementCategory;
   isMeta?: boolean;
   check: (stats: {
     global: GlobalStats;
@@ -27,6 +35,7 @@ export const achievements: Achievement[] = [
     title: "Iniciante Dedicado",
     description: "Completou a sua primeira sessão de prática.",
     icon: "school",
+    category: "Primeiros Passos",
     check: ({ history }) => history.length > 0,
   },
   {
@@ -34,6 +43,7 @@ export const achievements: Achievement[] = [
     title: "Guerreiro do Fim de Semana",
     description: "Praticou durante um fim de semana.",
     icon: "barbell",
+    category: "Consistência",
     check: ({ history }) =>
       history.some((day) => {
         const d = new Date(`${day.date}T00:00:00`);
@@ -41,12 +51,13 @@ export const achievements: Achievement[] = [
       }),
   },
 
-  // --- 📚 Colecionador de Palavras ---
+  // --- 📚 Colecionador ---
   {
     id: "collector_10_words",
     title: "Colecionador Iniciante",
     description: "Adicionou 10 palavras à sua coleção.",
     icon: "addCircle",
+    category: "Colecionador",
     check: ({ totalWords }) => totalWords >= 10,
   },
   {
@@ -54,6 +65,7 @@ export const achievements: Achievement[] = [
     title: "Curador de Conhecimento",
     description: "Adicionou 50 palavras à sua coleção.",
     icon: "fileTrayStacked",
+    category: "Colecionador",
     check: ({ totalWords }) => totalWords >= 50,
   },
   {
@@ -61,29 +73,41 @@ export const achievements: Achievement[] = [
     title: "Arquivista",
     description: "Adicionou 100 palavras à sua coleção.",
     icon: "archive",
+    category: "Colecionador",
     check: ({ totalWords }) => totalWords >= 100,
   },
   {
     id: "collector_250_words",
     title: "Lexicógrafo",
     description: "Adicionou 250 palavras à sua coleção.",
-    icon: "decksOutline",
+    icon: "library",
+    category: "Colecionador",
     check: ({ totalWords }) => totalWords >= 250,
   },
   {
     id: "collector_500_words",
-    title: "Sábio",
+    title: "Mestre da Biblioteca",
     description: "Adicionou 500 palavras à sua coleção.",
     icon: "decksOutline",
+    category: "Colecionador",
     check: ({ totalWords }) => totalWords >= 500,
   },
+  {
+    id: "collector_1000_words",
+    title: "Sábio",
+    description: "Adicionou 1000 palavras à sua coleção.",
+    icon: "book",
+    category: "Colecionador",
+    check: ({ totalWords }) => totalWords >= 1000,
+  },
 
-  // --- 📘 Palavras Dominadas / Treinadas ---
+  // --- 🎓 Maestria ---
   {
     id: "master_10_words",
     title: "Mestre das Palavras",
     description: "Dominou 10 palavras.",
     icon: "starOutline",
+    category: "Maestria",
     check: ({ global }) => global.wordsMastered >= 10,
   },
   {
@@ -91,13 +115,23 @@ export const achievements: Achievement[] = [
     title: "Sábio",
     description: "Dominou 50 palavras.",
     icon: "trophy",
+    category: "Maestria",
     check: ({ global }) => global.wordsMastered >= 50,
+  },
+  {
+    id: "master_100_words",
+    title: "Lenda do Vocabulário",
+    description: "Dominou 100 palavras.",
+    icon: "trophyFilled",
+    category: "Maestria",
+    check: ({ global }) => global.wordsMastered >= 100,
   },
   {
     id: "train_100_words",
     title: "Rato de Biblioteca",
     description: "Treinou um total de 100 palavras.",
-    icon: "library",
+    icon: "barbell",
+    category: "Maestria",
     check: ({ history }) => {
       const totalTrained = history.reduce(
         (sum, day) => sum + day.words_trained,
@@ -110,7 +144,8 @@ export const achievements: Achievement[] = [
     id: "train_500_words",
     title: "Maratonista de Estudos",
     description: "Treinou um total de 500 palavras.",
-    icon: "book",
+    icon: "barbell",
+    category: "Maestria",
     check: ({ history }) => {
       const totalTrained = history.reduce(
         (sum, day) => sum + day.words_trained,
@@ -119,13 +154,35 @@ export const achievements: Achievement[] = [
       return totalTrained >= 500;
     },
   },
+  {
+    id: "train_1000_words",
+    title: "Atleta Mental",
+    description: "Treinou um total de 1000 palavras.",
+    icon: "barbell",
+    category: "Maestria",
+    check: ({ history }) => {
+      const totalTrained = history.reduce(
+        (sum, day) => sum + day.words_trained,
+        0
+      );
+      return totalTrained >= 1000;
+    },
+  },
+  {
+    id: "power_session",
+    title: "Sessão Intensa",
+    description: "Treinou 50 palavras num único dia.",
+    icon: "flash",
+    category: "Maestria",
+    check: ({ history }) => history.some((day) => day.words_trained >= 50),
+  },
 
-  // --- 🔥 Streaks de Acertos ---
   {
     id: "streak_25_words",
     title: "Maratonista",
     description: "Atingiu uma streak de 25 acertos.",
     icon: "flame",
+    category: "Maestria",
     check: ({ user }) => user.longestStreak >= 25,
   },
   {
@@ -133,6 +190,7 @@ export const achievements: Achievement[] = [
     title: "Invencível",
     description: "Atingiu uma streak de 50 acertos seguidos.",
     icon: "shieldCheckmark",
+    category: "Maestria",
     check: ({ user }) => user.longestStreak >= 50,
   },
   {
@@ -140,15 +198,17 @@ export const achievements: Achievement[] = [
     title: "Perfeccionista",
     description: "Atingiu uma taxa de sucesso global de 98%.",
     icon: "diamond",
+    category: "Maestria",
     check: ({ global }) => global.successRate >= 98,
   },
 
-  // --- 🗓️ Streaks de Dias ---
+  // --- 🗓️ Consistência ---
   {
     id: "streak_5_days",
     title: "Hábito Criado",
     description: "Praticou por 5 dias seguidos.",
     icon: "calendar",
+    category: "Consistência",
     check: ({ user }) => user.consecutiveDays >= 5,
   },
   {
@@ -156,13 +216,23 @@ export const achievements: Achievement[] = [
     title: "Um Mês de Dedicação",
     description: "Praticou por 30 dias seguidos.",
     icon: "medal",
+    category: "Consistência",
     check: ({ user }) => user.consecutiveDays >= 30,
+  },
+  {
+    id: "streak_100_days",
+    title: "Lenda da Consistência",
+    description: "Praticou por 100 dias seguidos.",
+    icon: "medal",
+    category: "Consistência",
+    check: ({ user }) => user.consecutiveDays >= 100,
   },
   {
     id: "triumphant_return",
     title: "Regresso Triunfal",
     description: "Voltou a praticar após uma ausência de 7+ dias.",
     icon: "walk",
+    category: "Consistência",
     check: ({ history }) => {
       if (history.length < 2) return false;
       // O histórico vem ordenado da DB, podemos pegar os dois últimos
@@ -178,15 +248,33 @@ export const achievements: Achievement[] = [
     title: "Caçador de Conquistas",
     description: "Desbloqueou 5 outras conquistas.",
     icon: "ribbon",
+    category: "Meta-Conquistas",
     isMeta: true,
     check: (stats) => {
-      const unlockedCount = achievements.reduce((count, ach) => {
-        if (ach.isMeta || !ach.check(stats)) {
-          return count;
-        }
-        return count + 1;
-      }, 0);
+      const nonMetaAchievements = achievements.filter((a) => !a.isMeta);
+      const unlockedCount = nonMetaAchievements.reduce(
+        (count, ach) => (ach.check(stats) ? count + 1 : count),
+        0
+      );
       return unlockedCount >= 5;
+    },
+  },
+  {
+    id: "halfway_there",
+    title: "A Meio Caminho",
+    description: "Desbloqueou metade de todas as conquistas.",
+    icon: "ribbon",
+    category: "Meta-Conquistas",
+    isMeta: true,
+    check: (stats) => {
+      const nonMetaAchievements = achievements.filter(
+        (a) => !a.isMeta && a.id !== "halfway_there"
+      );
+      const unlockedCount = nonMetaAchievements.reduce(
+        (count, ach) => (ach.check(stats) ? count + 1 : count),
+        0
+      );
+      return unlockedCount >= Math.ceil(nonMetaAchievements.length / 2);
     },
   },
   {
@@ -194,6 +282,7 @@ export const achievements: Achievement[] = [
     title: "Lenda Viva",
     description: "Desbloqueou todas as outras conquistas.",
     icon: "trophy",
+    category: "Meta-Conquistas",
     isMeta: true,
     check: (stats) => {
       const nonMetaAchievements = achievements.filter((ach) => !ach.isMeta);

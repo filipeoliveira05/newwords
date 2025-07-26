@@ -521,7 +521,10 @@ export default function StatsScreen({ navigation }: Props) {
 
         {/* Secção 4: Conquistas (Placeholder) */}
         <View style={styles.section}>
-          <AppText variant="bold" style={styles.sectionTitle}>
+          <AppText
+            variant="bold"
+            style={[styles.sectionTitle, { marginBottom: 10 }]}
+          >
             Conquistas
           </AppText>
           {processedAchievements.map((ach) => (
@@ -530,6 +533,7 @@ export default function StatsScreen({ navigation }: Props) {
               title={ach.title}
               description={ach.description}
               icon={ach.icon}
+              category={ach.category}
               unlocked={ach.unlocked}
               isNew={ach.isNew}
             />

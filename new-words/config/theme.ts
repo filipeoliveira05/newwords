@@ -118,6 +118,13 @@ export const colors = {
     Advérbio: palette.purple,
     Outro: palette.textMedium,
   },
+  achievementCategory: {
+    "Primeiros Passos": palette.success,
+    Colecionador: palette.blue,
+    Maestria: palette.challenge,
+    Consistência: palette.purple,
+    "Meta-Conquistas": palette.gold,
+  },
   categoryLighter: {
     Nome: palette.blueLighter,
     Verbo: palette.orangeLighter,

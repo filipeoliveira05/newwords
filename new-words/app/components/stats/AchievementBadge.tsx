@@ -9,11 +9,13 @@ import Animated, {
 import AppText from "../AppText";
 import Icon, { IconName } from "../Icon";
 import { theme } from "../../../config/theme";
+import { AchievementCategory } from "../../../config/achievements";
 
 type AchievementBadgeProps = {
   title: string;
   description: string;
   icon: IconName;
+  category: AchievementCategory;
   unlocked: boolean;
   isNew: boolean;
 };
@@ -22,6 +24,7 @@ const AchievementBadge = ({
   title,
   description,
   icon,
+  category,
   unlocked,
   isNew,
 }: AchievementBadgeProps) => {
@@ -48,12 +51,23 @@ const AchievementBadge = ({
   }, [isNew, scale, opacity]);
 
   const iconColor = unlocked ? theme.colors.gold : theme.colors.iconMuted;
+
+  const categoryColor = unlocked
+    ? theme.colors.achievementCategory[category] ?? theme.colors.textMuted
+    : theme.colors.textMuted;
+
   const containerStyle = unlocked
     ? styles.container
     : [styles.container, styles.lockedContainer];
 
   return (
-    <Animated.View style={[containerStyle, animatedStyle]}>
+    <Animated.View
+      style={[
+        containerStyle,
+        { borderLeftColor: categoryColor },
+        animatedStyle,
+      ]}
+    >
       <View style={styles.iconContainer}>
         <Icon name={icon} size={32} color={iconColor} />
       </View>
@@ -88,8 +102,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: theme.colors.borderLight,
+    // Em vez de usar 'borderColor', que se aplica a todos os lados,
+    // definimos as bordas individualmente para permitir que 'borderLeftColor' seja dinâmico.
+    borderTopWidth: 1,
+    borderRightWidth: 1,
+    borderBottomWidth: 1,
+    borderTopColor: theme.colors.borderLight,
+    borderRightColor: theme.colors.borderLight,
+    borderBottomColor: theme.colors.borderLight,
+    borderLeftWidth: 4, // Adiciona uma borda esquerda mais grossa para a cor da categoria
   },
   lockedContainer: {
     backgroundColor: theme.colors.background,
