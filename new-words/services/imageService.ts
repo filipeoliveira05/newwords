@@ -35,7 +35,12 @@ const images = {
   mascotCelebration: require("../assets/images/mascot/mascot_celebration.png"),
   mascotLove: require("../assets/images/mascot/mascot_love.png"),
   mascotNinja: require("../assets/images/mascot/mascot_ninja.png"),
+  mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
   mascotTea: require("../assets/images/mascot/mascot_tea.png"),
+  mascotTime: require("../assets/images/mascot/mascot_time.png"),
+  mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
+  mascotMap: require("../assets/images/mascot/inspiration/mascot_map.png"),
+  mascotPodium: require("../assets/images/mascot/inspiration/mascot_podium.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
   mascotPlayGame: require("../assets/images/mascot/mascot_play_game.png"), // Onboarding 3
