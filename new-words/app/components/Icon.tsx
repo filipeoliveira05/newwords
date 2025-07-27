@@ -67,6 +67,7 @@ export const iconMap = {
     library: "ionicons",
   },
   calendar: { name: "calendar-outline", library: "ionicons" },
+  calendarNumber: { name: "calendar-number-outline", library: "ionicons" },
   podium: { name: "podium-outline", library: "ionicons" },
   alarm: { name: "alarm-outline", library: "ionicons" },
   alertCircle: { name: "alert-circle-outline", library: "ionicons" },

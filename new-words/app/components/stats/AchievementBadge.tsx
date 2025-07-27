@@ -9,13 +9,17 @@ import Animated, {
 import AppText from "../AppText";
 import Icon, { IconName } from "../Icon";
 import { theme } from "../../../config/theme";
-import { AchievementCategory } from "../../../config/achievements";
+import {
+  AchievementCategory,
+  AchievementRank,
+} from "../../../config/achievements";
 
 type AchievementBadgeProps = {
   title: string;
   description: string;
   icon: IconName;
   category: AchievementCategory;
+  rank?: AchievementRank;
   unlocked: boolean;
   isNew: boolean;
 };
@@ -25,6 +29,7 @@ const AchievementBadge = ({
   description,
   icon,
   category,
+  rank,
   unlocked,
   isNew,
 }: AchievementBadgeProps) => {
@@ -50,7 +55,22 @@ const AchievementBadge = ({
     }
   }, [isNew, scale, opacity]);
 
-  const iconColor = unlocked ? theme.colors.gold : theme.colors.iconMuted;
+  // Mapeia o rank para uma cor específica. Se não houver rank, usa a cor dourada padrão.
+  const getRankColor = () => {
+    if (!rank) return theme.colors.gold;
+    const rankColorMap: Record<AchievementRank, string> = {
+      Bronze: theme.colors.bronze,
+      Silver: theme.colors.silver,
+      Gold: theme.colors.gold,
+      Platinum: theme.colors.platinum,
+      Diamond: theme.colors.diamond,
+      Master: theme.colors.master,
+      Legendary: theme.colors.legendary,
+    };
+    return rankColorMap[rank] ?? theme.colors.gold;
+  };
+
+  const iconColor = unlocked ? getRankColor() : theme.colors.iconMuted;
 
   const categoryColor = unlocked
     ? theme.colors.achievementCategory[category] ?? theme.colors.textMuted

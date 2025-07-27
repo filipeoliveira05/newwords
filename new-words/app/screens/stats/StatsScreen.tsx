@@ -534,6 +534,7 @@ export default function StatsScreen({ navigation }: Props) {
               description={ach.description}
               icon={ach.icon}
               category={ach.category}
+              rank={ach.rank}
               unlocked={ach.unlocked}
               isNew={ach.isNew}
             />
