@@ -1,6 +1,7 @@
 import React, { useMemo, useLayoutEffect } from "react";
 import { View, StyleSheet, SectionList } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import Svg, { Circle, Text as SvgText } from "react-native-svg";
 import {
   useAchievements,
   ProcessedAchievement,
@@ -14,17 +15,109 @@ import AchievementBadge from "../../components/profile/AchievementBadge";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import LoadingScreen from "../LoadingScreen";
+import Icon, { IconName } from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Achievements">;
 
+// Componente para a barra de progresso circular
+const CircularProgress = ({
+  size,
+  strokeWidth,
+  progress,
+  unlocked,
+  total,
+}: {
+  size: number;
+  strokeWidth: number;
+  progress: number;
+  unlocked: number;
+  total: number;
+}) => {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = radius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (progress / 100) * circumference;
+
+  return (
+    <View>
+      <Svg width={size} height={size}>
+        {/* Círculo de fundo */}
+        <Circle
+          stroke={theme.colors.border}
+          fill="none"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={strokeWidth}
+        />
+        {/* Círculo de progresso */}
+        <Circle
+          stroke={theme.colors.primary}
+          fill="none"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={strokeDashoffset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+        {/* Texto no centro */}
+        <SvgText
+          x={size / 2}
+          y={size / 2}
+          textAnchor="middle"
+          dy=".3em" // Alinhamento vertical
+          fill={theme.colors.textMedium}
+          fontSize={size * 0.28} // Tamanho da fonte relativo ao círculo
+          fontFamily={theme.fonts.bold}
+        >
+          {`${unlocked}/${total}`}
+        </SvgText>
+      </Svg>
+    </View>
+  );
+};
+
 // Component for the header of each section (category)
-const SectionHeader = ({ title }: { title: string }) => (
-  <View style={styles.sectionHeader}>
-    <AppText variant="bold" style={styles.sectionTitle}>
-      {title}
-    </AppText>
-  </View>
-);
+const SectionHeader = ({
+  title,
+  icon,
+  unlocked,
+  total,
+}: {
+  title: string;
+  icon: IconName;
+  unlocked: number;
+  total: number;
+}) => {
+  const progress = total > 0 ? (unlocked / total) * 100 : 0;
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.sectionHeaderTitleContainer}>
+        <Icon
+          name={icon}
+          size={22}
+          color={theme.colors.textMedium}
+          style={styles.sectionIcon}
+        />
+        <AppText variant="bold" style={styles.sectionTitle}>
+          {title}
+        </AppText>
+      </View>
+      {/* Adiciona uma View para aplicar um pequeno ajuste vertical */}
+      <View style={{ marginTop: 4 }}>
+        <CircularProgress
+          size={36}
+          strokeWidth={4}
+          progress={progress}
+          unlocked={unlocked}
+          total={total}
+        />
+      </View>
+    </View>
+  );
+};
 
 // Component for the main header of the list
 const ListHeader = ({
@@ -59,6 +152,19 @@ const ListHeader = ({
       </View>
     </View>
   );
+};
+
+// Mapeia cada categoria de conquista ao seu ícone principal para consistência visual.
+const categoryIcons: Record<AchievementCategory, IconName> = {
+  "Primeiros Passos": "school",
+  Coleção: "library",
+  Domínio: "school",
+  Treino: "barbell",
+  Intensidade: "flash",
+  Foco: "flame",
+  Perfeição: "diamond",
+  Hábito: "calendar",
+  "Meta-Conquistas": "trophy",
 };
 
 export default function AchievementsScreen({ navigation }: Props) {
@@ -100,58 +206,32 @@ export default function AchievementsScreen({ navigation }: Props) {
       "Legendary",
     ];
 
-    // Define a ordem explícita dos tipos de conquista dentro de cada categoria.
-    // Isto garante que, por exemplo, em "Maestria", todas as conquistas de "Domínio"
-    // aparecem juntas antes das de "Treino", etc.
-    const achievementTypeOrder = [
-      // Primeiros Passos
-      "first_session",
-      // Colecionador
-      "collector",
-      // Maestria
-      "mastery",
-      "training",
-      "power_session",
-      "streak",
-      "perfectionist",
-      // Consistência
-      "consistency",
-      "weekend_warrior",
-      "versatile_learner",
-      "perfect_month",
-      "triumphant_return",
-      // Meta-Conquistas
-      "achievement_hunter",
-      "halfway_there",
-      "living_legend",
-    ];
-
     return Object.entries(grouped)
-      .map(([title, data]) => ({
-        title: title as AchievementCategory,
-        data: data.sort((a, b) => {
-          // 1. Ordena pelo tipo de conquista (ex: 'mastery' vs 'training')
-          const typeA = a.id.split("_")[0];
-          const typeB = b.id.split("_")[0];
-          if (typeA !== typeB) {
-            return (
-              achievementTypeOrder.indexOf(typeA) -
-              achievementTypeOrder.indexOf(typeB)
-            );
-          }
+      .map(([title, data]) => {
+        const unlockedInSection = data.filter((ach) => ach.unlocked).length;
+        const totalInSection = data.length;
 
-          // 2. Dentro do mesmo tipo, ordena por rank (Bronze, Silver, etc.)
-          const rankA = a.rank ? rankOrder.indexOf(a.rank) : -1;
-          const rankB = b.rank ? rankOrder.indexOf(b.rank) : -1;
-          return rankA - rankB;
-        }),
-      }))
+        return {
+          title: title as AchievementCategory,
+          unlocked: unlockedInSection,
+          total: totalInSection,
+          data: data.sort((a, b) => {
+            const rankA = a.rank ? rankOrder.indexOf(a.rank) : -1;
+            const rankB = b.rank ? rankOrder.indexOf(b.rank) : -1;
+            return rankA - rankB;
+          }),
+        };
+      })
       .sort((a, b) => {
         const categoryOrder: AchievementCategory[] = [
           "Primeiros Passos",
-          "Colecionador",
-          "Maestria",
-          "Consistência",
+          "Coleção",
+          "Domínio",
+          "Treino",
+          "Intensidade",
+          "Foco",
+          "Perfeição",
+          "Hábito",
           "Meta-Conquistas",
         ];
         return categoryOrder.indexOf(a.title) - categoryOrder.indexOf(b.title);
@@ -182,8 +262,13 @@ export default function AchievementsScreen({ navigation }: Props) {
             isNew={item.isNew}
           />
         )}
-        renderSectionHeader={({ section: { title } }) => (
-          <SectionHeader title={title} />
+        renderSectionHeader={({ section: { title, unlocked, total } }) => (
+          <SectionHeader
+            title={title}
+            icon={categoryIcons[title]}
+            unlocked={unlocked}
+            total={total}
+          />
         )}
         ListHeaderComponent={
           <ListHeader
@@ -240,7 +325,18 @@ const styles = StyleSheet.create({
   sectionHeader: {
     paddingTop: 24,
     paddingBottom: 8,
+    marginBottom: 8,
     backgroundColor: theme.colors.background,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  sectionHeaderTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   sectionTitle: { fontSize: theme.fontSizes.xxl, color: theme.colors.text },
+  sectionIcon: {
+    marginRight: 12,
+  },
 });

@@ -8,9 +8,13 @@ import { IconName } from "../app/components/Icon";
 
 export type AchievementCategory =
   | "Primeiros Passos"
-  | "Colecionador"
-  | "Maestria"
-  | "Consistência"
+  | "Coleção"
+  | "Domínio"
+  | "Treino"
+  | "Intensidade"
+  | "Foco"
+  | "Perfeição"
+  | "Hábito"
   | "Meta-Conquistas";
 
 export type AchievementRank =
@@ -198,7 +202,7 @@ const collectorAchievements = createProgressiveAchievements(
   {
     idPrefix: "collector",
     icon: "library",
-    category: "Colecionador",
+    category: "Coleção",
     descriptionTemplate: (target) => `Adicionou ${target} palavras.`,
     checkCreator: createTotalWordsChecker,
   },
@@ -209,7 +213,7 @@ const masteryAchievements = createProgressiveAchievements(
   {
     idPrefix: "mastery",
     icon: "school",
-    category: "Maestria",
+    category: "Domínio",
     descriptionTemplate: (target) => `Dominou ${target} palavras.`,
     checkCreator: createWordsMasteredChecker,
   },
@@ -220,7 +224,7 @@ const trainingAchievements = createProgressiveAchievements(
   {
     idPrefix: "training",
     icon: "barbell",
-    category: "Maestria",
+    category: "Treino",
     descriptionTemplate: (target) => `Treinou um total de ${target} palavras.`,
     checkCreator: createTotalTrainedChecker,
   },
@@ -231,7 +235,7 @@ const powerSessionAchievements = createProgressiveAchievements(
   {
     idPrefix: "power_session",
     icon: "flash",
-    category: "Maestria",
+    category: "Intensidade",
     descriptionTemplate: (target) =>
       `Treinou ${target} palavras num único dia.`,
     checkCreator: createPowerSessionChecker,
@@ -243,7 +247,7 @@ const streakAchievements = createProgressiveAchievements(
   {
     idPrefix: "streak",
     icon: "flame",
-    category: "Maestria",
+    category: "Foco",
     descriptionTemplate: (target) =>
       `Atingiu uma sequência de ${target} acertos.`,
     checkCreator: createLongestStreakChecker,
@@ -255,7 +259,7 @@ const perfectionistAchievements = createProgressiveAchievements(
   {
     idPrefix: "perfectionist",
     icon: "diamond",
-    category: "Maestria",
+    category: "Perfeição",
     descriptionTemplate: (target) =>
       `Atingiu uma taxa de sucesso global de ${target}.`,
     checkCreator: createSuccessRateChecker,
@@ -268,7 +272,7 @@ const consistencyAchievements = createProgressiveAchievements(
   {
     idPrefix: "consistency",
     icon: "calendar",
-    category: "Consistência",
+    category: "Hábito",
     descriptionTemplate: (target) => `Praticou por ${target} dias seguidos.`,
     checkCreator: createConsecutiveDaysChecker,
   },
@@ -291,7 +295,7 @@ const coreAchievements: Achievement[] = [
     title: "Guerreiro do Fim de Semana",
     description: "Praticou durante um fim de semana.",
     icon: "barbell",
-    category: "Consistência",
+    category: "Hábito",
     check: ({ history }) =>
       history.some((day) => {
         const d = new Date(`${day.date}T00:00:00`);
@@ -303,7 +307,7 @@ const coreAchievements: Achievement[] = [
     title: "Polivalente",
     description: "Praticou em todos os dias da semana (Seg-Dom).",
     icon: "calendarNumber",
-    category: "Consistência",
+    category: "Hábito",
     check: ({ history }) => {
       const practicedDays = new Set<number>();
       history.forEach((day) => {
@@ -318,7 +322,7 @@ const coreAchievements: Achievement[] = [
     title: "Mês Perfeito",
     description: "Praticou todos os dias de um mês do calendário.",
     icon: "calendarNumber",
-    category: "Consistência",
+    category: "Hábito",
     check: ({ history }) => {
       const practiceByMonth = new Map<string, Set<number>>();
       history.forEach((day) => {
@@ -343,7 +347,7 @@ const coreAchievements: Achievement[] = [
     title: "Regresso Triunfal",
     description: "Voltou a praticar após uma ausência de 7+ dias.",
     icon: "walk",
-    category: "Consistência",
+    category: "Hábito",
     check: ({ history }) => {
       if (history.length < 2) return false;
       // O histórico vem ordenado da DB, podemos pegar os dois últimos
