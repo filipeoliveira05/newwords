@@ -12,7 +12,7 @@ import {
   RootTabParamList,
   HomeStackParamList,
 } from "../../../types/navigation";
-import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
+import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
 import LeagueWidget from "../../components/home/LeagueWidget";
 import DynamicActionCard from "../../components/home/DynamicActionCard";
 import OnThisDayCard from "../../components/home/cards/OnThisDayCard";
@@ -114,7 +114,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      header: () => <GamificationHeader />,
+      header: () => <GamificationHeader navigation={navigation} />,
       headerShadowVisible: false, // Torna a transição mais suave
     });
   }, [navigation]);

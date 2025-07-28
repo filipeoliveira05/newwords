@@ -50,7 +50,8 @@ import CommunityScreen from "../screens/community/CommunityScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import AccountScreen from "../screens/profile/AccountScreen";
 import EditAccountScreen from "../screens/profile/EditAccountScreen";
-import StatsScreen from "../screens/stats/StatsScreen";
+import StatsScreen from "../screens/profile/StatsScreen";
+import AchievementsScreen from "../screens/profile/AchievementsScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
 import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
@@ -132,6 +133,7 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
     "Account",
     "EditAccount",
     "Stats",
+    "Achievements",
     "Settings",
     "Help",
   ];
@@ -295,6 +297,10 @@ function ProfileStack() {
         options={{ headerShown: false }}
       />
       <ProfileStackNav.Screen name="Stats" component={StatsScreen} />
+      <ProfileStackNav.Screen
+        name="Achievements"
+        component={AchievementsScreen}
+      />
       <ProfileStackNav.Screen name="Account" component={AccountScreen} />
       <ProfileStackNav.Screen
         name="EditAccount"
@@ -436,11 +442,17 @@ export default function AppNavigator() {
                 />
               ),
             }}
-            listeners={{
-              tabPress: () => {
+            listeners={({ navigation }) => ({
+              tabPress: (e) => {
                 hapticService.impactAsync();
+                // Previne a ação padrão para podermos controlar a navegação.
+                e.preventDefault();
+                // Navega para o ecrã inicial do stack de Perfil.
+                // Isto garante que, ao clicar no ícone do separador, o utilizador
+                // volta sempre ao início, em vez de ficar "preso" num ecrã interior.
+                navigation.navigate("Profile", { screen: "ProfileMain" });
               },
-            }}
+            })}
           />
         </Tab.Navigator>
         <CustomAlert />

@@ -53,6 +53,12 @@ const ProfileScreen = ({ navigation }: Props) => {
       color: theme.colors.textMedium,
     },
     {
+      title: "Conquistas",
+      icon: "trophy" as IconName,
+      screen: "Achievements",
+      color: theme.colors.textMedium,
+    },
+    {
       title: "Definições",
       icon: "settings" as IconName,
       screen: "Settings",

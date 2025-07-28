@@ -118,13 +118,6 @@ export const colors = {
     Advérbio: palette.purple,
     Outro: palette.textMedium,
   },
-  achievementCategory: {
-    "Primeiros Passos": palette.success,
-    Colecionador: palette.blue,
-    Maestria: palette.challenge,
-    Consistência: palette.purple,
-    "Meta-Conquistas": palette.gold,
-  },
   categoryLighter: {
     Nome: palette.blueLighter,
     Verbo: palette.orangeLighter,
@@ -139,6 +132,24 @@ export const colors = {
     Advérbio: palette.purpleDarker,
     Outro: palette.textDark,
   },
+  // achievementTypeColors: {
+  //   // Tipos progressivos
+  //   collector: palette.success,
+  //   mastery: palette.dark,
+  //   training: palette.purple,
+  //   power_session: palette.goldLeague,
+  //   streak: palette.danger,
+  //   perfectionist: palette.diamond,
+  //   consistency: palette.blue,
+  //   // Tipos únicos (usando o ID completo como chave)
+  //   first_session: palette.success,
+  //   weekend_warrior: palette.purple,
+  //   versatile_learner: palette.purple,
+  //   perfect_month: palette.purple,
+  //   triumphant_return: palette.purple,
+  //   // Tipos de Meta-Conquistas
+  //   meta: palette.gold,
+  // },
 };
 
 export const fontSizes = {

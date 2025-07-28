@@ -15,6 +15,7 @@ import {
 } from "../../../config/achievements";
 
 type AchievementBadgeProps = {
+  id: string;
   title: string;
   description: string;
   icon: IconName;
@@ -25,6 +26,7 @@ type AchievementBadgeProps = {
 };
 
 const AchievementBadge = ({
+  id,
   title,
   description,
   icon,
@@ -72,9 +74,9 @@ const AchievementBadge = ({
 
   const iconColor = unlocked ? getRankColor() : theme.colors.iconMuted;
 
-  const categoryColor = unlocked
-    ? theme.colors.achievementCategory[category] ?? theme.colors.textMuted
-    : theme.colors.textMuted;
+  // Opção 2: A cor da borda é ditada pelo rank, para dar ênfase ao prestígio.
+  // Para conquistas bloqueadas, usamos a cor de borda padrão.
+  const borderColor = unlocked ? getRankColor() : theme.colors.border;
 
   const containerStyle = unlocked
     ? styles.container
@@ -82,11 +84,7 @@ const AchievementBadge = ({
 
   return (
     <Animated.View
-      style={[
-        containerStyle,
-        { borderLeftColor: categoryColor },
-        animatedStyle,
-      ]}
+      style={[containerStyle, { borderLeftColor: borderColor }, animatedStyle]}
     >
       <View style={styles.iconContainer}>
         <Icon name={icon} size={32} color={iconColor} />

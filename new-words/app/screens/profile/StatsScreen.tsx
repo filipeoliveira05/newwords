@@ -21,22 +21,18 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import Toast from "react-native-toast-message";
 import { format, parseISO } from "date-fns";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import StatCard from "../../components/stats/StatCard";
+import StatCard from "../../components/profile/StatCard";
 import {
   getGlobalStats,
   getChallengingWords,
   getUserPracticeMetrics,
   getPracticeHistory,
-  getUnlockedAchievementIds,
-  getTotalWordCount,
   getTodaysPracticeStats,
   getTodaysActiveGoalIds,
   setTodaysActiveGoalIds,
-  unlockAchievements,
   countWordsAddedOnDate,
   getAchievementsUnlockedOnDate,
   GlobalStats,
@@ -52,9 +48,10 @@ import { eventStore } from "@/stores/eventStore";
 import { shuffle } from "@/utils/arrayUtils";
 import { pt } from "date-fns/locale";
 import { allPossibleDailyGoals, DailyGoal } from "../../../config/dailyGoals";
-import DailyGoalProgress from "../../components/stats/DailyGoalProgress";
+import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
+import { useAchievements } from "../../../hooks/useAchievements";
 import { achievements, Achievement } from "../../../config/achievements";
-import AchievementBadge from "../../components/stats/AchievementBadge";
+import AchievementsSummaryCard from "../../components/profile/AchievementsSummaryCard";
 import AppText from "../../components/AppText";
 import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -74,7 +71,7 @@ type MarkedDates = {
 type Props = NativeStackScreenProps<ProfileStackParamList, "Stats">;
 
 export default function StatsScreen({ navigation }: Props) {
-  const [loading, setLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
   const [stats, setStats] = useState<GlobalStats | null>(null);
   const [userMetrics, setUserMetrics] = useState<UserPracticeMetrics | null>(
     null
@@ -100,9 +97,11 @@ export default function StatsScreen({ navigation }: Props) {
     unlocked_achievements: Achievement[];
   } | null>(null);
 
-  const [processedAchievements, setProcessedAchievements] = useState<
-    (Achievement & { unlocked: boolean; isNew: boolean })[]
-  >([]);
+  const {
+    achievements: processedAchievements,
+    unlockedCount,
+    loading: achievementsLoading,
+  } = useAchievements();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -186,14 +185,12 @@ export default function StatsScreen({ navigation }: Props) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
+        setStatsLoading(true);
         const [
           globalStats,
           challenging,
           metrics,
           history,
-          unlockedIds,
-          totalWords,
           todaysPractice,
           todaysActiveGoalIds,
         ] = await Promise.all([
@@ -201,8 +198,6 @@ export default function StatsScreen({ navigation }: Props) {
           getChallengingWords(),
           getUserPracticeMetrics(),
           getPracticeHistory(),
-          getUnlockedAchievementIds(),
-          getTotalWordCount(),
           getTodaysPracticeStats(),
           getTodaysActiveGoalIds(),
         ]);
@@ -226,60 +221,10 @@ export default function StatsScreen({ navigation }: Props) {
           await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
         }
         setActiveDailyGoals(finalGoals);
-
-        // Lógica de verificação de conquistas otimizada
-        if (globalStats && metrics && history && totalWords !== undefined) {
-          const unlockedIdsSet = new Set(unlockedIds);
-          const newlyUnlocked: Achievement[] = [];
-
-          const checkedAchievements = achievements.map((ach) => {
-            const isAlreadyUnlocked = unlockedIdsSet.has(ach.id);
-            if (isAlreadyUnlocked) {
-              return { ...ach, unlocked: true, isNew: false };
-            }
-
-            // Se não estiver desbloqueada, verifica agora
-            const isNowUnlocked = ach.check({
-              global: globalStats,
-              user: metrics,
-              history: history,
-              totalWords: totalWords,
-            });
-
-            if (isNowUnlocked) {
-              newlyUnlocked.push(ach);
-            }
-
-            return { ...ach, unlocked: isNowUnlocked, isNew: isNowUnlocked };
-          });
-
-          // Se houver novas conquistas, guarda-as na DB
-          if (newlyUnlocked.length > 0) {
-            const newIds = newlyUnlocked.map((ach) => ach.id);
-            await unlockAchievements(newIds);
-            // Publica um evento para que o HomeScreen possa atualizar o header.
-            eventStore.getState().publish("achievementUnlocked", {});
-
-            // Mostra uma notificação para cada nova conquista!
-            newlyUnlocked.forEach((ach, index) => {
-              // Adiciona um pequeno delay para não sobrepor as notificações
-              setTimeout(() => {
-                Toast.show({
-                  type: "success",
-                  text1: "Conquista Desbloqueada! 🎉",
-                  text2: ach.title,
-                  visibilityTime: 4000,
-                });
-              }, index * 600);
-            });
-          }
-
-          setProcessedAchievements(checkedAchievements);
-        }
       } catch (error) {
         console.error("Failed to fetch stats:", error);
       } finally {
-        setLoading(false);
+        setStatsLoading(false);
       }
     };
 
@@ -397,6 +342,8 @@ export default function StatsScreen({ navigation }: Props) {
     today: "Hoje",
   };
   LocaleConfig.defaultLocale = "pt";
+
+  const loading = statsLoading || achievementsLoading;
 
   if (loading) {
     return (
@@ -519,26 +466,13 @@ export default function StatsScreen({ navigation }: Props) {
           )}
         </View>
 
-        {/* Secção 4: Conquistas (Placeholder) */}
-        <View style={styles.section}>
-          <AppText
-            variant="bold"
-            style={[styles.sectionTitle, { marginBottom: 10 }]}
-          >
-            Conquistas
-          </AppText>
-          {processedAchievements.map((ach) => (
-            <AchievementBadge
-              key={ach.id}
-              title={ach.title}
-              description={ach.description}
-              icon={ach.icon}
-              category={ach.category}
-              rank={ach.rank}
-              unlocked={ach.unlocked}
-              isNew={ach.isNew}
-            />
-          ))}
+        {/* Secção 4: Conquistas */}
+        <View style={[styles.section, { padding: 0 }]}>
+          <AchievementsSummaryCard
+            navigation={navigation}
+            achievements={processedAchievements}
+            unlockedCount={unlockedCount}
+          />
         </View>
       </ScrollView>
 
@@ -667,7 +601,7 @@ const styles = StyleSheet.create({
   section: {
     backgroundColor: theme.colors.surface,
     borderRadius: 16,
-    padding: 20,
+    padding: 20, // Mantém o padding para a maioria das secções
     marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },

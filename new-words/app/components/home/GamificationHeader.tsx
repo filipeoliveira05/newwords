@@ -1,10 +1,17 @@
 import React from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { CompositeNavigationProp } from "@react-navigation/native";
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useUserStore } from "../../../stores/useUserStore";
 import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 import Icon, { IconName } from "../Icon";
+import {
+  RootTabParamList,
+  HomeStackParamList,
+} from "../../../types/navigation";
 
 // Small component for each stat in the header
 const StatItem = ({
@@ -65,7 +72,14 @@ const LevelProgress = ({
   );
 };
 
-const GamificationHeader = () => {
+type GamificationHeaderProps = {
+  navigation: CompositeNavigationProp<
+    NativeStackNavigationProp<HomeStackParamList, "HomeDashboard">,
+    BottomTabNavigationProp<RootTabParamList>
+  >;
+};
+
+const GamificationHeader = ({ navigation }: GamificationHeaderProps) => {
   const {
     level,
     xp,
@@ -75,6 +89,10 @@ const GamificationHeader = () => {
     totalAchievements,
   } = useUserStore();
   const insets = useSafeAreaInsets();
+
+  const navigateToAchievements = () => {
+    navigation.navigate("Profile", { screen: "Achievements" });
+  };
 
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
@@ -92,11 +110,13 @@ const GamificationHeader = () => {
         color={theme.colors.success}
       />
       <View style={styles.separator} />
-      <StatItem
-        icon="trophy"
-        value={totalAchievements}
-        color={theme.colors.gold}
-      />
+      <TouchableOpacity activeOpacity={0.8} onPress={navigateToAchievements}>
+        <StatItem
+          icon="trophy"
+          value={totalAchievements}
+          color={theme.colors.gold}
+        />
+      </TouchableOpacity>
     </View>
   );
 };
