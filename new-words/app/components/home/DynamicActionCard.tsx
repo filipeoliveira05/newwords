@@ -10,14 +10,14 @@ const DynamicActionCard = () => {
 
   // useMemo ensures this logic only runs when the underlying data changes.
   const ActionCard = useMemo(() => {
-    // Priority 1: Challenging Words
-    if (challengingWords && challengingWords.length > 0) {
-      return <ChallengingWordsCard words={challengingWords} />;
-    }
-
-    // Priority 2: Urgent Review
+    // Priority 1: Urgent Review
     if (urgentWordsCount > 0) {
       return <UrgentReviewCard count={urgentWordsCount} />;
+    }
+
+    // Priority 2: Challenging Words
+    if (challengingWords && challengingWords.length > 0) {
+      return <ChallengingWordsCard words={challengingWords} />;
     }
 
     // Fallback: Default Practice Card
