@@ -40,6 +40,10 @@ const images = {
   mascotTime: require("../assets/images/mascot/mascot_time.png"),
   mascotMap: require("../assets/images/mascot/mascot_map.png"),
   mascotTalk: require("../assets/images/mascot/mascot_talk.png"),
+  mascotProgress: require("../assets/images/mascot/mascot_progress.png"),
+  mascotRobot: require("../assets/images/mascot/mascot_robot.png"),
+  mascotUnimpressed: require("../assets/images/mascot/mascot_unimpressed.png"),
+  mascotWorry: require("../assets/images/mascot/mascot_worry.png"),
   mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
   mascotPodium: require("../assets/images/mascot/inspiration/mascot_podium.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
