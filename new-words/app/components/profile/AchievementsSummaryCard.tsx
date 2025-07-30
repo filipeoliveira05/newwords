@@ -10,16 +10,28 @@ import AchievementRadarChart, {
   RadarDataPoint,
 } from "../profile/AchievementRadarChart";
 
+// Define um tipo específico para os IDs das categorias do radar.
+// Isto garante que apenas chaves válidas são usadas para aceder às cores no tema,
+// resolvendo o erro de tipagem.
+type AchievementRadarCategoryId =
+  | "collector"
+  | "mastery"
+  | "training"
+  | "power_session"
+  | "streak"
+  | "perfectionist"
+  | "consistency";
+
 // Mapeia os IDs de prefixo para um nome e ícone, servindo como a "lenda" do gráfico.
 const categoryConfig: {
-  id: string;
+  id: AchievementRadarCategoryId;
   label: string;
   icon: IconName;
 }[] = [
-  { id: "collector", label: "Coleção", icon: "library" },
+  { id: "collector", label: "Coleção", icon: "libraryOutline" },
   { id: "mastery", label: "Domínio", icon: "school" },
   { id: "training", label: "Treino", icon: "barbell" },
-  { id: "power_session", label: "Intensidade", icon: "flash" },
+  { id: "power_session", label: "Intensidade", icon: "flashOutline" },
   { id: "streak", label: "Foco", icon: "flame" },
   { id: "perfectionist", label: "Perfeição", icon: "diamond" },
   { id: "consistency", label: "Hábito", icon: "calendar" },
@@ -55,7 +67,8 @@ const AchievementsSummaryCard = ({
       return {
         ...cat,
         progress,
-        color: theme.colors.primary, // Opção 2: Cor neutra e unificada para o gráfico.
+        color:
+          theme.colors.achievementTypeColors[cat.id] || theme.colors.primary,
       };
     });
   }, [achievements]);
@@ -82,7 +95,7 @@ const AchievementsSummaryCard = ({
         </View>
       </View>
       <View style={styles.body}>
-        <AchievementRadarChart data={radarData} size={350} />
+        <AchievementRadarChart data={radarData} size={320} />
         <View style={styles.legendContainer}>
           {radarData.map((item) => (
             <View key={item.id} style={styles.legendItem}>

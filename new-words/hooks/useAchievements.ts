@@ -5,6 +5,7 @@ import {
   getUserPracticeMetrics,
   getPracticeHistory,
   getUnlockedAchievementIds,
+  getDecks,
   getTotalWordCount,
   unlockAchievements,
 } from "../services/storage";
@@ -28,12 +29,13 @@ export const useAchievements = () => {
     const processAndCheckAchievements = async () => {
       try {
         // Não é necessário um estado de loading global, pois o hook gere o seu próprio.
-        const [globalStats, metrics, history, unlockedIds, totalWords] =
+        const [globalStats, metrics, history, unlockedIds, decks, totalWords] =
           await Promise.all([
             getGlobalStats(),
             getUserPracticeMetrics(),
             getPracticeHistory(),
             getUnlockedAchievementIds(),
+            getDecks(),
             getTotalWordCount(),
           ]);
 
@@ -54,6 +56,7 @@ export const useAchievements = () => {
               user: metrics,
               history: history,
               totalWords: totalWords,
+              totalDecks: decks.length,
             });
 
             if (isNowUnlocked) {

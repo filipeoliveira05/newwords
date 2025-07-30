@@ -1,6 +1,13 @@
 import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-import Svg, { Polygon, Line, Circle } from "react-native-svg";
+import Svg, {
+  Polygon,
+  Line,
+  Circle,
+  Defs,
+  RadialGradient,
+  Stop,
+} from "react-native-svg";
 import { theme } from "../../../config/theme";
 import Icon, { IconName } from "../Icon";
 
@@ -34,22 +41,39 @@ const AchievementRadarChart = ({ data, size }: Props) => {
 
   const polygonPoints = points.map((p) => `${p.x},${p.y}`).join(" ");
 
-  // Calcula os pontos para o polígono de progresso interior
-  const progressPolygonPoints = useMemo(() => {
-    return data
-      .map((item, i) => {
-        const { angle } = points[i];
-        const pointRadius = radius * item.progress;
-        const x = center + pointRadius * Math.cos(angle);
-        const y = center + pointRadius * Math.sin(angle);
-        return `${x},${y}`;
-      })
-      .join(" ");
+  // Calcula as coordenadas dos pontos de progresso para reutilização.
+  const progressPoints = useMemo(() => {
+    return data.map((item, i) => {
+      const { angle } = points[i];
+      const pointRadius = radius * item.progress;
+      const x = center + pointRadius * Math.cos(angle);
+      const y = center + pointRadius * Math.sin(angle);
+      return { x, y };
+    });
   }, [data, points, radius, center]);
+
+  // Cria a string de pontos para o polígono a partir das coordenadas calculadas.
+  const progressPolygonPoints = progressPoints
+    .map((p) => `${p.x},${p.y}`)
+    .join(" ");
 
   return (
     <View style={styles.container}>
       <Svg height={size} width={size} viewBox={`0 0 ${size} ${size}`}>
+        <Defs>
+          <RadialGradient id="progressGradient" cx="50%" cy="50%" r="50%">
+            <Stop
+              offset="0%"
+              stopColor={theme.colors.primary}
+              stopOpacity="0.4"
+            />
+            <Stop
+              offset="100%"
+              stopColor={theme.colors.primaryLighter}
+              stopOpacity="0.1"
+            />
+          </RadialGradient>
+        </Defs>
         {/* Polígono de fundo */}
         <Polygon
           points={polygonPoints}
@@ -71,28 +95,35 @@ const AchievementRadarChart = ({ data, size }: Props) => {
           />
         ))}
 
-        {/* Polígono de progresso */}
-        <Polygon
-          points={progressPolygonPoints}
-          fill={`${theme.colors.primary}33`} // Cor primária com ~20% de opacidade
-          stroke={theme.colors.primary}
-          strokeWidth="2"
-        />
+        {/* Polígono de progresso (apenas o preenchimento com gradiente) */}
+        <Polygon points={progressPolygonPoints} fill="url(#progressGradient)" />
 
-        {/* Pontos de progresso */}
-        {data.map((item, i) => {
-          const { angle } = points[i];
-          const pointRadius = radius * item.progress;
-          const x = center + pointRadius * Math.cos(angle);
-          const y = center + pointRadius * Math.sin(angle);
+        {/* Contorno do progresso (linhas coloridas) */}
+        {progressPoints.map((point, i) => {
+          const nextPoint = progressPoints[(i + 1) % progressPoints.length];
+          return (
+            <Line
+              key={`progress-line-${i}`}
+              x1={point.x}
+              y1={point.y}
+              x2={nextPoint.x}
+              y2={nextPoint.y}
+              stroke={data[i].color}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+          );
+        })}
 
+        {/* Pontos de progresso (desenhados por cima das linhas) */}
+        {progressPoints.map((point, i) => {
           return (
             <Circle
-              key={`progress-${i}`}
-              cx={x}
-              cy={y}
+              key={`progress-point-${i}`}
+              cx={point.x}
+              cy={point.y}
               r="5"
-              fill={item.color}
+              fill={data[i].color}
               stroke={theme.colors.surface}
               strokeWidth="1.5"
             />

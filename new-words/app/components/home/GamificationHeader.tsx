@@ -105,7 +105,7 @@ const GamificationHeader = ({ navigation }: GamificationHeaderProps) => {
       />
       <View style={styles.separator} />
       <StatItem
-        icon="library"
+        icon="libraryOutline"
         value={totalWords}
         color={theme.colors.success}
       />

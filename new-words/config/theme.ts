@@ -45,6 +45,8 @@ const palette = {
   orangeLighter: "#fef5ee",
   orangeDarker: "#c57d3d",
 
+  brown: "#895129",
+
   dark: "#22223B",
   grey: "#ced4da",
   greyLighter: "#f1f3f5",
@@ -132,24 +134,19 @@ export const colors = {
     Advérbio: palette.purpleDarker,
     Outro: palette.textDark,
   },
-  // achievementTypeColors: {
-  //   // Tipos progressivos
-  //   collector: palette.success,
-  //   mastery: palette.dark,
-  //   training: palette.purple,
-  //   power_session: palette.goldLeague,
-  //   streak: palette.danger,
-  //   perfectionist: palette.diamond,
-  //   consistency: palette.blue,
-  //   // Tipos únicos (usando o ID completo como chave)
-  //   first_session: palette.success,
-  //   weekend_warrior: palette.purple,
-  //   versatile_learner: palette.purple,
-  //   perfect_month: palette.purple,
-  //   triumphant_return: palette.purple,
-  //   // Tipos de Meta-Conquistas
-  //   meta: palette.gold,
-  // },
+  achievementTypeColors: {
+    // Mapeia o ID da categoria a uma cor específica para consistência visual.
+    collector: palette.success, // Verde para "Coleção"
+    mastery: palette.dark, // Escuro para "Domínio"
+    training: palette.purple, // Roxo para "Treino"
+    power_session: palette.goldLeague, // Dourado para "Intensidade"
+    streak: palette.danger, // Vermelho/Laranja para "Foco"
+    perfectionist: palette.diamond, // Azul claro para "Perfeição"
+    consistency: palette.brown, // Azul para "Hábito"
+    // Cores para categorias que não estão no radar
+    first_session: palette.success,
+    meta: palette.gold,
+  },
 };
 
 export const fontSizes = {

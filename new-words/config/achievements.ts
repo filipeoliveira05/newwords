@@ -39,6 +39,7 @@ export type Achievement = {
     user: UserPracticeMetrics;
     history: PracticeHistory[];
     totalWords: number;
+    totalDecks: number;
   }) => boolean;
 };
 
@@ -201,7 +202,7 @@ const consistencyTiers: AchievementTier[] = [
 const collectorAchievements = createProgressiveAchievements(
   {
     idPrefix: "collector",
-    icon: "library",
+    icon: "libraryOutline",
     category: "Coleção",
     descriptionTemplate: (target) => `Adicionou ${target} palavras.`,
     checkCreator: createTotalWordsChecker,
@@ -234,7 +235,7 @@ const trainingAchievements = createProgressiveAchievements(
 const powerSessionAchievements = createProgressiveAchievements(
   {
     idPrefix: "power_session",
-    icon: "flash",
+    icon: "flashOutline",
     category: "Intensidade",
     descriptionTemplate: (target) =>
       `Treinou ${target} palavras num único dia.`,
@@ -286,9 +287,50 @@ const coreAchievements: Achievement[] = [
     id: "first_session",
     title: "Iniciante Dedicado",
     description: "Completou a sua primeira sessão de prática.",
-    icon: "school",
+    icon: "star",
     category: "Primeiros Passos",
     check: ({ history }) => history.length > 0,
+  },
+  {
+    id: "first_deck",
+    title: "Arquiteto de Conhecimento",
+    description: "Criou o seu primeiro conjunto de palavras.",
+    icon: "folder",
+    category: "Primeiros Passos",
+    check: ({ totalDecks }) => totalDecks > 0,
+  },
+  {
+    id: "first_word",
+    title: "Pioneiro do Vocabulário",
+    description: "Adicionou a sua primeira palavra.",
+    icon: "text",
+    category: "Primeiros Passos",
+    check: ({ totalWords }) => totalWords > 0,
+  },
+  {
+    id: "first_correct_answer",
+    title: "Começar com o Pé Direito",
+    description: "Acertou na sua primeira resposta numa sessão de prática.",
+    icon: "checkmark",
+    category: "Primeiros Passos",
+    check: ({ global }) => global.successRate > 0,
+  },
+  {
+    id: "first_mistake",
+    title: "Aprender com o Erro",
+    description: "Errou uma palavra. Faz parte do processo de aprendizagem!",
+    icon: "bulb",
+    category: "Primeiros Passos",
+    check: ({ global, history }) =>
+      history.length > 0 && global.successRate < 100,
+  },
+  {
+    id: "first_mastery",
+    title: "Domínio Inicial",
+    description: "Dominou a sua primeira palavra. Continue assim!",
+    icon: "school",
+    category: "Primeiros Passos",
+    check: ({ global }) => global.wordsMastered > 0,
   },
   {
     id: "weekend_warrior",

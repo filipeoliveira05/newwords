@@ -157,10 +157,10 @@ const ListHeader = ({
 // Mapeia cada categoria de conquista ao seu ícone principal para consistência visual.
 const categoryIcons: Record<AchievementCategory, IconName> = {
   "Primeiros Passos": "school",
-  Coleção: "library",
+  Coleção: "libraryOutline",
   Domínio: "school",
   Treino: "barbell",
-  Intensidade: "flash",
+  Intensidade: "flashOutline",
   Foco: "flame",
   Perfeição: "diamond",
   Hábito: "calendar",
