@@ -8,7 +8,6 @@
 │   │   ├── CustomAlert.tsx
 │   │   ├── DeckOverview.tsx
 │   │   ├── Icon.tsx
-│   │   ├── LevelUpOverlay.tsx
 │   │   ├── LinearProgressBar.tsx
 │   │   ├── OfflinePlaceholder.tsx
 │   │   ├── WordOverview.tsx
@@ -44,12 +43,16 @@
 │   │   │   └── CategorySelectionModal.tsx
 │   │   ├── navigation
 │   │   │   └── AnimatedTabBarIcon.tsx
+│   │   ├── notifications
+│   │   │   ├── AchievementUnlockedToast.tsx
+│   │   │   └── LevelUpToast.tsx
 │   │   ├── onboarding
 │   │   │   ├── OnboardingPaginator.tsx
 │   │   │   └── OnboardingSlide.tsx
 │   │   ├── practice
 │   │   │   ├── CombineListsView.tsx
 │   │   │   ├── FlashcardView.tsx
+│   │   │   ├── LevelUpView.tsx
 │   │   │   ├── MultipleChoiceView.tsx
 │   │   │   ├── ProgressBar.tsx
 │   │   │   ├── SessionResults.tsx
@@ -57,12 +60,14 @@
 │   │   │   ├── WritingView.tsx
 │   │   │   ├── XpFeedback.tsx
 │   │   │   └── XpFeedbackManager.tsx
-│   │   ├── sheets
-│   │   │   └── WordEditSheet.tsx
-│   │   └── stats
-│   │       ├── AchievementBadge.tsx
-│   │       ├── DailyGoalProgress.tsx
-│   │       └── StatCard.tsx
+│   │   ├── profile
+│   │   │   ├── AchievementBadge.tsx
+│   │   │   ├── AchievementRadarChart.tsx
+│   │   │   ├── AchievementsSummaryCard.tsx
+│   │   │   ├── DailyGoalProgress.tsx
+│   │   │   └── StatCard.tsx
+│   │   └── sheets
+│   │       └── WordEditSheet.tsx
 │   ├── navigation
 │   │   ├── AppNavigator.tsx
 │   │   └── RootNavigator.tsx
@@ -88,13 +93,14 @@
 │       │   ├── PracticeGameScreen.tsx
 │       │   ├── PracticeHubScreen.tsx
 │       │   └── PracticeLoadingScreen.tsx
-│       ├── profile
-│       │   ├── AccountScreen.tsx
-│       │   ├── EditAccountScreen.tsx
-│       │   ├── HelpScreen.tsx
-│       │   ├── ProfileScreen.tsx
-│       │   └── SettingsScreen.tsx
-│       └── stats
+│       └── profile
+│           ├── AccountScreen.tsx
+│           ├── AchievementsScreen.tsx
+│           ├── EditAccountScreen.tsx
+│           ├── HelpScreen.tsx
+│           ├── LevelUpTestScreen.tsx
+│           ├── ProfileScreen.tsx
+│           ├── SettingsScreen.tsx
 │           └── StatsScreen.tsx
 ├── app.config.js
 ├── config
@@ -109,16 +115,18 @@
 │   │   └── static
 │   │       └── js
 │   │           ├── android
-│   │           │   ├── entry-1edea4e8b3ee85c1c725219b53de6dc3.hbc
-│   │           │   └── entry-1edea4e8b3ee85c1c725219b53de6dc3.hbc.map
+│   │           │   ├── entry-eea77dafe97ce4708978d0013bd3042f.hbc
+│   │           │   └── entry-eea77dafe97ce4708978d0013bd3042f.hbc.map
 │   │           └── ios
-│   │               ├── entry-f1193c275241652a345ffa3c9aa4dc62.hbc
-│   │               └── entry-f1193c275241652a345ffa3c9aa4dc62.hbc.map
+│   │               ├── entry-ff0a72bfbd39ed5f8fa7581999729f37.hbc
+│   │               └── entry-ff0a72bfbd39ed5f8fa7581999729f37.hbc.map
 │   ├── assetmap.json
 │   └── metadata.json
 ├── eas.json
 ├── eslint.config.js
 ├── expo-env.d.ts
+├── hooks
+│   └── useAchievements.ts
 ├── metro.config.js
 ├── package-lock.json
 ├── package.json
@@ -149,4 +157,4 @@
     ├── arrayUtils.ts
     └── sm2.ts
 
-34 directories, 115 files
+35 directories, 122 files

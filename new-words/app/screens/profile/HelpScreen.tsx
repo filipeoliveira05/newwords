@@ -15,6 +15,7 @@ import { theme } from "../../../config/theme";
 import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
 import { eventStore } from "../../../stores/eventStore";
+import { AchievementToastInfo } from "../../../hooks/useAchievements";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -92,6 +93,45 @@ const faqs = [
   },
 ];
 
+// Lista de conquistas de teste com diferentes ranks e categorias para o toast.
+const testAchievements: AchievementToastInfo[] = [
+  {
+    icon: "ribbon",
+    title: "Caçador de Conquistas",
+    description: "Desbloqueou 5 outras conquistas.",
+    rank: "Bronze",
+  },
+  {
+    icon: "flame",
+    title: "Sequência Divina",
+    description: "Atingiu uma sequência de 100 acertos.",
+    rank: "Diamond",
+  },
+  {
+    icon: "school",
+    title: "Domínio Inicial",
+    description: "Dominou a sua primeira palavra. Continue assim!",
+    // Sem rank, a cor default (gold) será usada no toast.
+  },
+  {
+    icon: "calendar",
+    title: "Lenda Anual",
+    description: "Praticou por 365 dias seguidos.",
+    rank: "Legendary",
+  },
+  {
+    icon: "flashOutline",
+    title: "Vórtice de Palavras",
+    description: "Treinou 150 palavras num único dia.",
+    rank: "Master",
+  },
+  {
+    icon: "barbell",
+    title: "Guerreiro do Fim de Semana",
+    description: "Praticou durante um fim de semana.",
+  },
+];
+
 const AccordionItem = ({
   question,
   answer,
@@ -133,10 +173,23 @@ const AccordionItem = ({
 };
 
 const HelpScreen = ({ navigation }: Props) => {
+  const [testAchievementIndex, setTestAchievementIndex] = useState(0);
+
   const handleTestLevelUp = () => {
     // Dispara o evento de level up com um valor fixo para teste,
     // sem depender do estado real do utilizador.
     eventStore.getState().publish("levelUp", { newLevel: 10 });
+  };
+
+  const handleTestAchievementUnlocked = () => {
+    // Publica a conquista atual da lista de testes.
+    eventStore
+      .getState()
+      .publish("achievementToast", testAchievements[testAchievementIndex]);
+    // Avança para a próxima conquista para o próximo clique.
+    setTestAchievementIndex(
+      (prevIndex) => (prevIndex + 1) % testAchievements.length
+    );
   };
 
   const handleTestLevelUpScreen = () => {
@@ -271,6 +324,16 @@ const HelpScreen = ({ navigation }: Props) => {
           <Icon name="bug" size={22} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.contactButtonText}>
             Testar Toast de Level Up
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.contactButton}
+          activeOpacity={0.8}
+          onPress={handleTestAchievementUnlocked}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Toast de Conquista
           </AppText>
         </TouchableOpacity>
         <TouchableOpacity

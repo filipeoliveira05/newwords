@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Toast from "react-native-toast-message";
 import {
   getGlobalStats,
   getUserPracticeMetrics,
@@ -9,7 +8,12 @@ import {
   getTotalWordCount,
   unlockAchievements,
 } from "../services/storage";
-import { achievements, Achievement } from "../config/achievements";
+import {
+  achievements,
+  Achievement,
+  AchievementRank,
+} from "../config/achievements";
+import { IconName } from "../app/components/Icon";
 import { eventStore } from "../stores/eventStore";
 
 // Define o tipo de retorno do hook para clareza
@@ -17,6 +21,13 @@ export type ProcessedAchievement = Achievement & {
   unlocked: boolean;
   isNew: boolean;
 };
+
+export interface AchievementToastInfo {
+  icon: IconName;
+  title: string;
+  rank?: AchievementRank;
+  description: string;
+}
 
 export const useAchievements = () => {
   const [loading, setLoading] = useState(true);
@@ -70,17 +81,18 @@ export const useAchievements = () => {
           if (newlyUnlocked.length > 0) {
             const newIds = newlyUnlocked.map((ach) => ach.id);
             await unlockAchievements(newIds);
+            // Notifica outros ecrãs que as conquistas mudaram (ex: para atualizar contadores)
             eventStore.getState().publish("achievementUnlocked", {});
 
             newlyUnlocked.forEach((ach, index) => {
               setTimeout(() => {
-                Toast.show({
-                  type: "success",
-                  text1: "Conquista Desbloqueada! 🎉",
-                  text2: ach.title,
-                  visibilityTime: 4000,
+                eventStore.getState().publish("achievementToast", {
+                  icon: ach.icon,
+                  title: ach.title,
+                  rank: ach.rank,
+                  description: ach.description,
                 });
-              }, index * 600);
+              }, index * 800); // Stagger the toasts slightly
             });
           }
 

@@ -87,8 +87,6 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
 #### Nível 2: O Hábito (Engajamento e Retenção)
 
 - [ ] 🗺️ **Descoberta Guiada (Primeiros Passos):** Criar um sistema de missões simples para guiar os novos utilizadores pelas funcionalidades chave da aplicação.
-- [ ] 🏆 **Sistema de Conquistas Aprofundado:**
-  - [ ] **Galeria de Conquistas:** Criar um ecrã dedicado para o utilizador ver todas as conquistas disponíveis e desbloqueadas.
 - [ ] 🎯 **Metas Diárias Diversificadas:** Criar categorias e adicionar mais tipos de metas diárias para evitar a repetição.
 - [ ] 🚶 **Jornada de Níveis Visual:** Criar um ecrã que mostre a progressão de níveis do utilizador de forma visual e interativa, destacando os marcos alcançados.
 - [ ] 🔔 **Notificações Push Inteligentes:** Implementar lembretes para manter a streak, rever palavras difíceis, etc.
