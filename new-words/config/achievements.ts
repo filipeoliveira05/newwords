@@ -5,6 +5,7 @@ import {
 } from "../services/storage";
 import { differenceInDays } from "date-fns";
 import { IconName } from "../app/components/Icon";
+import { theme } from "./theme";
 
 export type AchievementCategory =
   | "Primeiros Passos"
@@ -41,6 +42,27 @@ export type Achievement = {
     totalWords: number;
     totalDecks: number;
   }) => boolean;
+};
+
+// --- Funções Utilitárias ---
+
+/**
+ * Retorna a cor associada a um determinado rank de conquista.
+ * @param rank O rank da conquista.
+ * @returns A string da cor correspondente.
+ */
+export const getAchievementRankColor = (rank?: AchievementRank): string => {
+  if (!rank) return theme.colors.gold;
+  const rankColorMap: Record<AchievementRank, string> = {
+    Bronze: theme.colors.bronze,
+    Silver: theme.colors.silver,
+    Gold: theme.colors.gold,
+    Platinum: theme.colors.platinum,
+    Diamond: theme.colors.diamond,
+    Master: theme.colors.master,
+    Legendary: theme.colors.legendary,
+  };
+  return rankColorMap[rank] ?? theme.colors.gold;
 };
 
 // --- Funções Geradoras de Verificação (Checkers) ---

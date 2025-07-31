@@ -12,6 +12,7 @@ import { theme } from "../../../config/theme";
 import {
   AchievementCategory,
   AchievementRank,
+  getAchievementRankColor,
 } from "../../../config/achievements";
 
 type AchievementBadgeProps = {
@@ -57,26 +58,12 @@ const AchievementBadge = ({
     }
   }, [isNew, scale, opacity]);
 
-  // Mapeia o rank para uma cor específica. Se não houver rank, usa a cor dourada padrão.
-  const getRankColor = () => {
-    if (!rank) return theme.colors.gold;
-    const rankColorMap: Record<AchievementRank, string> = {
-      Bronze: theme.colors.bronze,
-      Silver: theme.colors.silver,
-      Gold: theme.colors.gold,
-      Platinum: theme.colors.platinum,
-      Diamond: theme.colors.diamond,
-      Master: theme.colors.master,
-      Legendary: theme.colors.legendary,
-    };
-    return rankColorMap[rank] ?? theme.colors.gold;
-  };
-
-  const iconColor = unlocked ? getRankColor() : theme.colors.iconMuted;
+  const rankColor = getAchievementRankColor(rank);
+  const iconColor = unlocked ? rankColor : theme.colors.iconMuted;
 
   // Opção 2: A cor da borda é ditada pelo rank, para dar ênfase ao prestígio.
   // Para conquistas bloqueadas, usamos a cor de borda padrão.
-  const borderColor = unlocked ? getRankColor() : theme.colors.border;
+  const borderColor = unlocked ? rankColor : theme.colors.border;
 
   const containerStyle = unlocked
     ? styles.container

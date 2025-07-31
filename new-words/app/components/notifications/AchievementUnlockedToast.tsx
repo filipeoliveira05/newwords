@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import { eventStore } from "@/stores/eventStore";
 import { AchievementToastInfo } from "@/hooks/useAchievements";
-import { AchievementRank } from "@/config/achievements";
+import { getAchievementRankColor } from "@/config/achievements";
 import AppText from "../AppText";
 import Icon from "../Icon";
 import { theme } from "../../../config/theme";
@@ -66,22 +66,6 @@ const Particle = ({ trigger, config }: ParticleProps) => {
   );
 };
 
-// Mapeia um rank de conquista para a sua cor correspondente.
-// Esta função é pura e pode ser definida fora do componente para melhor performance.
-const getRankColor = (rank?: AchievementRank) => {
-  if (!rank) return theme.colors.gold;
-  const rankColorMap: Record<AchievementRank, string> = {
-    Bronze: theme.colors.bronze,
-    Silver: theme.colors.silver,
-    Gold: theme.colors.gold,
-    Platinum: theme.colors.platinum,
-    Diamond: theme.colors.diamond,
-    Master: theme.colors.master,
-    Legendary: theme.colors.legendary,
-  };
-  return rankColorMap[rank] ?? theme.colors.gold;
-};
-
 const AchievementUnlockedToast = () => {
   const [toastInfo, setToastInfo] = useState<ToastInfo | null>(null);
   const insets = useSafeAreaInsets();
@@ -110,7 +94,7 @@ const AchievementUnlockedToast = () => {
   const particleConfigs = useMemo(() => {
     if (!toastInfo) return [];
 
-    const primaryColor = getRankColor(toastInfo.rank);
+    const primaryColor = getAchievementRankColor(toastInfo.rank);
     // Usar uma cor secundária brilhante que combine bem com a maioria das cores de rank.
     const secondaryColor = theme.colors.goldLighter;
 
@@ -184,7 +168,7 @@ const AchievementUnlockedToast = () => {
     return null;
   }
 
-  const iconColor = getRankColor(toastInfo.rank);
+  const iconColor = getAchievementRankColor(toastInfo.rank);
 
   return (
     <Animated.View

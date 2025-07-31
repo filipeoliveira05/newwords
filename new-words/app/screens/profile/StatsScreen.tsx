@@ -46,7 +46,11 @@ import { eventStore } from "@/stores/eventStore";
 import { pt } from "date-fns/locale";
 import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
 import { useAchievements } from "../../../hooks/useAchievements";
-import { achievements, Achievement } from "../../../config/achievements";
+import {
+  achievements,
+  Achievement,
+  getAchievementRankColor,
+} from "../../../config/achievements";
 import AchievementsSummaryCard from "../../components/profile/AchievementsSummaryCard";
 import AppText from "../../components/AppText";
 import Icon, { IconName } from "../../components/Icon";
@@ -532,7 +536,7 @@ export default function StatsScreen({ navigation }: Props) {
                         <Icon
                           name={ach.icon as IconName}
                           size={24}
-                          color={theme.colors.gold}
+                          color={getAchievementRankColor(ach.rank)}
                         />
                         <AppText style={styles.dayDetailStatText}>
                           {ach.title}
