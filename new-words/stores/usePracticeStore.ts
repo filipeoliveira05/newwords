@@ -10,8 +10,12 @@ interface PracticeWord {
   category: string;
 }
 
-type GameMode = "flashcard" | "multiple-choice" | "writing" | "combine-lists";
-type SessionType = "urgent" | "free" | "wrong" | "favorite";
+export type GameMode =
+  | "flashcard"
+  | "multiple-choice"
+  | "writing"
+  | "combine-lists";
+export type SessionType = "urgent" | "free" | "wrong" | "favorite";
 
 interface PracticeState {
   sessionState: "not-started" | "in-progress" | "finished";
@@ -47,6 +51,13 @@ interface PracticeState {
   getCurrentWord: () => PracticeWord | null;
   getSessionProgress: () => number;
 }
+
+const checkAndPublishPerfectRound = (get: () => PracticeState) => {
+  const { incorrectAnswers, currentRoundWords } = get();
+  if (incorrectAnswers.length === 0 && currentRoundWords.length > 0) {
+    eventStore.getState().publish("perfectRoundCompleted", {});
+  }
+};
 
 export const usePracticeStore = create<PracticeState>((set, get) => ({
   // --- STATE ---
@@ -197,6 +208,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   completeRound: () => {
+    checkAndPublishPerfectRound(get);
     set({ sessionState: "finished" });
   },
 
@@ -208,7 +220,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       // Move to the next word in the current round
       set({ currentWordIndex: nextIndex });
     } else {
-      // Round is finished
+      checkAndPublishPerfectRound(get);
       set({ sessionState: "finished" });
     }
   },
@@ -228,6 +240,14 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       wordsPracticedInSession: new Set(),
       streak: 0, // A streak é totalmente reiniciada ao sair do ecrã de prática
       highestStreakThisRound: 0,
+    });
+
+    // Publica um evento com os detalhes da sessão que acabou de terminar.
+    // Isto permite que outros stores (como o de metas) reajam.
+    eventStore.getState().publish("practiceSessionCompleted", {
+      sessionType: get().sessionType,
+      gameMode: get().gameMode,
+      streak: get().highestStreakThisRound,
     });
   },
 

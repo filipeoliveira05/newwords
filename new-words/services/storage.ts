@@ -1322,6 +1322,55 @@ export async function countWordsMasteredOnDate(date: string): Promise<number> {
   }
 }
 
+export type SessionCompletionType =
+  | "favorite"
+  | "wrong"
+  | "flashcard"
+  | "multiple-choice"
+  | "writing"
+  | "combine-lists";
+
+// --- Funções para Métricas de Metas Diárias ---
+
+export async function incrementPerfectRoundsToday(): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `perfect_rounds_${todayStr}`;
+  try {
+    const currentCount = parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+    await setMetaValue(key, (currentCount + 1).toString());
+  } catch (e) {
+    console.error("Erro ao incrementar rondas perfeitas:", e);
+  }
+}
+
+export async function getPerfectRoundsToday(): Promise<number> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `perfect_rounds_${todayStr}`;
+  try {
+    return parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+  } catch (e) {
+    console.error("Erro ao obter rondas perfeitas de hoje:", e);
+    return 0;
+  }
+}
+
+export async function setSessionCompletedToday(
+  type: SessionCompletionType
+): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `completed_${type}_session_${todayStr}`;
+  await setMetaValue(key, "true");
+}
+
+export async function getSessionCompletedToday(
+  type: SessionCompletionType
+): Promise<boolean> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `completed_${type}_session_${todayStr}`;
+  const value = await getMetaValue(key, "false");
+  return value === "true";
+}
+
 // --- Daily Goal Functions ---
 
 export async function getTodaysActiveGoalIds(): Promise<string[] | null> {

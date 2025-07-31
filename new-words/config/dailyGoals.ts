@@ -10,6 +10,13 @@ export type DailyGoalContext = {
   correctAnswersToday: number;
   decksCreatedToday: number;
   wordsMasteredToday: number;
+  perfectRoundsToday: number;
+  completedFavoriteSessionToday: boolean;
+  completedWrongSessionToday: boolean;
+  completedFlashcardSessionToday: boolean;
+  completedMultipleChoiceSessionToday: boolean;
+  completedWritingSessionToday: boolean;
+  completedCombineListsSessionToday: boolean;
 };
 
 export type DailyGoal = {
@@ -57,6 +64,68 @@ const practiceGoals: DailyGoal[] = [
     target: 1,
     getCurrentProgress: ({ todaysPractice }) =>
       todaysPractice && todaysPractice.words_trained > 0 ? 1 : 0,
+  },
+  {
+    id: "perfect_round",
+    title: "Completa uma ronda perfeita",
+    icon: "star",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ perfectRoundsToday }) => perfectRoundsToday,
+  },
+  {
+    id: "practice_favorites",
+    title: "Completa uma sessão de palavras favoritas",
+    icon: "starOutline",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedFavoriteSessionToday }) =>
+      completedFavoriteSessionToday ? 1 : 0,
+  },
+  {
+    id: "practice_wrong",
+    title: "Completa uma sessão de palavras erradas",
+    icon: "closeCircle",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedWrongSessionToday }) =>
+      completedWrongSessionToday ? 1 : 0,
+  },
+  {
+    id: "practice_flashcard",
+    title: "Completa uma sessão de revisão clássica",
+    icon: "albums",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedFlashcardSessionToday }) =>
+      completedFlashcardSessionToday ? 1 : 0,
+  },
+  {
+    id: "practice_multiple_choice",
+    title: "Completa uma sessão de escolha múltipla",
+    icon: "list",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedMultipleChoiceSessionToday }) =>
+      completedMultipleChoiceSessionToday ? 1 : 0,
+  },
+  {
+    id: "practice_writing",
+    title: "Completa uma sessão de escrita",
+    icon: "pencil",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedWritingSessionToday }) =>
+      completedWritingSessionToday ? 1 : 0,
+  },
+  {
+    id: "practice_combine_lists",
+    title: "Completa uma sessão de combinar listas",
+    icon: "gitCompare",
+    category: "Prática",
+    target: 1,
+    getCurrentProgress: ({ completedCombineListsSessionToday }) =>
+      completedCombineListsSessionToday ? 1 : 0,
   },
 ];
 

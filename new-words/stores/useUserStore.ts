@@ -21,6 +21,10 @@ import {
   countCorrectAnswersOnDate,
   countDecksCreatedOnDate,
   countWordsMasteredOnDate,
+  getPerfectRoundsToday,
+  getSessionCompletedToday,
+  incrementPerfectRoundsToday,
+  setSessionCompletedToday,
   WeeklySummary,
   countWordsForPractice,
 } from "../services/storage";
@@ -33,6 +37,7 @@ import {
 } from "../config/dailyGoals";
 import { shuffle } from "../utils/arrayUtils";
 import { Word, Deck } from "../types/database";
+import { GameMode, SessionType } from "./usePracticeStore";
 import { format } from "date-fns";
 
 // A DailyGoal with its progress calculated for the current day.
@@ -121,6 +126,13 @@ export const useUserStore = create<UserState>((set) => ({
         correctAnswersToday,
         decksCreatedToday,
         wordsMasteredToday,
+        perfectRoundsToday,
+        completedFavoriteSessionToday,
+        completedWrongSessionToday,
+        completedFlashcardSessionToday,
+        completedMultipleChoiceSessionToday,
+        completedWritingSessionToday,
+        completedCombineListsSessionToday,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
@@ -140,6 +152,13 @@ export const useUserStore = create<UserState>((set) => ({
         countCorrectAnswersOnDate(todayStr), // Returns number
         countDecksCreatedOnDate(todayStr),
         countWordsMasteredOnDate(todayStr),
+        getPerfectRoundsToday(),
+        getSessionCompletedToday("favorite"),
+        getSessionCompletedToday("wrong"),
+        getSessionCompletedToday("flashcard"),
+        getSessionCompletedToday("multiple-choice"),
+        getSessionCompletedToday("writing"),
+        getSessionCompletedToday("combine-lists"),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -178,6 +197,13 @@ export const useUserStore = create<UserState>((set) => ({
         correctAnswersToday,
         decksCreatedToday,
         wordsMasteredToday,
+        perfectRoundsToday,
+        completedFavoriteSessionToday,
+        completedWrongSessionToday,
+        completedFlashcardSessionToday,
+        completedMultipleChoiceSessionToday,
+        completedWritingSessionToday,
+        completedCombineListsSessionToday,
       };
 
       const lastDeckId = lastDeckIdStr ? parseInt(lastDeckIdStr, 10) : null;
@@ -300,3 +326,45 @@ eventStore.getState().subscribe("wordDeleted", () => {
     totalWords: Math.max(0, state.totalWords - 1),
   }));
 });
+
+eventStore.getState().subscribe<object>("perfectRoundCompleted", async () => {
+  await incrementPerfectRoundsToday();
+  // Recalcula as metas para refletir o progresso
+  useUserStore.getState().fetchUserStats();
+});
+
+eventStore
+  .getState()
+  .subscribe<{ sessionType: SessionType | null; gameMode: GameMode | null }>(
+    "practiceSessionCompleted",
+    async ({ sessionType, gameMode }) => {
+      let needsUpdate = false;
+      if (sessionType === "favorite") {
+        await setSessionCompletedToday("favorite");
+        needsUpdate = true;
+      }
+      if (sessionType === "wrong") {
+        await setSessionCompletedToday("wrong");
+        needsUpdate = true;
+      }
+      if (gameMode === "flashcard") {
+        await setSessionCompletedToday("flashcard");
+        needsUpdate = true;
+      }
+      if (gameMode === "multiple-choice") {
+        await setSessionCompletedToday("multiple-choice");
+        needsUpdate = true;
+      }
+      if (gameMode === "writing") {
+        await setSessionCompletedToday("writing");
+        needsUpdate = true;
+      }
+      if (gameMode === "combine-lists") {
+        await setSessionCompletedToday("combine-lists");
+        needsUpdate = true;
+      }
+      if (needsUpdate) {
+        useUserStore.getState().fetchUserStats();
+      }
+    }
+  );
