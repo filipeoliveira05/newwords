@@ -34,8 +34,8 @@ const images = {
   mascotBulb: require("../assets/images/mascot/mascot_bulb.png"),
   mascotCelebration: require("../assets/images/mascot/mascot_celebration.png"),
   mascotLove: require("../assets/images/mascot/mascot_love.png"),
-  mascotNinja: require("../assets/images/mascot/mascot_ninja.png"),
-  mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
+  mascotNinjaRed: require("../assets/images/mascot/mascot_ninjaRed.png"),
+  mascotNinjaRed2: require("../assets/images/mascot/mascot_ninjaRed2.png"),
   mascotTea: require("../assets/images/mascot/mascot_tea.png"),
   mascotTime: require("../assets/images/mascot/mascot_time.png"),
   mascotMap: require("../assets/images/mascot/mascot_map.png"),
@@ -44,15 +44,26 @@ const images = {
   mascotRobot: require("../assets/images/mascot/mascot_robot.png"),
   mascotUnimpressed: require("../assets/images/mascot/mascot_unimpressed.png"),
   mascotWorry: require("../assets/images/mascot/mascot_worry.png"),
-  mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
-  mascotPodium: require("../assets/images/mascot/inspiration/mascot_podium.png"),
-  mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
+  mascotCalendar: require("../assets/images/mascot/mascot_calendar.png"),
+  mascotCalendar2: require("../assets/images/mascot/mascot_calendar2.png"),
+  mascotChecklist: require("../assets/images/mascot/mascot_checklist.png"),
+  mascotMelancholic: require("../assets/images/mascot/mascot_melancholic.png"),
+  mascotPillowLaugh: require("../assets/images/mascot/mascot_pillowLaugh.png"),
+  mascotPodium: require("../assets/images/mascot/mascot_podium.png"),
+  mascotWindowSad: require("../assets/images/mascot/mascot_windowSad.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
   mascotPlayGame: require("../assets/images/mascot/mascot_play_game.png"), // Onboarding 3
   mascotPlayCubes: require("../assets/images/mascot/mascot_play_cubes.png"),
   mascotTrophy: require("../assets/images/mascot/mascot_trophy.png"), // Onboarding 4
   mascotTrophy2: require("../assets/images/mascot/mascot_trophy2.png"),
+
+  // Inspiration / To Improve
+  mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
+  mascotPodium2: require("../assets/images/mascot/inspiration/mascot_podium2.png"),
+  mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
+  mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
+  mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/mascot/mascot_study.png"),
