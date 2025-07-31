@@ -1,3 +1,4 @@
+import { useUserStore } from "@/stores/useUserStore";
 import React, {
   useState,
   useCallback,
@@ -30,9 +31,6 @@ import {
   getChallengingWords,
   getUserPracticeMetrics,
   getPracticeHistory,
-  getTodaysPracticeStats,
-  getTodaysActiveGoalIds,
-  setTodaysActiveGoalIds,
   countWordsAddedOnDate,
   getAchievementsUnlockedOnDate,
   GlobalStats,
@@ -45,9 +43,7 @@ import {
   ProfileStackParamList,
 } from "../../../types/navigation";
 import { eventStore } from "@/stores/eventStore";
-import { shuffle } from "@/utils/arrayUtils";
 import { pt } from "date-fns/locale";
-import { allPossibleDailyGoals, DailyGoal } from "../../../config/dailyGoals";
 import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
 import { useAchievements } from "../../../hooks/useAchievements";
 import { achievements, Achievement } from "../../../config/achievements";
@@ -80,8 +76,6 @@ export default function StatsScreen({ navigation }: Props) {
     []
   );
   const [practiceHistory, setPracticeHistory] = useState<PracticeHistory[]>([]);
-  const [todaysStats, setTodaysStats] = useState<PracticeHistory | null>(null);
-  const [activeDailyGoals, setActiveDailyGoals] = useState<DailyGoal[]>([]);
   const [timeRemaining, setTimeRemaining] = useState("");
 
   // State for modal animation
@@ -102,6 +96,10 @@ export default function StatsScreen({ navigation }: Props) {
     unlockedCount,
     loading: achievementsLoading,
   } = useAchievements();
+
+  // Obtém as metas diárias diretamente do store, que é a fonte única da verdade.
+  // Isto remove a lógica duplicada e garante consistência com o HomeScreen.
+  const { dailyGoals } = useUserStore();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -186,41 +184,16 @@ export default function StatsScreen({ navigation }: Props) {
     const fetchStats = async () => {
       try {
         setStatsLoading(true);
-        const [
-          globalStats,
-          challenging,
-          metrics,
-          history,
-          todaysPractice,
-          todaysActiveGoalIds,
-        ] = await Promise.all([
+        const [globalStats, challenging, metrics, history] = await Promise.all([
           getGlobalStats(),
           getChallengingWords(),
           getUserPracticeMetrics(),
           getPracticeHistory(),
-          getTodaysPracticeStats(),
-          getTodaysActiveGoalIds(),
         ]);
         setStats(globalStats);
         setChallengingWords(challenging);
         setUserMetrics(metrics);
         setPracticeHistory(history);
-        setTodaysStats(todaysPractice);
-
-        // --- Daily Goals Logic ---
-        let finalGoals: DailyGoal[] = [];
-        if (todaysActiveGoalIds) {
-          // Goals for today already exist, find them in the config
-          const goalMap = new Map(allPossibleDailyGoals.map((g) => [g.id, g]));
-          finalGoals = todaysActiveGoalIds
-            .map((id) => goalMap.get(id))
-            .filter((g): g is DailyGoal => !!g);
-        } else {
-          // First time today, shuffle and pick 3 new goals
-          finalGoals = shuffle([...allPossibleDailyGoals]).slice(0, 3);
-          await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
-        }
-        setActiveDailyGoals(finalGoals);
       } catch (error) {
         console.error("Failed to fetch stats:", error);
       } finally {
@@ -395,13 +368,13 @@ export default function StatsScreen({ navigation }: Props) {
               {timeRemaining}
             </AppText>
           </View>
-          {activeDailyGoals.map((goal) => (
+          {dailyGoals.map((goal) => (
             <DailyGoalProgress
               key={goal.id}
               icon={goal.icon}
               title={goal.title}
               target={goal.target}
-              current={goal.getCurrentProgress(todaysStats)}
+              current={goal.current}
             />
           ))}
         </View>
@@ -582,11 +555,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.colors.background,
   },
-  // centerContent: {
-  //   flex: 1,
-  //   justifyContent: "center",
-  //   alignItems: "center",
-  // },
   scrollContentContainer: {
     paddingHorizontal: 20,
     paddingBottom: 40,

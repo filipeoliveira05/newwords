@@ -16,13 +16,21 @@ import {
   getWeeklySummaryStats,
   getWordLearnedOnThisDay,
   getAchievementsCount,
+  countWordsAddedOnDate,
+  getAchievementsUnlockedOnDate,
   WeeklySummary,
   countWordsForPractice,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
-import { DailyGoal, allPossibleDailyGoals } from "../config/dailyGoals";
+import {
+  DailyGoal,
+  allPossibleDailyGoals,
+  DailyGoalContext,
+  goalCategories,
+} from "../config/dailyGoals";
 import { shuffle } from "../utils/arrayUtils";
 import { Word, Deck } from "../types/database";
+import { format } from "date-fns";
 
 // A DailyGoal with its progress calculated for the current day.
 type ProcessedDailyGoal = DailyGoal & {
@@ -85,6 +93,8 @@ export const useUserStore = create<UserState>((set) => ({
 
     set({ loading: true });
     try {
+      const todayStr = format(new Date(), "yyyy-MM-dd");
+
       // Primeiro, verifica e reinicia a streak diária se necessário.
       // Isto garante que os dados de gamificação estão corretos ANTES de serem obtidos.
       await checkAndResetDailyStreak();
@@ -117,6 +127,8 @@ export const useUserStore = create<UserState>((set) => ({
         getWordLearnedOnThisDay(),
         getAchievementsCount(),
         countWordsForPractice(),
+        countWordsAddedOnDate(todayStr),
+        getAchievementsUnlockedOnDate(todayStr),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -126,9 +138,35 @@ export const useUserStore = create<UserState>((set) => ({
           .map((id) => goalMap.get(id))
           .filter((g): g is DailyGoal => !!g);
       } else {
-        finalGoals = shuffle([...allPossibleDailyGoals]).slice(0, 3);
+        // Nova lógica: escolhe uma meta de cada categoria para garantir variedade.
+        const goalsByCategory = new Map<string, DailyGoal[]>();
+        allPossibleDailyGoals.forEach((goal) => {
+          if (!goalsByCategory.has(goal.category)) {
+            goalsByCategory.set(goal.category, []);
+          }
+          goalsByCategory.get(goal.category)!.push(goal);
+        });
+
+        const shuffledCategories = shuffle([...goalCategories]);
+
+        for (const category of shuffledCategories) {
+          const categoryGoals = goalsByCategory.get(category);
+          if (categoryGoals && categoryGoals.length > 0) {
+            const randomGoal = shuffle(categoryGoals)[0];
+            finalGoals.push(randomGoal);
+          }
+          if (finalGoals.length >= 3) break; // Garante que escolhemos apenas 3
+        }
         await setTodaysActiveGoalIds(finalGoals.map((g) => g.id));
       }
+
+      const goalContext: DailyGoalContext = {
+        todaysPractice,
+        wordsAddedToday: await countWordsAddedOnDate(todayStr),
+        achievementsUnlockedToday: (
+          await getAchievementsUnlockedOnDate(todayStr)
+        ).length,
+      };
 
       const lastDeckId = lastDeckIdStr ? parseInt(lastDeckIdStr, 10) : null;
       const lastDeck = lastDeckId ? await getDeckById(lastDeckId) : null;
@@ -143,7 +181,7 @@ export const useUserStore = create<UserState>((set) => ({
         },
         dailyGoals: finalGoals.map((g) => ({
           ...g,
-          current: g.getCurrentProgress(todaysPractice),
+          current: g.getCurrentProgress(goalContext),
         })),
         challengingWords: challenging,
         lastPracticedDeck: lastDeck,
