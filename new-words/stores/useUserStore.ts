@@ -18,6 +18,9 @@ import {
   getAchievementsCount,
   countWordsAddedOnDate,
   getAchievementsUnlockedOnDate,
+  countCorrectAnswersOnDate,
+  countDecksCreatedOnDate,
+  countWordsMasteredOnDate,
   WeeklySummary,
   countWordsForPractice,
 } from "../services/storage";
@@ -113,6 +116,11 @@ export const useUserStore = create<UserState>((set) => ({
         onThisDayWord,
         totalAchievements,
         urgentWordsCount,
+        wordsAddedToday,
+        unlockedAchievementsToday,
+        correctAnswersToday,
+        decksCreatedToday,
+        wordsMasteredToday,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
@@ -128,7 +136,10 @@ export const useUserStore = create<UserState>((set) => ({
         getAchievementsCount(),
         countWordsForPractice(),
         countWordsAddedOnDate(todayStr),
-        getAchievementsUnlockedOnDate(todayStr),
+        getAchievementsUnlockedOnDate(todayStr), // Returns string[]
+        countCorrectAnswersOnDate(todayStr), // Returns number
+        countDecksCreatedOnDate(todayStr),
+        countWordsMasteredOnDate(todayStr),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -162,10 +173,11 @@ export const useUserStore = create<UserState>((set) => ({
 
       const goalContext: DailyGoalContext = {
         todaysPractice,
-        wordsAddedToday: await countWordsAddedOnDate(todayStr),
-        achievementsUnlockedToday: (
-          await getAchievementsUnlockedOnDate(todayStr)
-        ).length,
+        wordsAddedToday,
+        achievementsUnlockedToday: unlockedAchievementsToday.length,
+        correctAnswersToday,
+        decksCreatedToday,
+        wordsMasteredToday,
       };
 
       const lastDeckId = lastDeckIdStr ? parseInt(lastDeckIdStr, 10) : null;

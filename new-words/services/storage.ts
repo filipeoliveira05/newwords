@@ -1283,6 +1283,45 @@ export async function countWordsAddedOnDate(date: string): Promise<number> {
   }
 }
 
+export async function countCorrectAnswersOnDate(date: string): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM practice_log WHERE practice_date = ? AND was_correct = 1",
+      [date]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar respostas corretas na data:", e);
+    throw e;
+  }
+}
+
+export async function countDecksCreatedOnDate(date: string): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM decks WHERE date(createdAt) = ?",
+      [date]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar decks criados na data:", e);
+    throw e;
+  }
+}
+
+export async function countWordsMasteredOnDate(date: string): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM words WHERE date(masteredAt) = ?",
+      [date]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar palavras dominadas na data:", e);
+    throw e;
+  }
+}
+
 // --- Daily Goal Functions ---
 
 export async function getTodaysActiveGoalIds(): Promise<string[] | null> {
