@@ -17,10 +17,12 @@ const images = {
   mascotBored: require("../assets/images/mascot/mascot_bored.png"),
   mascotSleepBook: require("../assets/images/mascot/mascot_sleep_book.png"),
   mascotSleepSofa: require("../assets/images/mascot/mascot_sleep_sofa.png"),
+  mascotSleepFloor: require("../assets/images/mascot/mascot_sleep_floor.png"),
   mascotRun: require("../assets/images/mascot/mascot_run.png"),
   mascotStretch: require("../assets/images/mascot/mascot_stretch.png"),
   mascotStudy: require("../assets/images/mascot/mascot_study.png"),
   mascotYawn: require("../assets/images/mascot/mascot_yawn.png"),
+  mascotYawn2: require("../assets/images/mascot/mascot_yawn2.png"),
   mascotWalk: require("../assets/images/mascot/mascot_walk.png"),
   mascotMeditate: require("../assets/images/mascot/mascot_meditate.png"),
   mascotMedal: require("../assets/images/mascot/mascot_medal.png"),
@@ -51,6 +53,14 @@ const images = {
   mascotPillowLaugh: require("../assets/images/mascot/mascot_pillowLaugh.png"),
   mascotPodium: require("../assets/images/mascot/mascot_podium.png"),
   mascotWindowSad: require("../assets/images/mascot/mascot_windowSad.png"),
+  mascotChip: require("../assets/images/mascot/mascot_chip.png"),
+  mascotConstruction: require("../assets/images/mascot/mascot_construction.png"),
+  mascotFlag: require("../assets/images/mascot/mascot_flag.png"),
+  mascotGear: require("../assets/images/mascot/mascot_gear.png"),
+  mascotHi: require("../assets/images/mascot/mascot_hi.png"),
+  mascotBeachNet: require("../assets/images/mascot/mascot_beachNet.png"),
+  mascotConstructionWarning: require("../assets/images/mascot/mascot_constructionWarning.png"),
+  mascotBooks2: require("../assets/images/mascot/mascot_books2.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
   mascotPlayGame: require("../assets/images/mascot/mascot_play_game.png"), // Onboarding 3
@@ -64,6 +74,7 @@ const images = {
   mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
   mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
   mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
+  mascotMapAmazed: require("../assets/images/mascot/mascot_map_amazed.png"),
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/mascot/mascot_study.png"),
