@@ -15,7 +15,8 @@ import { theme } from "../../../config/theme";
 import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
 import { eventStore } from "../../../stores/eventStore";
-import { AchievementToastInfo } from "../../../hooks/useAchievements";
+import { AchievementToastInfo } from "../../../stores/useAchievementStore";
+import { DailyGoalToastInfo } from "../../components/notifications/DailyGoalCompletedToast";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -132,6 +133,24 @@ const testAchievements: AchievementToastInfo[] = [
   },
 ];
 
+// Lista de metas de teste para o toast.
+const testGoals: DailyGoalToastInfo[] = [
+  {
+    id: "train_10_words",
+    title: "Treinar 10 palavras",
+    icon: "barbell",
+  },
+  {
+    id: "add_5_words",
+    title: "Adicionar 5 palavras",
+    icon: "addCircle",
+  },
+  {
+    id: "perfect_round",
+    title: "Completar uma ronda perfeita",
+    icon: "star",
+  },
+];
 const AccordionItem = ({
   question,
   answer,
@@ -174,6 +193,7 @@ const AccordionItem = ({
 
 const HelpScreen = ({ navigation }: Props) => {
   const [testAchievementIndex, setTestAchievementIndex] = useState(0);
+  const [testGoalIndex, setTestGoalIndex] = useState(0);
 
   const handleTestLevelUp = () => {
     // Dispara o evento de level up com um valor fixo para teste,
@@ -190,6 +210,15 @@ const HelpScreen = ({ navigation }: Props) => {
     setTestAchievementIndex(
       (prevIndex) => (prevIndex + 1) % testAchievements.length
     );
+  };
+
+  const handleTestDailyGoalCompleted = () => {
+    // Publica a meta atual da lista de testes.
+    eventStore
+      .getState()
+      .publish("dailyGoalCompleted", testGoals[testGoalIndex]);
+    // Avança para a próxima meta para o próximo clique.
+    setTestGoalIndex((prevIndex) => (prevIndex + 1) % testGoals.length);
   };
 
   const handleTestLevelUpScreen = () => {
@@ -334,6 +363,16 @@ const HelpScreen = ({ navigation }: Props) => {
           <Icon name="bug" size={22} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.contactButtonText}>
             Testar Toast de Conquista
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.contactButton}
+          activeOpacity={0.8}
+          onPress={handleTestDailyGoalCompleted}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Toast de Meta Diária
           </AppText>
         </TouchableOpacity>
         <TouchableOpacity

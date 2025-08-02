@@ -1270,45 +1270,6 @@ export async function getTodaysPracticeStats(): Promise<PracticeHistory | null> 
   }
 }
 
-export async function countWordsAddedOnDate(date: string): Promise<number> {
-  try {
-    const result = await db.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) as count FROM words WHERE date(createdAt) = ?",
-      [date]
-    );
-    return result?.count ?? 0;
-  } catch (e) {
-    console.error("Erro ao contar palavras adicionadas na data:", e);
-    throw e;
-  }
-}
-
-export async function countCorrectAnswersOnDate(date: string): Promise<number> {
-  try {
-    const result = await db.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) as count FROM practice_log WHERE practice_date = ? AND was_correct = 1",
-      [date]
-    );
-    return result?.count ?? 0;
-  } catch (e) {
-    console.error("Erro ao contar respostas corretas na data:", e);
-    throw e;
-  }
-}
-
-export async function countDecksCreatedOnDate(date: string): Promise<number> {
-  try {
-    const result = await db.getFirstAsync<{ count: number }>(
-      "SELECT COUNT(*) as count FROM decks WHERE date(createdAt) = ?",
-      [date]
-    );
-    return result?.count ?? 0;
-  } catch (e) {
-    console.error("Erro ao contar decks criados na data:", e);
-    throw e;
-  }
-}
-
 export async function countWordsMasteredOnDate(date: string): Promise<number> {
   try {
     const result = await db.getFirstAsync<{ count: number }>(
@@ -1351,6 +1312,99 @@ export async function getPerfectRoundsToday(): Promise<number> {
   } catch (e) {
     console.error("Erro ao obter rondas perfeitas de hoje:", e);
     return 0;
+  }
+}
+
+export async function incrementWordsAddedToday(): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `words_added_${todayStr}`;
+  try {
+    const currentCount = parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+    await setMetaValue(key, (currentCount + 1).toString());
+  } catch (e) {
+    console.error("Erro ao incrementar palavras adicionadas hoje:", e);
+  }
+}
+
+export async function getWordsAddedToday(): Promise<number> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `words_added_${todayStr}`;
+  try {
+    return parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+  } catch (e) {
+    console.error("Erro ao obter palavras adicionadas hoje:", e);
+    return 0;
+  }
+}
+
+export async function getWordsAddedOnDate(date: string): Promise<number> {
+  const key = `words_added_${date}`;
+  try {
+    return parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+  } catch (e) {
+    console.error(`Erro ao obter palavras adicionadas na data ${date}:`, e);
+    return 0;
+  }
+}
+
+export async function incrementDecksCreatedToday(): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `decks_created_${todayStr}`;
+  try {
+    const currentCount = parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+    await setMetaValue(key, (currentCount + 1).toString());
+  } catch (e) {
+    console.error("Erro ao incrementar decks criados hoje:", e);
+  }
+}
+
+export async function getDecksCreatedToday(): Promise<number> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `decks_created_${todayStr}`;
+  try {
+    return parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+  } catch (e) {
+    console.error("Erro ao obter decks criados hoje:", e);
+    return 0;
+  }
+}
+
+export async function countCorrectAnswersOnDate(date: string): Promise<number> {
+  try {
+    const result = await db.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) as count FROM practice_log WHERE practice_date = ? AND was_correct = 1",
+      [date]
+    );
+    return result?.count ?? 0;
+  } catch (e) {
+    console.error("Erro ao contar respostas corretas na data:", e);
+    throw e;
+  }
+}
+
+export async function getNotifiedGoalIdsToday(): Promise<string[]> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `notified_goals_${todayStr}`;
+  try {
+    const value = await getMetaValue(key, "[]");
+    return JSON.parse(value ?? "[]");
+  } catch (e) {
+    console.error("Erro ao obter IDs de metas notificadas hoje:", e);
+    return [];
+  }
+}
+
+export async function addNotifiedGoalIdToday(goalId: string): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `notified_goals_${todayStr}`;
+  try {
+    const currentIds = await getNotifiedGoalIdsToday();
+    if (!currentIds.includes(goalId)) {
+      const newIds = [...currentIds, goalId];
+      await setMetaValue(key, JSON.stringify(newIds));
+    }
+  } catch (e) {
+    console.error("Erro ao adicionar ID de meta notificada hoje:", e);
   }
 }
 

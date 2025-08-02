@@ -13,16 +13,19 @@ import Animated, {
   interpolate,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { usePracticeStore } from "@/stores/usePracticeStore";
 import { eventStore } from "@/stores/eventStore";
-import { AchievementToastInfo } from "@/stores/useAchievementStore";
-import { getAchievementRankColor } from "@/config/achievements";
 import AppText from "../AppText";
-import Icon from "../Icon";
+import Icon, { IconName } from "../Icon";
 import { theme } from "../../../config/theme";
 
-// Adiciona um ID para gerir múltiplos toasts na fila
-type ToastInfo = AchievementToastInfo & { id: number };
+// Information needed to display the toast
+export interface DailyGoalToastInfo {
+  id: string;
+  title: string;
+  icon: IconName;
+}
+
+type ToastInfo = DailyGoalToastInfo & { toastId: number };
 
 const NUM_PARTICLES = 15;
 const PARTICLE_SPREAD = 80;
@@ -66,7 +69,7 @@ const Particle = ({ trigger, config }: ParticleProps) => {
   );
 };
 
-const AchievementUnlockedToast = () => {
+const DailyGoalCompletedToast = () => {
   const [toastInfo, setToastInfo] = useState<ToastInfo | null>(null);
   const insets = useSafeAreaInsets();
 
@@ -75,28 +78,12 @@ const AchievementUnlockedToast = () => {
   const iconScale = useSharedValue(1);
   const particleTrigger = useSharedValue(0);
 
-  useEffect(() => {
-    const handleAchievementUnlocked = (data: AchievementToastInfo) => {
-      const { sessionState } = usePracticeStore.getState();
-      if (sessionState !== "in-progress") {
-        setToastInfo({ ...data, id: Date.now() });
-      }
-    };
-
-    const unsubscribe = eventStore
-      .getState()
-      .subscribe("achievementToast", handleAchievementUnlocked);
-    return () => unsubscribe();
-  }, []);
-
-  // Gera as configurações das partículas sempre que um novo toast aparece,
-  // para que as cores correspondam ao rank da conquista.
   const particleConfigs = useMemo(() => {
     if (!toastInfo) return [];
 
-    const primaryColor = getAchievementRankColor(toastInfo.rank);
-    // Usar uma cor secundária brilhante que combine bem com a maioria das cores de rank.
-    const secondaryColor = theme.colors.goldLighter;
+    // Usar a cor de sucesso do tema e uma cor secundária brilhante.
+    const primaryColor = theme.colors.success;
+    const secondaryColor = theme.colors.successLight;
 
     return Array.from({ length: NUM_PARTICLES }).map(() => {
       const angle = Math.random() * 2 * Math.PI;
@@ -111,12 +98,26 @@ const AchievementUnlockedToast = () => {
   }, [toastInfo]);
 
   useEffect(() => {
+    const handleGoalCompleted = (data: DailyGoalToastInfo) => {
+      // Adiciona um pequeno atraso para não colidir com o toast de conquista,
+      // que pode ser disparado pela mesma ação.
+      setTimeout(() => {
+        setToastInfo({ ...data, toastId: Date.now() });
+      }, 1200);
+    };
+
+    const unsubscribe = eventStore
+      .getState()
+      .subscribe("dailyGoalCompleted", handleGoalCompleted);
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (toastInfo) {
       // Reset de animações
       iconScale.value = 1;
       particleTrigger.value = 0;
-
-      // Animação de entrada do toast
+      // Animação de entrada
       translateY.value = withTiming(0, {
         duration: 400,
         easing: Easing.out(Easing.quad),
@@ -138,7 +139,7 @@ const AchievementUnlockedToast = () => {
         withTiming(1, { duration: 1000, easing: Easing.out(Easing.quad) })
       );
 
-      // Animação de saída do toast
+      // Animação de saída
       const timer = setTimeout(() => {
         translateY.value = withTiming(-50, {
           duration: 300,
@@ -168,8 +169,6 @@ const AchievementUnlockedToast = () => {
     return null;
   }
 
-  const iconColor = getAchievementRankColor(toastInfo.rank);
-
   return (
     <Animated.View
       style={[
@@ -185,7 +184,7 @@ const AchievementUnlockedToast = () => {
         <Animated.View
           style={[
             styles.iconCircle,
-            { backgroundColor: iconColor },
+            { backgroundColor: theme.colors.success },
             animatedIconStyle,
           ]}
         >
@@ -197,14 +196,11 @@ const AchievementUnlockedToast = () => {
           <Icon name={toastInfo.icon} size={24} color={theme.colors.surface} />
         </Animated.View>
         <View style={styles.textContainer}>
-          <AppText variant="bold" style={styles.headerText}>
-            CONQUISTA DESBLOQUEADA
+          <AppText variant="bold" style={styles.title}>
+            Meta Concluída!
           </AppText>
-          <AppText variant="bold" style={styles.title} numberOfLines={1}>
+          <AppText style={styles.subtitle} numberOfLines={1}>
             {toastInfo.title}
-          </AppText>
-          <AppText style={styles.subtitle} numberOfLines={2}>
-            {toastInfo.description}
           </AppText>
         </View>
       </LinearGradient>
@@ -223,7 +219,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 10,
     elevation: 8,
-    zIndex: 3000,
+    zIndex: 2900, // Um pouco abaixo do toast de conquista e level up
     overflow: "hidden",
   },
   gradient: {
@@ -238,11 +234,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: theme.colors.success,
     justifyContent: "center",
     alignItems: "center",
-    shadowColor: "#000",
+    shadowColor: theme.colors.success,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 5,
   },
@@ -257,18 +254,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   textContainer: { flex: 1, marginLeft: 12 },
-  headerText: {
-    fontSize: theme.fontSizes.xs,
-    color: theme.colors.primary,
-    marginBottom: 2,
-    letterSpacing: 0.5,
-  },
-  title: { fontSize: theme.fontSizes.lg, color: theme.colors.text },
+  title: { fontSize: theme.fontSizes.xl, color: theme.colors.text },
   subtitle: {
-    fontSize: theme.fontSizes.sm,
+    fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
-    marginTop: 2,
   },
 });
 
-export default AchievementUnlockedToast;
+export default DailyGoalCompletedToast;

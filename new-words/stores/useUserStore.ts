@@ -16,13 +16,17 @@ import {
   getWeeklySummaryStats,
   getWordLearnedOnThisDay,
   getAchievementsCount,
-  countWordsAddedOnDate,
   getAchievementsUnlockedOnDate,
   countCorrectAnswersOnDate,
-  countDecksCreatedOnDate,
   countWordsMasteredOnDate,
   getPerfectRoundsToday,
   getSessionCompletedToday,
+  getWordsAddedToday,
+  getNotifiedGoalIdsToday,
+  addNotifiedGoalIdToday,
+  incrementWordsAddedToday,
+  getDecksCreatedToday,
+  incrementDecksCreatedToday,
   incrementPerfectRoundsToday,
   setSessionCompletedToday,
   WeeklySummary,
@@ -121,10 +125,10 @@ export const useUserStore = create<UserState>((set) => ({
         onThisDayWord,
         totalAchievements,
         urgentWordsCount,
-        wordsAddedToday,
+        wordsAddedToday, // Agora vem da nova função
         unlockedAchievementsToday,
         correctAnswersToday,
-        decksCreatedToday,
+        decksCreatedToday, // Agora vem da nova função
         wordsMasteredToday,
         perfectRoundsToday,
         completedFavoriteSessionToday,
@@ -133,6 +137,7 @@ export const useUserStore = create<UserState>((set) => ({
         completedMultipleChoiceSessionToday,
         completedWritingSessionToday,
         completedCombineListsSessionToday,
+        notifiedGoalIdsToday,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
@@ -147,10 +152,10 @@ export const useUserStore = create<UserState>((set) => ({
         getWordLearnedOnThisDay(),
         getAchievementsCount(),
         countWordsForPractice(),
-        countWordsAddedOnDate(todayStr),
+        getWordsAddedToday(),
         getAchievementsUnlockedOnDate(todayStr), // Returns string[]
         countCorrectAnswersOnDate(todayStr), // Returns number
-        countDecksCreatedOnDate(todayStr),
+        getDecksCreatedToday(),
         countWordsMasteredOnDate(todayStr),
         getPerfectRoundsToday(),
         getSessionCompletedToday("favorite"),
@@ -159,6 +164,7 @@ export const useUserStore = create<UserState>((set) => ({
         getSessionCompletedToday("multiple-choice"),
         getSessionCompletedToday("writing"),
         getSessionCompletedToday("combine-lists"),
+        getNotifiedGoalIdsToday(),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -206,6 +212,40 @@ export const useUserStore = create<UserState>((set) => ({
         completedCombineListsSessionToday,
       };
 
+      const newProcessedGoals = finalGoals.map((g) => ({
+        ...g,
+        current: g.getCurrentProgress(goalContext),
+      }));
+
+      // Compara as metas antigas com as novas para detetar conclusões
+      const oldGoals = useUserStore.getState().dailyGoals;
+      const notifiedIdsSet = new Set(notifiedGoalIdsToday);
+      const notificationPromises: Promise<void>[] = [];
+
+      newProcessedGoals.forEach((newGoal) => {
+        const oldGoal = oldGoals.find((g) => g.id === newGoal.id);
+        const wasCompleted = oldGoal
+          ? oldGoal.current >= oldGoal.target
+          : false;
+        const isNowCompleted = newGoal.current >= newGoal.target;
+        const wasAlreadyNotified = notifiedIdsSet.has(newGoal.id);
+
+        if (isNowCompleted && !wasCompleted && !wasAlreadyNotified) {
+          eventStore.getState().publish("dailyGoalCompleted", {
+            id: newGoal.id,
+            title: newGoal.title,
+            icon: newGoal.icon,
+          });
+          // Persiste que a notificação para esta meta foi enviada hoje.
+          // Adiciona a promessa ao array para ser aguardada.
+          notificationPromises.push(addNotifiedGoalIdToday(newGoal.id));
+          notifiedIdsSet.add(newGoal.id);
+        }
+      });
+
+      // Garante que todas as operações de escrita na DB terminam antes de continuar.
+      await Promise.all(notificationPromises);
+
       const lastDeckId = lastDeckIdStr ? parseInt(lastDeckIdStr, 10) : null;
       const lastDeck = lastDeckId ? await getDeckById(lastDeckId) : null;
 
@@ -217,10 +257,7 @@ export const useUserStore = create<UserState>((set) => ({
           email: email ?? "",
           profilePictureUrl: profilePictureUrl ?? "",
         },
-        dailyGoals: finalGoals.map((g) => ({
-          ...g,
-          current: g.getCurrentProgress(goalContext),
-        })),
+        dailyGoals: newProcessedGoals,
         challengingWords: challenging,
         lastPracticedDeck: lastDeck,
         todaysPractice: todaysPractice,
@@ -313,16 +350,20 @@ eventStore
     }
   );
 
-eventStore.getState().subscribe("wordAdded", () => {
-  useUserStore.getState().addXP(5);
-  // Atualiza o contador de palavras em tempo real para o header.
-  useUserStore.setState((state) => ({ totalWords: state.totalWords + 1 }));
+eventStore.getState().subscribe("wordAdded", async () => {
+  await incrementWordsAddedToday();
+  useUserStore.getState().addXP(5); // Atribui XP
+  useUserStore.getState().fetchUserStats(); // Recalcula tudo, incluindo metas
+});
+
+eventStore.getState().subscribe("deckAdded", async () => {
+  await incrementDecksCreatedToday();
+  useUserStore.getState().fetchUserStats(); // Recalcula tudo, incluindo metas
 });
 
 // Ouve o evento de palavra apagada para manter o contador no header atualizado.
 eventStore.getState().subscribe("wordDeleted", () => {
   useUserStore.setState((state) => ({
-    // Garante que o contador não fica negativo
     totalWords: Math.max(0, state.totalWords - 1),
   }));
 });

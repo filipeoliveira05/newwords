@@ -81,13 +81,14 @@ Com uma base sólida para a prática e estatísticas, o foco agora muda para tor
   - [ ] **Gestão de Palavras Animada:** Adicionar uma animação de "fade in" às palavras quando o ecrã `AllWordsScreen` e `DeckDetailScreen` carrega pela primeira vez.
 - [ ] 🐞 **Bugs e Melhorias Técnicas:**
   - [ ] **Correções na Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática.
+  - [ ] **Modal**
 - [ ] ⚡ **Performance:**
   - [ ] **Listas:** Substituir `FlatList` por `FlashList` nos ecrãs com listas longas (ex: `DeckDetailScreen`).
 
 #### Nível 2: O Hábito (Engajamento e Retenção)
 
 - [ ] 🗺️ **Descoberta Guiada (Primeiros Passos):** Criar um sistema de missões simples para guiar os novos utilizadores pelas funcionalidades chave da aplicação.
-- [ ] 🎯 **Metas Diárias Diversificadas:** Criar categorias e adicionar mais tipos de metas diárias para evitar a repetição.
+- [ ] 🎯 **Metas Diárias Diversificadas:** Adicionar mais tipos de metas diárias para evitar a repetição.
 - [ ] 🚶 **Jornada de Níveis Visual:** Criar um ecrã que mostre a progressão de níveis do utilizador de forma visual e interativa, destacando os marcos alcançados.
 - [ ] 🔔 **Notificações Push Inteligentes:** Implementar lembretes para manter a streak, rever palavras difíceis, etc.
 - [ ] 🎲 **New Game Modes:**

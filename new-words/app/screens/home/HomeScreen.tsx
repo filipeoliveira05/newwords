@@ -48,6 +48,31 @@ export default function HomeScreen({ navigation }: Props) {
 
   const isFocused = useIsFocused();
 
+  useEffect(() => {
+    // Carrega os dados na primeira vez que o ecrã é montado.
+    fetchUserStats();
+
+    // Ouve os eventos relevantes para manter os dados do ecrã atualizados
+    // em tempo real, sem necessidade de recarregar no foco.
+    const eventsToSubscribe: string[] = [
+      "practiceSessionCompleted",
+      "achievementUnlocked",
+      "wordAdded",
+      "wordDeleted",
+      "deckDeleted",
+      "wordUpdated",
+    ];
+
+    const unsubscribers = eventsToSubscribe.map((event) =>
+      eventStore.getState().subscribe(event, fetchUserStats)
+    );
+
+    // Limpa todas as subscrições quando o componente é desmontado.
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [fetchUserStats]);
+
   const learningTips = useMemo(
     () => [
       {
@@ -61,24 +86,6 @@ export default function HomeScreen({ navigation }: Props) {
     ],
     []
   );
-
-  useEffect(() => {
-    // Carrega os dados quando o ecrã é montado
-    fetchUserStats();
-
-    // Ouve eventos para manter os dados atualizados sem recarregar tudo
-    const unsubPractice = eventStore
-      .getState()
-      .subscribe("practiceSessionCompleted", fetchUserStats);
-    const unsubAchievement = eventStore
-      .getState()
-      .subscribe("achievementUnlocked", fetchUserStats);
-
-    return () => {
-      unsubPractice();
-      unsubAchievement();
-    };
-  }, [fetchUserStats]);
 
   const [welcomeMessage, setWelcomeMessage] = useState("Bem-vindo(a)!");
   const [tipOfTheDay, setTipOfTheDay] = useState(learningTips[0]);

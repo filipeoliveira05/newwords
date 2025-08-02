@@ -31,17 +31,13 @@ import {
   getChallengingWords,
   getUserPracticeMetrics,
   getPracticeHistory,
-  countWordsAddedOnDate,
+  getWordsAddedOnDate,
   getAchievementsUnlockedOnDate,
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
   PracticeHistory,
 } from "../../../services/storage";
-import {
-  RootTabParamList,
-  ProfileStackParamList,
-} from "../../../types/navigation";
 import { eventStore } from "@/stores/eventStore";
 import { pt } from "date-fns/locale";
 import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
@@ -52,6 +48,10 @@ import {
   getAchievementRankColor,
 } from "../../../config/achievements";
 import AchievementsSummaryCard from "../../components/profile/AchievementsSummaryCard";
+import {
+  RootTabParamList,
+  ProfileStackParamList,
+} from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import Icon, { IconName } from "../../components/Icon";
 import { theme } from "../../../config/theme";
@@ -205,34 +205,26 @@ export default function StatsScreen({ navigation }: Props) {
       }
     };
 
-    fetchStats();
+    fetchStats(); // Carrega na primeira vez.
 
-    // Subscribe to multiple events to keep stats fresh.
-    const unsubscribePractice = eventStore
-      .getState()
-      .subscribe("practiceSessionCompleted", fetchStats);
-    const unsubscribeWordAdded = eventStore
-      .getState()
-      .subscribe("wordAdded", fetchStats);
-    const unsubscribeWordDeleted = eventStore
-      .getState()
-      .subscribe("wordDeleted", fetchStats);
-    const unsubscribeWordUpdated = eventStore
-      .getState()
-      .subscribe("wordUpdated", fetchStats);
-    const unsubscribeDeckDeleted = eventStore
-      .getState()
-      .subscribe("deckDeleted", fetchStats);
+    // Ouve os eventos para manter as estatísticas sempre atualizadas.
+    const eventsToSubscribe: string[] = [
+      "practiceSessionCompleted",
+      "wordAdded",
+      "wordDeleted",
+      "wordUpdated",
+      "deckDeleted",
+      "achievementUnlocked",
+    ];
 
-    // Cleanup function to unsubscribe from all events when the component unmounts.
+    const unsubscribers = eventsToSubscribe.map((event) =>
+      eventStore.getState().subscribe(event, fetchStats)
+    );
+
     return () => {
-      unsubscribePractice();
-      unsubscribeWordAdded();
-      unsubscribeWordDeleted();
-      unsubscribeWordUpdated();
-      unsubscribeDeckDeleted();
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
     };
-  }, []);
+  }, []); // Executa apenas uma vez para montar os listeners.
 
   const markedDates: MarkedDates = useMemo(() => {
     const getHeatmapColor = (count: number) => {
@@ -259,7 +251,7 @@ export default function StatsScreen({ navigation }: Props) {
       );
 
       const [wordsAddedCount, unlockedAchievementIds] = await Promise.all([
-        countWordsAddedOnDate(day.dateString),
+        getWordsAddedOnDate(day.dateString),
         getAchievementsUnlockedOnDate(day.dateString),
       ]);
 

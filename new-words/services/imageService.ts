@@ -74,7 +74,7 @@ const images = {
   mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
   mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
   mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
-  mascotMapAmazed: require("../assets/images/mascot/mascot_map_amazed.png"),
+  mascotMapAmazed: require("../assets/images/mascot/inspiration/mascot_map_amazed.png"),
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/mascot/mascot_study.png"),

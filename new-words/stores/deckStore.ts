@@ -68,6 +68,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
         masteredCount: 0,
       };
       set((state) => ({ decks: [newDeckWithCount, ...state.decks] }));
+      eventStore.getState().publish("deckAdded", { deckId: newDeckData.id });
     } catch (error) {
       console.error("Erro ao adicionar deck no store", error);
       throw error;

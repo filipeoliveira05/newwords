@@ -17,6 +17,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
+import { useAchievementStore } from "@/stores/useAchievementStore";
 import * as hapticService from "../../services/hapticService";
 import * as soundService from "../../services/soundService";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -60,6 +61,7 @@ import CustomAlert from "../components/CustomAlert";
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
 import LevelUpToast from "../components/notifications/LevelUpToast";
 import AchievementUnlockedToast from "../components/notifications/AchievementUnlockedToast";
+import DailyGoalCompletedToast from "../components/notifications/DailyGoalCompletedToast";
 import Icon from "../components/Icon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
@@ -327,6 +329,8 @@ export default function AppNavigator() {
   useEffect(() => {
     // Initialize league data when the app loads
     useLeagueStore.getState().checkAndInitializeLeagues();
+    // Initialize achievement store and listeners
+    useAchievementStore.getState().initialize();
     soundService.loadSounds();
   }, []);
 
@@ -459,6 +463,7 @@ export default function AppNavigator() {
         <CustomAlert />
         <LevelUpToast />
         <AchievementUnlockedToast />
+        <DailyGoalCompletedToast />
       </View>
     </BottomSheetModalProvider>
   );
