@@ -31,7 +31,7 @@ export type DailyGoal = {
 const practiceGoals: DailyGoal[] = [
   {
     id: "train_10_words",
-    title: "Treinar 10 palavras",
+    title: "Treina 10 palavras",
     icon: "barbell",
     category: "Prática",
     target: 10,
@@ -40,7 +40,7 @@ const practiceGoals: DailyGoal[] = [
   },
   {
     id: "train_30_words",
-    title: "Treinar 30 palavras",
+    title: "Treina 30 palavras",
     icon: "barbell",
     category: "Prática",
     target: 30,
@@ -49,7 +49,7 @@ const practiceGoals: DailyGoal[] = [
   },
   {
     id: "train_50_words",
-    title: "Treinar 50 palavras",
+    title: "Treina 50 palavras",
     icon: "barbell",
     category: "Prática",
     target: 50,
@@ -58,7 +58,7 @@ const practiceGoals: DailyGoal[] = [
   },
   {
     id: "complete_1_session",
-    title: "Completar 1 sessão",
+    title: "Completa 1 sessão",
     icon: "flashOutline",
     category: "Prática",
     target: 1,
@@ -132,7 +132,7 @@ const practiceGoals: DailyGoal[] = [
 const collectionGoals: DailyGoal[] = [
   {
     id: "add_3_words",
-    title: "Adicionar 3 palavras",
+    title: "Adiciona 3 palavras",
     icon: "addCircle",
     category: "Coleção",
     target: 3,
@@ -140,7 +140,7 @@ const collectionGoals: DailyGoal[] = [
   },
   {
     id: "add_5_words",
-    title: "Adicionar 5 palavras",
+    title: "Adiciona 5 palavras",
     icon: "addCircle",
     category: "Coleção",
     target: 5,
@@ -148,7 +148,7 @@ const collectionGoals: DailyGoal[] = [
   },
   {
     id: "create_1_deck",
-    title: "Criar 1 conjunto",
+    title: "Cria 1 conjunto",
     icon: "folder",
     category: "Coleção",
     target: 1,
@@ -159,7 +159,7 @@ const collectionGoals: DailyGoal[] = [
 const perfectionGoals: DailyGoal[] = [
   {
     id: "unlock_1_achievement",
-    title: "Desbloquear 1 conquista",
+    title: "Desbloqueia 1 conquista",
     icon: "ribbon",
     category: "Perfeição",
     target: 1,
@@ -168,7 +168,7 @@ const perfectionGoals: DailyGoal[] = [
   },
   {
     id: "get_20_correct",
-    title: "Acertar 20 palavras",
+    title: "Acerta 20 palavras",
     icon: "checkmark",
     category: "Perfeição",
     target: 20,
@@ -176,7 +176,7 @@ const perfectionGoals: DailyGoal[] = [
   },
   {
     id: "get_40_correct",
-    title: "Acertar 40 palavras",
+    title: "Acerta 40 palavras",
     icon: "checkmark",
     category: "Perfeição",
     target: 40,
@@ -184,7 +184,7 @@ const perfectionGoals: DailyGoal[] = [
   },
   {
     id: "master_1_word",
-    title: "Dominar 1 palavra",
+    title: "Domina 1 palavra",
     icon: "school",
     category: "Perfeição",
     target: 1,
@@ -192,7 +192,7 @@ const perfectionGoals: DailyGoal[] = [
   },
   {
     id: "master_3_words",
-    title: "Dominar 3 palavras",
+    title: "Domina 3 palavras",
     icon: "school",
     category: "Perfeição",
     target: 3,

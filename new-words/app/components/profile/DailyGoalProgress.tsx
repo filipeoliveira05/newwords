@@ -58,9 +58,15 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "baseline", // Alinha os textos pela sua base, ideal para diferentes tamanhos de fonte.
     marginBottom: 6,
   },
-  title: { fontSize: theme.fontSizes.base, color: theme.colors.textMedium },
+  title: {
+    flex: 1, // Garante que o título pode quebrar a linha sem empurrar o progresso.
+    marginRight: 8, // Adiciona um espaçamento para o texto de progresso.
+    fontSize: theme.fontSizes.base,
+    color: theme.colors.textMedium,
+  },
   progressText: {
     fontSize: theme.fontSizes.sm,
     color: theme.colors.textSecondary,
