@@ -44,8 +44,7 @@
 │   │   ├── navigation
 │   │   │   └── AnimatedTabBarIcon.tsx
 │   │   ├── notifications
-│   │   │   ├── AchievementUnlockedToast.tsx
-│   │   │   └── LevelUpToast.tsx
+│   │   │   └── NotificationToast.tsx
 │   │   ├── onboarding
 │   │   │   ├── OnboardingPaginator.tsx
 │   │   │   └── OnboardingSlide.tsx
@@ -143,8 +142,10 @@
 ├── stores
 │   ├── deckStore.ts
 │   ├── eventStore.ts
+│   ├── useAchievementStore.ts
 │   ├── useAlertStore.ts
 │   ├── useLeagueStore.ts
+│   ├── useNotificationStore.ts
 │   ├── usePracticeStore.ts
 │   ├── useSettingsStore.ts
 │   ├── useUserStore.ts
@@ -157,4 +158,4 @@
     ├── arrayUtils.ts
     └── sm2.ts
 
-35 directories, 122 files
+35 directories, 123 files

@@ -12,11 +12,10 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
-import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
-import { eventStore } from "../../../stores/eventStore";
-import { AchievementToastInfo } from "../../../stores/useAchievementStore";
-import { DailyGoalToastInfo } from "../../components/notifications/DailyGoalCompletedToast";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
+import { AchievementRank } from "../../../config/achievements";
+import Icon, { IconName } from "@/app/components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -94,8 +93,21 @@ const faqs = [
   },
 ];
 
-// Lista de conquistas de teste com diferentes ranks e categorias para o toast.
-const testAchievements: AchievementToastInfo[] = [
+// Tipos locais para os dados de teste, para clareza.
+interface TestAchievement {
+  icon: IconName;
+  title: string;
+  description: string;
+  rank?: AchievementRank;
+}
+
+interface TestGoal {
+  id: string;
+  title: string;
+  icon: IconName;
+}
+
+const testAchievements: TestAchievement[] = [
   {
     icon: "ribbon",
     title: "Caçador de Conquistas",
@@ -103,7 +115,7 @@ const testAchievements: AchievementToastInfo[] = [
     rank: "Bronze",
   },
   {
-    icon: "flame",
+    icon: "flameFilled",
     title: "Sequência Divina",
     description: "Atingiu uma sequência de 100 acertos.",
     rank: "Diamond",
@@ -112,7 +124,6 @@ const testAchievements: AchievementToastInfo[] = [
     icon: "school",
     title: "Domínio Inicial",
     description: "Dominou a sua primeira palavra. Continue assim!",
-    // Sem rank, a cor default (gold) será usada no toast.
   },
   {
     icon: "calendar",
@@ -121,7 +132,7 @@ const testAchievements: AchievementToastInfo[] = [
     rank: "Legendary",
   },
   {
-    icon: "flashOutline",
+    icon: "flash",
     title: "Vórtice de Palavras",
     description: "Treinou 150 palavras num único dia.",
     rank: "Master",
@@ -130,24 +141,24 @@ const testAchievements: AchievementToastInfo[] = [
     icon: "barbell",
     title: "Guerreiro do Fim de Semana",
     description: "Praticou durante um fim de semana.",
+    rank: "Silver",
   },
 ];
 
-// Lista de metas de teste para o toast.
-const testGoals: DailyGoalToastInfo[] = [
+const testGoals: TestGoal[] = [
   {
     id: "train_10_words",
-    title: "Treinar 10 palavras",
+    title: "Treina 10 palavras",
     icon: "barbell",
   },
   {
     id: "add_5_words",
-    title: "Adicionar 5 palavras",
+    title: "Adiciona 5 palavras",
     icon: "addCircle",
   },
   {
     id: "perfect_round",
-    title: "Completar uma ronda perfeita",
+    title: "Completa uma ronda perfeita",
     icon: "star",
   },
 ];
@@ -194,30 +205,41 @@ const AccordionItem = ({
 const HelpScreen = ({ navigation }: Props) => {
   const [testAchievementIndex, setTestAchievementIndex] = useState(0);
   const [testGoalIndex, setTestGoalIndex] = useState(0);
+  const { addNotification } = useNotificationStore();
 
   const handleTestLevelUp = () => {
-    // Dispara o evento de level up com um valor fixo para teste,
-    // sem depender do estado real do utilizador.
-    eventStore.getState().publish("levelUp", { newLevel: 10 });
+    addNotification({
+      id: `test-levelup-${Date.now()}`,
+      type: "levelUp",
+      title: "Nível 10",
+      newLevel: 10,
+      icon: "swapVertical",
+    });
   };
 
   const handleTestAchievementUnlocked = () => {
-    // Publica a conquista atual da lista de testes.
-    eventStore
-      .getState()
-      .publish("achievementToast", testAchievements[testAchievementIndex]);
-    // Avança para a próxima conquista para o próximo clique.
+    const achievement = testAchievements[testAchievementIndex];
+    addNotification({
+      id: `test-ach-${achievement.title.replace(/\s/g, "")}-${Date.now()}`,
+      type: "achievement",
+      title: achievement.title,
+      subtitle: achievement.description,
+      icon: achievement.icon,
+      rank: achievement.rank,
+    });
     setTestAchievementIndex(
       (prevIndex) => (prevIndex + 1) % testAchievements.length
     );
   };
 
   const handleTestDailyGoalCompleted = () => {
-    // Publica a meta atual da lista de testes.
-    eventStore
-      .getState()
-      .publish("dailyGoalCompleted", testGoals[testGoalIndex]);
-    // Avança para a próxima meta para o próximo clique.
+    const goal = testGoals[testGoalIndex];
+    addNotification({
+      id: goal.id,
+      type: "dailyGoal",
+      title: goal.title,
+      icon: goal.icon,
+    });
     setTestGoalIndex((prevIndex) => (prevIndex + 1) % testGoals.length);
   };
 

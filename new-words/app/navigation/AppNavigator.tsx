@@ -59,9 +59,7 @@ import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
 
 import CustomAlert from "../components/CustomAlert";
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
-import LevelUpToast from "../components/notifications/LevelUpToast";
-import AchievementUnlockedToast from "../components/notifications/AchievementUnlockedToast";
-import DailyGoalCompletedToast from "../components/notifications/DailyGoalCompletedToast";
+import NotificationToast from "../components/notifications/NotificationToast";
 import Icon from "../components/Icon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
@@ -461,9 +459,7 @@ export default function AppNavigator() {
           />
         </Tab.Navigator>
         <CustomAlert />
-        <LevelUpToast />
-        <AchievementUnlockedToast />
-        <DailyGoalCompletedToast />
+        <NotificationToast />
       </View>
     </BottomSheetModalProvider>
   );

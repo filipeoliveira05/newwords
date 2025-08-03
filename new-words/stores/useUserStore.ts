@@ -34,6 +34,7 @@ import {
   WeeklySummary,
   countWordsForPractice,
 } from "../services/storage";
+import { useNotificationStore } from "./useNotificationStore";
 import { eventStore } from "./eventStore";
 import {
   DailyGoal,
@@ -236,8 +237,9 @@ export const useUserStore = create<UserState>((set) => ({
         const wasAlreadyNotified = notifiedIdsSet.has(newGoal.id);
 
         if (isNowCompleted && !wasCompleted && !wasAlreadyNotified) {
-          eventStore.getState().publish("dailyGoalCompleted", {
+          useNotificationStore.getState().addNotification({
             id: newGoal.id,
+            type: "dailyGoal",
             title: newGoal.title,
             icon: newGoal.icon,
           });
@@ -300,7 +302,13 @@ export const useUserStore = create<UserState>((set) => ({
 
       if (didLevelUp) {
         // Publica um evento para que a notificação toast possa aparecer.
-        eventStore.getState().publish("levelUp", { newLevel });
+        useNotificationStore.getState().addNotification({
+          id: `levelup-${newLevel}`,
+          type: "levelUp",
+          title: `Nível ${newLevel}`,
+          newLevel,
+          icon: "swapVertical",
+        });
       }
 
       // Publica um evento geral de atualização de XP

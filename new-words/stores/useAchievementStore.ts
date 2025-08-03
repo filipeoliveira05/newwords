@@ -15,6 +15,7 @@ import {
 } from "../config/achievements";
 import { IconName } from "../app/components/Icon";
 import { eventStore } from "./eventStore";
+import { useNotificationStore } from "./useNotificationStore";
 
 export interface AchievementToastInfo {
   icon: IconName;
@@ -108,15 +109,17 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
         await unlockAchievements(newIds);
         eventStore.getState().publish("achievementUnlocked", {});
 
-        newlyUnlocked.forEach((ach, index) => {
-          setTimeout(() => {
-            eventStore.getState().publish("achievementToast", {
-              icon: ach.icon,
-              title: ach.title,
-              rank: ach.rank,
-              description: ach.description,
-            });
-          }, index * 800);
+        // Adiciona cada nova conquista à fila de notificações centralizada.
+        // O sistema de fila tratará de as exibir uma a uma, sem sobreposição.
+        newlyUnlocked.forEach((ach) => {
+          useNotificationStore.getState().addNotification({
+            id: ach.id,
+            type: "achievement",
+            title: ach.title,
+            subtitle: ach.description,
+            icon: ach.icon,
+            rank: ach.rank,
+          });
         });
       }
 
