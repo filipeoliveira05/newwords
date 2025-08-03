@@ -1382,6 +1382,32 @@ export async function countCorrectAnswersOnDate(date: string): Promise<number> {
   }
 }
 
+export async function getHighestStreakToday(): Promise<number> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `highest_streak_${todayStr}`;
+  try {
+    return parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+  } catch (e) {
+    console.error("Erro ao obter a maior sequência de hoje:", e);
+    return 0;
+  }
+}
+
+export async function updateHighestStreakToday(
+  currentStreak: number
+): Promise<void> {
+  const todayStr = format(new Date(), "yyyy-MM-dd");
+  const key = `highest_streak_${todayStr}`;
+  try {
+    const highestToday = parseInt((await getMetaValue(key, "0")) ?? "0", 10);
+    if (currentStreak > highestToday) {
+      await setMetaValue(key, currentStreak.toString());
+    }
+  } catch (e) {
+    console.error("Erro ao atualizar a maior sequência de hoje:", e);
+  }
+}
+
 export async function getNotifiedGoalIdsToday(): Promise<string[]> {
   const todayStr = format(new Date(), "yyyy-MM-dd");
   const key = `notified_goals_${todayStr}`;

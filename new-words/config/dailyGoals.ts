@@ -9,6 +9,7 @@ export type DailyGoalContext = {
   achievementsUnlockedToday: number;
   correctAnswersToday: number;
   decksCreatedToday: number;
+  highestStreakToday: number;
   wordsMasteredToday: number;
   perfectRoundsToday: number;
   completedFavoriteSessionToday: boolean;
@@ -64,14 +65,6 @@ const practiceGoals: DailyGoal[] = [
     target: 1,
     getCurrentProgress: ({ todaysPractice }) =>
       todaysPractice && todaysPractice.words_trained > 0 ? 1 : 0,
-  },
-  {
-    id: "perfect_round",
-    title: "Completa uma ronda perfeita",
-    icon: "star",
-    category: "Prática",
-    target: 1,
-    getCurrentProgress: ({ perfectRoundsToday }) => perfectRoundsToday,
   },
   {
     id: "practice_favorites",
@@ -158,6 +151,30 @@ const collectionGoals: DailyGoal[] = [
 
 const perfectionGoals: DailyGoal[] = [
   {
+    id: "get_10_streak",
+    title: "Atinge uma sequência de 10 acertos",
+    icon: "flame",
+    category: "Perfeição",
+    target: 10,
+    getCurrentProgress: ({ highestStreakToday }) => highestStreakToday,
+  },
+  {
+    id: "get_15_streak",
+    title: "Atinge uma sequência de 15 acertos",
+    icon: "flame",
+    category: "Perfeição",
+    target: 15,
+    getCurrentProgress: ({ highestStreakToday }) => highestStreakToday,
+  },
+  {
+    id: "get_20_streak",
+    title: "Atinge uma sequência de 20 acertos",
+    icon: "flame",
+    category: "Perfeição",
+    target: 20,
+    getCurrentProgress: ({ highestStreakToday }) => highestStreakToday,
+  },
+  {
     id: "unlock_1_achievement",
     title: "Desbloqueia 1 conquista",
     icon: "ribbon",
@@ -181,6 +198,14 @@ const perfectionGoals: DailyGoal[] = [
     category: "Perfeição",
     target: 40,
     getCurrentProgress: ({ correctAnswersToday }) => correctAnswersToday,
+  },
+  {
+    id: "perfect_round",
+    title: "Completa uma ronda perfeita",
+    icon: "star",
+    category: "Perfeição",
+    target: 1,
+    getCurrentProgress: ({ perfectRoundsToday }) => perfectRoundsToday,
   },
   {
     id: "master_1_word",

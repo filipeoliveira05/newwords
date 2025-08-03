@@ -22,6 +22,8 @@ import {
   getPerfectRoundsToday,
   getSessionCompletedToday,
   getWordsAddedToday,
+  getHighestStreakToday,
+  updateHighestStreakToday,
   getNotifiedGoalIdsToday,
   addNotifiedGoalIdToday,
   incrementWordsAddedToday,
@@ -138,6 +140,7 @@ export const useUserStore = create<UserState>((set) => ({
         completedWritingSessionToday,
         completedCombineListsSessionToday,
         notifiedGoalIdsToday,
+        highestStreakToday,
       ] = await Promise.all([
         getGamificationStats(),
         getTodaysPracticeStats(),
@@ -165,6 +168,7 @@ export const useUserStore = create<UserState>((set) => ({
         getSessionCompletedToday("writing"),
         getSessionCompletedToday("combine-lists"),
         getNotifiedGoalIdsToday(),
+        getHighestStreakToday(),
       ]);
 
       let finalGoals: DailyGoal[] = [];
@@ -202,6 +206,7 @@ export const useUserStore = create<UserState>((set) => ({
         achievementsUnlockedToday: unlockedAchievementsToday.length,
         correctAnswersToday,
         decksCreatedToday,
+        highestStreakToday,
         wordsMasteredToday,
         perfectRoundsToday,
         completedFavoriteSessionToday,
@@ -373,6 +378,16 @@ eventStore.getState().subscribe<object>("perfectRoundCompleted", async () => {
   // Recalcula as metas para refletir o progresso
   useUserStore.getState().fetchUserStats();
 });
+
+eventStore
+  .getState()
+  .subscribe<{ newStreak: number }>("streakUpdated", async ({ newStreak }) => {
+    // Atualiza a maior sequência do dia na base de dados.
+    await updateHighestStreakToday(newStreak);
+    // Recalcula as metas para que o progresso seja refletido em tempo real.
+    // Esta chamada é otimizada para não correr em duplicado se já estiver em progresso.
+    useUserStore.getState().fetchUserStats();
+  });
 
 eventStore
   .getState()

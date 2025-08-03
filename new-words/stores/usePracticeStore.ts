@@ -170,6 +170,10 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     // Publica sempre o evento de resposta correta para que o XP seja atribuído.
     if (isCorrect) {
       eventStore.getState().publish("answerRecorded", { wordId, quality });
+      // Publica a atualização da sequência para que as metas diárias possam
+      // ser atualizadas em tempo real.
+      const newStreak = get().streak + 1;
+      eventStore.getState().publish("streakUpdated", { newStreak });
     }
 
     set((state) => {
