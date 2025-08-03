@@ -51,7 +51,10 @@ const images = {
   mascotChecklist: require("../assets/images/mascot/mascot_checklist.png"),
   mascotMelancholic: require("../assets/images/mascot/mascot_melancholic.png"),
   mascotPillowLaugh: require("../assets/images/mascot/mascot_pillowLaugh.png"),
-  mascotPodium: require("../assets/images/mascot/mascot_podium.png"),
+  mascotPodiumCompleteFirst: require("../assets/images/mascot/mascot_podium_complete_first.png"),
+  mascotPodiumCompleteSecond: require("../assets/images/mascot/mascot_podium_complete_second.png"),
+  mascotPodiumSimpleThird: require("../assets/images/mascot/mascot_podium_simple_third.png"),
+  mascotPodiumCompleteThird: require("../assets/images/mascot/mascot_podium_complete_third.png"),
   mascotWindowSad: require("../assets/images/mascot/mascot_windowSad.png"),
   mascotChip: require("../assets/images/mascot/mascot_chip.png"),
   mascotConstruction: require("../assets/images/mascot/mascot_construction.png"),
@@ -60,6 +63,7 @@ const images = {
   mascotHi: require("../assets/images/mascot/mascot_hi.png"),
   mascotBeachNet: require("../assets/images/mascot/mascot_beachNet.png"),
   mascotConstructionWarning: require("../assets/images/mascot/mascot_constructionWarning.png"),
+  mascotAstronaut: require("../assets/images/mascot/mascot_astronaut.png"),
   mascotBooks2: require("../assets/images/mascot/mascot_books2.png"),
   mascotBooks: require("../assets/images/mascot/mascot_books.png"), // Onboarding 1
   mascotThink: require("../assets/images/mascot/mascot_think.png"), // Onboarding 2
@@ -75,6 +79,8 @@ const images = {
   mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
   mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
   mascotMapAmazed: require("../assets/images/mascot/inspiration/mascot_map_amazed.png"),
+  mascotPodiumSimpleThird2: require("../assets/images/mascot/inspiration/mascot_podium_simple_third2.png"),
+  mascotPodiumCompleteSecond2: require("../assets/images/mascot/inspiration/mascot_podium_complete_second2.png"),
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/mascot/mascot_study.png"),
