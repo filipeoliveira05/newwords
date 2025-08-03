@@ -4,23 +4,10 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   useLayoutEffect,
 } from "react";
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Modal,
-  Pressable,
-} from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-  Easing,
-} from "react-native-reanimated";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { format, parseISO } from "date-fns";
 import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
@@ -39,6 +26,11 @@ import {
   PracticeHistory,
 } from "../../../services/storage";
 import { eventStore } from "@/stores/eventStore";
+import {
+  BottomSheetModal,
+  BottomSheetBackdrop,
+  BottomSheetScrollView,
+} from "@gorhom/bottom-sheet";
 import { pt } from "date-fns/locale";
 import DailyGoalProgress from "../../components/profile/DailyGoalProgress";
 import { useAchievements } from "../../../hooks/useAchievements";
@@ -81,13 +73,7 @@ export default function StatsScreen({ navigation }: Props) {
   );
   const [practiceHistory, setPracticeHistory] = useState<PracticeHistory[]>([]);
   const [timeRemaining, setTimeRemaining] = useState("");
-
-  // State for modal animation
-  const [isModalRendered, setIsModalRendered] = useState(false);
-  const overlayOpacity = useSharedValue(0);
-  const modalTranslateY = useSharedValue(300);
-
-  const [isDayDetailModalVisible, setIsDayDetailModalVisible] = useState(false);
+  const dayDetailSheetRef = useRef<BottomSheetModal>(null);
   const [selectedDayData, setSelectedDayData] = useState<{
     date: string;
     words_trained: number;
@@ -142,47 +128,6 @@ export default function StatsScreen({ navigation }: Props) {
 
     return () => clearInterval(timerId);
   }, []);
-
-  // Effect to handle modal open/close animations
-  useEffect(() => {
-    if (isDayDetailModalVisible) {
-      setIsModalRendered(true);
-      overlayOpacity.value = withTiming(1, { duration: 250 });
-      modalTranslateY.value = withTiming(0, {
-        duration: 300,
-        easing: Easing.out(Easing.quad),
-      });
-    } else if (isModalRendered) {
-      // Only run close animation if it was rendered
-      overlayOpacity.value = withTiming(0, { duration: 250 });
-      modalTranslateY.value = withTiming(
-        300,
-        { duration: 300, easing: Easing.out(Easing.quad) },
-        (finished) => {
-          if (finished) {
-            runOnJS(setIsModalRendered)(false);
-          }
-        }
-      );
-    }
-  }, [
-    isDayDetailModalVisible,
-    isModalRendered,
-    overlayOpacity,
-    modalTranslateY,
-  ]);
-
-  const animatedOverlayStyle = useAnimatedStyle(() => {
-    return {
-      opacity: overlayOpacity.value,
-    };
-  });
-
-  const animatedModalStyle = useAnimatedStyle(() => {
-    return {
-      transform: [{ translateY: modalTranslateY.value }],
-    };
-  });
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -270,7 +215,7 @@ export default function StatsScreen({ navigation }: Props) {
           words_added: wordsAddedCount,
           unlocked_achievements: unlockedAchievements,
         });
-        setIsDayDetailModalVisible(true);
+        dayDetailSheetRef.current?.present();
       }
     },
     [practiceHistory]
@@ -311,6 +256,17 @@ export default function StatsScreen({ navigation }: Props) {
     today: "Hoje",
   };
   LocaleConfig.defaultLocale = "pt";
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+      />
+    ),
+    []
+  );
 
   const loading = statsLoading || achievementsLoading;
 
@@ -446,102 +402,97 @@ export default function StatsScreen({ navigation }: Props) {
       </ScrollView>
 
       {/* Day Detail Modal */}
-      <Modal
-        visible={isModalRendered}
-        transparent
-        animationType="none"
-        onRequestClose={() => setIsDayDetailModalVisible(false)}
+      <BottomSheetModal
+        ref={dayDetailSheetRef}
+        // A propriedade `enableDynamicSizing` substitui a necessidade do hook `useBottomSheetDynamicSnapPoints`
+        // e ajusta automaticamente a altura do sheet ao conteúdo, resolvendo o erro de tipo.
+        enableDynamicSizing
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        backgroundStyle={styles.bottomSheetBackground}
+        handleIndicatorStyle={styles.modalHandle}
       >
-        <Animated.View style={[styles.modalOverlay, animatedOverlayStyle]}>
-          <Pressable
-            style={StyleSheet.absoluteFill}
-            onPress={() => setIsDayDetailModalVisible(false)}
-          />
-          <Animated.View style={[styles.modalContainer, animatedModalStyle]}>
-            <View style={styles.modalHandle} />
-            <View style={styles.modalHeader}>
-              <AppText variant="bold" style={styles.modalTitle}>
-                Detalhes do Dia
-              </AppText>
-              <TouchableOpacity
-                style={styles.closeButton}
-                activeOpacity={0.8}
-                onPress={() => setIsDayDetailModalVisible(false)}
-              >
-                <Icon name="close" size={24} color={theme.colors.icon} />
-              </TouchableOpacity>
-            </View>
-            {selectedDayData && (
-              <View style={styles.dayDetailContent}>
-                <AppText style={styles.dayDetailDate}>
-                  {format(
-                    parseISO(selectedDayData.date),
-                    "EEEE, dd 'de' MMMM 'de' yyyy",
-                    { locale: pt }
-                  )}
-                </AppText>
-                {/* Palavras Adicionadas - sempre visível */}
-                <View style={styles.dayDetailStat}>
-                  <Icon
-                    name="addCircle"
-                    size={24}
-                    color={theme.colors.success}
-                  />
-                  <AppText style={styles.dayDetailStatText}>
-                    <AppText variant="bold">
-                      {selectedDayData.words_added}
-                    </AppText>
-                    {selectedDayData.words_added === 1
-                      ? " palavra adicionada"
-                      : " palavras adicionadas"}
-                  </AppText>
-                </View>
-
-                {/* Palavras Praticadas - sempre visível */}
-                <View style={styles.dayDetailStat}>
-                  <Icon
-                    name="flashOutline"
-                    size={24}
-                    color={theme.colors.primary}
-                  />
-                  <AppText style={styles.dayDetailStatText}>
-                    <AppText variant="bold">
-                      {selectedDayData.words_trained}
-                    </AppText>
-                    {selectedDayData.words_trained === 1
-                      ? " palavra praticada"
-                      : " palavras praticadas"}
-                  </AppText>
-                </View>
-
-                {/* Conquistas - visível apenas se > 0 */}
-                {selectedDayData.unlocked_achievements.length > 0 && (
-                  <View style={styles.dayDetailSection}>
-                    <AppText
-                      variant="medium"
-                      style={styles.dayDetailSectionTitle}
-                    >
-                      Conquistas Desbloqueadas
-                    </AppText>
-                    {selectedDayData.unlocked_achievements.map((ach) => (
-                      <View key={ach.id} style={styles.dayDetailStat}>
-                        <Icon
-                          name={ach.icon as IconName}
-                          size={24}
-                          color={getAchievementRankColor(ach.rank)}
-                        />
-                        <AppText style={styles.dayDetailStatText}>
-                          {ach.title}
-                        </AppText>
-                      </View>
-                    ))}
-                  </View>
+        <BottomSheetScrollView
+          contentContainerStyle={styles.bottomSheetContent}
+        >
+          <View style={styles.modalHeader}>
+            <AppText variant="bold" style={styles.modalTitle}>
+              Detalhes do Dia
+            </AppText>
+            <TouchableOpacity
+              style={styles.closeButton}
+              activeOpacity={0.8}
+              onPress={() => dayDetailSheetRef.current?.dismiss()}
+            >
+              <Icon name="close" size={24} color={theme.colors.icon} />
+            </TouchableOpacity>
+          </View>
+          {selectedDayData && (
+            <View style={styles.dayDetailContent}>
+              <AppText style={styles.dayDetailDate}>
+                {format(
+                  parseISO(selectedDayData.date),
+                  "EEEE, dd 'de' MMMM 'de' yyyy",
+                  { locale: pt }
                 )}
+              </AppText>
+              {/* Palavras Adicionadas - sempre visível */}
+              <View style={styles.dayDetailStat}>
+                <Icon name="addCircle" size={24} color={theme.colors.success} />
+                <AppText style={styles.dayDetailStatText}>
+                  <AppText variant="bold">
+                    {selectedDayData.words_added}
+                  </AppText>
+                  {selectedDayData.words_added === 1
+                    ? " palavra adicionada"
+                    : " palavras adicionadas"}
+                </AppText>
               </View>
-            )}
-          </Animated.View>
-        </Animated.View>
-      </Modal>
+
+              {/* Palavras Praticadas - sempre visível */}
+              <View style={styles.dayDetailStat}>
+                <Icon
+                  name="flashOutline"
+                  size={24}
+                  color={theme.colors.primary}
+                />
+                <AppText style={styles.dayDetailStatText}>
+                  <AppText variant="bold">
+                    {selectedDayData.words_trained}
+                  </AppText>
+                  {selectedDayData.words_trained === 1
+                    ? " palavra praticada"
+                    : " palavras praticadas"}
+                </AppText>
+              </View>
+
+              {/* Conquistas - visível apenas se > 0 */}
+              {selectedDayData.unlocked_achievements.length > 0 && (
+                <View style={styles.dayDetailSection}>
+                  <AppText
+                    variant="medium"
+                    style={styles.dayDetailSectionTitle}
+                  >
+                    Conquistas Desbloqueadas
+                  </AppText>
+                  {selectedDayData.unlocked_achievements.map((ach) => (
+                    <View key={ach.id} style={styles.dayDetailStat}>
+                      <Icon
+                        name={ach.icon as IconName}
+                        size={24}
+                        color={getAchievementRankColor(ach.rank)}
+                      />
+                      <AppText style={styles.dayDetailStatText}>
+                        {ach.title}
+                      </AppText>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
+          )}
+        </BottomSheetScrollView>
+      </BottomSheetModal>
     </View>
   );
 }
@@ -622,21 +573,12 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.md,
     marginLeft: 8,
   },
-  // loadingText: {
-  //   marginTop: 10,
-  //   color: theme.colors.textSecondary,
-  // },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: theme.colors.overlay,
-    justifyContent: "flex-end",
-  },
-  modalContainer: {
+  bottomSheetBackground: {
     backgroundColor: theme.colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    paddingTop: 12,
+  },
+  bottomSheetContent: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
   },
   modalHandle: {
     width: 40,
@@ -650,17 +592,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: -18,
+    marginBottom: 24,
   },
   modalTitle: {
-    fontSize: theme.fontSizes.xl,
+    fontSize: theme.fontSizes["2xl"],
+    color: theme.colors.text,
   },
   closeButton: {
     padding: 8,
   },
-  dayDetailContent: {
-    paddingTop: 16,
-  },
+  dayDetailContent: {},
   dayDetailDate: {
     fontSize: theme.fontSizes.base,
     color: theme.colors.textSecondary,
