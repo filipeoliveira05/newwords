@@ -55,6 +55,7 @@ import StatsScreen from "../screens/profile/StatsScreen";
 import AchievementsScreen from "../screens/profile/AchievementsScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
+import LevelJourneyScreen from "../screens/profile/LevelJourneyScreen";
 import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
 
 import CustomAlert from "../components/CustomAlert";
@@ -133,6 +134,7 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
     "PracticeLoading",
     "Account",
     "EditAccount",
+    "LevelJourney",
     "Stats",
     "Achievements",
     "Settings",
@@ -301,6 +303,10 @@ function ProfileStack() {
       <ProfileStackNav.Screen
         name="Achievements"
         component={AchievementsScreen}
+      />
+      <ProfileStackNav.Screen
+        name="LevelJourney"
+        component={LevelJourneyScreen}
       />
       <ProfileStackNav.Screen name="Account" component={AccountScreen} />
       <ProfileStackNav.Screen

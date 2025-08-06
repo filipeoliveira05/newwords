@@ -9,6 +9,7 @@ import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 import Icon, { IconName } from "../Icon";
 import {
+  ProfileStackParamList,
   RootTabParamList,
   HomeStackParamList,
 } from "../../../types/navigation";
@@ -33,8 +34,8 @@ const StatItem = ({
 
 // Helper function to format large numbers for display
 const formatXp = (num: number): string => {
-  if (num >= 10000) {
-    // For numbers >= 10k, use 'k' notation with one decimal place
+  if (num >= 1000) {
+    // For numbers >= 1k, use 'k' notation with one decimal place
     return `${(num / 1000).toFixed(1)}k`.replace(".0", "");
   }
   // For smaller numbers, show the full value
@@ -46,29 +47,37 @@ const LevelProgress = ({
   level,
   xp,
   xpForNextLevel,
+  onPress,
 }: {
   level: number;
   xp: number;
   xpForNextLevel: number;
+  onPress: () => void;
 }) => {
   const progress = xpForNextLevel > 0 ? (xp / xpForNextLevel) * 100 : 0;
 
   return (
-    <View style={styles.levelContainer}>
-      <View style={styles.levelCircle}>
-        <AppText variant="bold" style={styles.levelText}>
-          {level}
-        </AppText>
-      </View>
-      <View style={styles.xpBarContainer}>
-        <View style={styles.progressBarBackground}>
-          <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+    <TouchableOpacity
+      style={styles.levelContainer}
+      activeOpacity={0.8}
+      onPress={onPress}
+    >
+      <>
+        <View style={styles.levelCircle}>
+          <AppText variant="bold" style={styles.levelText}>
+            {level}
+          </AppText>
         </View>
-        <AppText style={styles.xpText} numberOfLines={1}>
-          {formatXp(xp)} / {formatXp(xpForNextLevel)}
-        </AppText>
-      </View>
-    </View>
+        <View style={styles.xpBarContainer}>
+          <View style={styles.progressBarBackground}>
+            <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+          </View>
+          <AppText style={styles.xpText} numberOfLines={1}>
+            {formatXp(xp)} / {formatXp(xpForNextLevel)}
+          </AppText>
+        </View>
+      </>
+    </TouchableOpacity>
   );
 };
 
@@ -76,7 +85,12 @@ type GamificationHeaderProps = {
   navigation: CompositeNavigationProp<
     NativeStackNavigationProp<HomeStackParamList, "HomeDashboard">,
     BottomTabNavigationProp<RootTabParamList>
-  >;
+  > & {
+    navigate: (
+      stack: "Profile",
+      screen: { screen: keyof ProfileStackParamList }
+    ) => void;
+  };
 };
 
 const GamificationHeader = ({ navigation }: GamificationHeaderProps) => {
@@ -94,9 +108,18 @@ const GamificationHeader = ({ navigation }: GamificationHeaderProps) => {
     navigation.navigate("Profile", { screen: "Achievements" });
   };
 
+  const navigateToLevelJourney = () => {
+    navigation.navigate("Profile", { screen: "LevelJourney" });
+  };
+
   return (
     <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
-      <LevelProgress level={level} xp={xp} xpForNextLevel={xpForNextLevel} />
+      <LevelProgress
+        level={level}
+        xp={xp}
+        xpForNextLevel={xpForNextLevel}
+        onPress={navigateToLevelJourney}
+      />
       <View style={styles.separator} />
       <StatItem
         icon="flame"
@@ -165,7 +188,7 @@ const styles = StyleSheet.create({
     fontSize: theme.fontSizes.lg,
   },
   xpBarContainer: {
-    width: 75, // Give the bar a bit more space
+    width: 80, // Largura fixa para a barra de progresso
     marginTop: 6,
   },
   progressBarBackground: {

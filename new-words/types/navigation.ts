@@ -56,6 +56,7 @@ export type ProfileStackParamList = {
   Stats: undefined;
   Achievements: undefined;
   LevelUpTest: undefined;
+  LevelJourney: undefined;
 };
 
 export type RootTabParamList = {

@@ -7,12 +7,15 @@ import {
   LayoutAnimation,
 } from "react-native";
 import * as Linking from "expo-linking";
+import Toast from "react-native-toast-message";
 import * as StoreReview from "expo-store-review";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import * as hapticService from "../../../services/hapticService";
+import { useUserStore } from "../../../stores/useUserStore";
+import { seedLevelUpHistory } from "../../../services/storage";
 import { useNotificationStore } from "../../../stores/useNotificationStore";
 import { AchievementRank } from "../../../config/achievements";
 import Icon, { IconName } from "@/app/components/Icon";
@@ -206,6 +209,7 @@ const HelpScreen = ({ navigation }: Props) => {
   const [testAchievementIndex, setTestAchievementIndex] = useState(0);
   const [testGoalIndex, setTestGoalIndex] = useState(0);
   const { addNotification } = useNotificationStore();
+  const { fetchUserStats } = useUserStore.getState();
 
   const handleTestLevelUp = () => {
     addNotification({
@@ -245,6 +249,20 @@ const HelpScreen = ({ navigation }: Props) => {
 
   const handleTestLevelUpScreen = () => {
     navigation.navigate("LevelUpTest" as any); // Usamos 'as any' para o teste, mas o tipo deve ser adicionado
+  };
+
+  const handleSeedTestData = async () => {
+    try {
+      await seedLevelUpHistory();
+      await fetchUserStats(); // Recarrega os dados no store
+      Toast.show({
+        type: "success",
+        text1: "Dados de teste inseridos!",
+        text2: "O histórico de níveis foi populado.",
+      });
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   useLayoutEffect(() => {
@@ -405,6 +423,16 @@ const HelpScreen = ({ navigation }: Props) => {
           <Icon name="bug" size={22} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.contactButtonText}>
             Testar Ecrã de Level Up
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.contactButton, { marginTop: 12 }]}
+          activeOpacity={0.8}
+          onPress={handleSeedTestData}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Histórico de Níveis
           </AppText>
         </TouchableOpacity>
         <View style={{ height: 20 }} />

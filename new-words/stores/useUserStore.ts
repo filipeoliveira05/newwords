@@ -32,6 +32,8 @@ import {
   incrementPerfectRoundsToday,
   setSessionCompletedToday,
   WeeklySummary,
+  getLevelUpHistory,
+  LevelUpRecord,
   countWordsForPractice,
 } from "../services/storage";
 import { useNotificationStore } from "./useNotificationStore";
@@ -75,6 +77,7 @@ interface UserState extends GamificationStats {
   weeklySummary: WeeklySummary | null;
   onThisDayWord: Word | null;
   totalAchievements: number;
+  levelUpHistory: LevelUpRecord[];
   urgentWordsCount: number;
 }
 
@@ -99,6 +102,7 @@ export const useUserStore = create<UserState>((set) => ({
   weeklySummary: null,
   onThisDayWord: null,
   totalAchievements: 0,
+  levelUpHistory: [],
   urgentWordsCount: 0,
 
   fetchUserStats: async () => {
@@ -127,6 +131,7 @@ export const useUserStore = create<UserState>((set) => ({
         weeklySummary,
         onThisDayWord,
         totalAchievements,
+        levelUpHistory,
         urgentWordsCount,
         wordsAddedToday, // Agora vem da nova função
         unlockedAchievementsToday,
@@ -155,6 +160,7 @@ export const useUserStore = create<UserState>((set) => ({
         getWeeklySummaryStats(),
         getWordLearnedOnThisDay(),
         getAchievementsCount(),
+        getLevelUpHistory(),
         countWordsForPractice(),
         getWordsAddedToday(),
         getAchievementsUnlockedOnDate(todayStr), // Returns string[]
@@ -271,6 +277,7 @@ export const useUserStore = create<UserState>((set) => ({
         weeklySummary,
         onThisDayWord,
         totalAchievements,
+        levelUpHistory,
         urgentWordsCount,
         loading: false,
       });

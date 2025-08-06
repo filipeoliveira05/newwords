@@ -83,6 +83,13 @@ export const initializeDB = async () => {
         );
       `);
       await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS level_up_history (
+            level INTEGER PRIMARY KEY NOT NULL,
+            unlocked_at TEXT NOT NULL
+        );
+      `);
+
+      await db.runAsync(`
         CREATE TABLE IF NOT EXISTS daily_active_goals (
             date TEXT PRIMARY KEY NOT NULL,
             goal_ids TEXT NOT NULL
@@ -283,6 +290,10 @@ export async function updateUserXP(
     newXP -= xpForNextLevel;
     currentLevel++;
     didLevelUp = true;
+    await db.runAsync(
+      "INSERT OR IGNORE INTO level_up_history (level, unlocked_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
+      [currentLevel]
+    );
     xpForNextLevel = getXPForNextLevel(currentLevel);
   }
 
@@ -292,6 +303,51 @@ export async function updateUserXP(
   ]);
 
   return { newXP, newLevel: currentLevel, didLevelUp };
+}
+
+export interface LevelUpRecord {
+  level: number;
+  unlocked_at: string;
+}
+
+export async function getLevelUpHistory(): Promise<LevelUpRecord[]> {
+  try {
+    return await db.getAllAsync<LevelUpRecord>(
+      "SELECT * FROM level_up_history"
+    );
+  } catch (e) {
+    console.error("Erro ao obter histórico de subida de nível:", e);
+    throw e;
+  }
+}
+
+export async function seedLevelUpHistory(): Promise<void> {
+  try {
+    await db.withTransactionAsync(async () => {
+      // Apaga o histórico existente para garantir um estado limpo
+      await db.runAsync("DELETE FROM level_up_history");
+
+      // Insere alguns dados de teste.
+      // Nível 2 desbloqueado há 10 dias
+      await db.runAsync(
+        "INSERT INTO level_up_history (level, unlocked_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-10 days'))",
+        [2]
+      );
+      // Nível 3 desbloqueado há 5 dias
+      await db.runAsync(
+        "INSERT INTO level_up_history (level, unlocked_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-5 days'))",
+        [3]
+      );
+      // Nível 4 desbloqueado ontem
+      await db.runAsync(
+        "INSERT INTO level_up_history (level, unlocked_at) VALUES (?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now', '-1 day'))",
+        [4]
+      );
+    });
+  } catch (e) {
+    console.error("Erro ao popular o histórico de subida de nível:", e);
+    throw e;
+  }
 }
 
 export interface LeagueData {
@@ -1266,6 +1322,20 @@ export async function getTodaysPracticeStats(): Promise<PracticeHistory | null> 
     );
   } catch (e) {
     console.error("Erro ao obter estatísticas de prática de hoje:", e);
+    throw e;
+  }
+}
+
+export async function getPracticeHistoryOnDate(
+  date: string
+): Promise<PracticeHistory | null> {
+  try {
+    return await db.getFirstAsync<PracticeHistory>(
+      "SELECT date, words_trained FROM practice_history WHERE date = ?",
+      [date]
+    );
+  } catch (e) {
+    console.error("Erro ao obter estatísticas de prática da data:", e);
     throw e;
   }
 }
