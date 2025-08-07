@@ -24,6 +24,8 @@ type Props = {
   size: number;
 };
 
+const MINIMUM_PROGRESS = 0.05; // 5% de progresso mínimo para visualização
+
 const AchievementRadarChart = ({ data, size }: Props) => {
   // Aumenta o raio para que o gráfico ocupe mais espaço, já que não há rótulos.
   const radius = size / 2.8;
@@ -45,7 +47,9 @@ const AchievementRadarChart = ({ data, size }: Props) => {
   const progressPoints = useMemo(() => {
     return data.map((item, i) => {
       const { angle } = points[i];
-      const pointRadius = radius * item.progress;
+      // Garante um progresso mínimo para que o polígono seja sempre visível
+      const effectiveProgress = Math.max(item.progress, MINIMUM_PROGRESS);
+      const pointRadius = radius * effectiveProgress;
       const x = center + pointRadius * Math.cos(angle);
       const y = center + pointRadius * Math.sin(angle);
       return { x, y };
