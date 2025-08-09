@@ -63,9 +63,7 @@ import HelpScreen from "../screens/profile/HelpScreen";
 import LevelJourneyScreen from "../screens/profile/LevelJourneyScreen";
 import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
 
-import CustomAlert from "../components/CustomAlert";
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
-import NotificationToast from "../components/notifications/NotificationToast";
 import Icon from "../components/Icon";
 
 // Import fonts using ES6 modules for consistency and to satisfy the linter
@@ -484,8 +482,6 @@ export default function AppNavigator() {
             })}
           />
         </Tab.Navigator>
-        <CustomAlert />
-        <NotificationToast />
       </View>
     </BottomSheetModalProvider>
   );

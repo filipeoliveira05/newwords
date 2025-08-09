@@ -8,6 +8,8 @@ import Toast, {
   ErrorToast,
   BaseToastProps,
 } from "react-native-toast-message";
+import CustomAlert from "./components/CustomAlert";
+import NotificationToast from "./components/notifications/NotificationToast";
 
 const toastConfig = {
   success: (props: BaseToastProps) => (
@@ -43,6 +45,8 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <MenuProvider>
         <RootNavigator />
+        <CustomAlert />
+        <NotificationToast />
         <Toast config={toastConfig} />
       </MenuProvider>
     </GestureHandlerRootView>
