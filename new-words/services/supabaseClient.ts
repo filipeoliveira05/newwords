@@ -19,6 +19,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // Esta opção DEVE ser true para que o fluxo de recuperação de palavra-passe
+    // (e outros fluxos de OAuth, como login com Google) funcione corretamente.
+    // Permite que o Supabase leia o token de acesso do URL quando a app é aberta por um deep link.
+    detectSessionInUrl: true,
   },
 });

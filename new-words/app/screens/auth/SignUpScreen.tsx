@@ -12,6 +12,7 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAuthStore } from "../../../stores/useAuthStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
+import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "SignUp">;
 
@@ -24,16 +25,29 @@ const SignUpScreen = ({ navigation }: Props) => {
   const showAlert = useAlertStore((state) => state.showAlert);
 
   const handleSignUp = async () => {
+    // 1. Adiciona validação no cliente para campos vazios
+    if (
+      !email.trim() ||
+      !password.trim() ||
+      !firstName.trim() ||
+      !lastName.trim()
+    ) {
+      showAlert({
+        title: "Campos em falta",
+        message: "Por favor, preencha todos os campos para criar a sua conta.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+      return;
+    }
+
     setLoading(true);
     const { error } = await useAuthStore
       .getState()
       .signUpWithEmail(email, password, { firstName, lastName });
     if (error) {
       showAlert({
-        title: "Erro de Registo",
-        message:
-          error.message ||
-          "Não foi possível criar a sua conta. Tente novamente.",
+        title: "Erro ao Criar Conta",
+        message: getFriendlyAuthErrorMessage(error),
         buttons: [{ text: "OK", onPress: () => {} }],
       });
       setLoading(false);
@@ -96,7 +110,12 @@ const SignUpScreen = ({ navigation }: Props) => {
 
       <View style={styles.footer}>
         <AppText style={styles.footerText}>Já tem uma conta? </AppText>
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+        <TouchableOpacity
+          onPress={() => {
+            // Volta ao início da stack de autenticação (LoginScreen) em vez de empilhar ecrãs.
+            navigation.popToTop();
+          }}
+        >
           <AppText variant="bold" style={styles.linkText}>
             Faça login
           </AppText>

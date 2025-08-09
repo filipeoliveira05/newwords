@@ -5,6 +5,7 @@ import { getMetaValue, initializeDB } from "../../services/storage";
 import { useAuthStore } from "../../stores/useAuthStore";
 import AppNavigator from "./AppNavigator";
 import OnboardingScreen from "../screens/onboarding/OnboardingScreen";
+import UpdatePasswordScreen from "../screens/auth/UpdatePasswordScreen";
 import { RootStackParamList } from "../../types/navigation";
 import AuthNavigator from "./AuthNavigator";
 import {
@@ -19,7 +20,13 @@ const RootNavigator = () => {
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
     boolean | null
   >(null);
-  const { session, isAuthenticating, isSyncing, initialize } = useAuthStore();
+  const {
+    session,
+    isAuthenticating,
+    isSyncing,
+    initialize,
+    isRecoveringPassword,
+  } = useAuthStore();
   const previousSession = useRef(session);
 
   useEffect(() => {
@@ -85,7 +92,12 @@ const RootNavigator = () => {
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
-      {!hasCompletedOnboarding ? (
+      {isRecoveringPassword ? (
+        <RootStack.Screen
+          name="UpdatePassword"
+          component={UpdatePasswordScreen}
+        />
+      ) : !hasCompletedOnboarding ? (
         <RootStack.Screen name="Onboarding">
           {(props) => (
             <OnboardingScreen

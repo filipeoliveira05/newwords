@@ -12,6 +12,7 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAuthStore } from "../../../stores/useAuthStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
+import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
@@ -22,6 +23,16 @@ const LoginScreen = ({ navigation }: Props) => {
   const showAlert = useAlertStore((state) => state.showAlert);
 
   const handleLogin = async () => {
+    // 1. Adiciona validação no cliente para campos vazios
+    if (!email.trim() || !password.trim()) {
+      showAlert({
+        title: "Campos em falta",
+        message: "Por favor, preencha o email e a palavra-passe.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+      return;
+    }
+
     setLoading(true);
     const { error } = await useAuthStore
       .getState()
@@ -29,9 +40,7 @@ const LoginScreen = ({ navigation }: Props) => {
     if (error) {
       showAlert({
         title: "Erro de Login",
-        message:
-          error.message ||
-          "As suas credenciais estão incorretas. Por favor, tente novamente.",
+        message: getFriendlyAuthErrorMessage(error),
         buttons: [{ text: "OK", onPress: () => {} }],
       });
       setLoading(false);
@@ -65,6 +74,15 @@ const LoginScreen = ({ navigation }: Props) => {
         secureTextEntry
       />
 
+      <View style={styles.actionsContainer}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ForgotPassword", { email })}
+        >
+          <AppText style={styles.forgotPasswordText}>
+            Esqueceu-se da palavra-passe?
+          </AppText>
+        </TouchableOpacity>
+      </View>
       <TouchableOpacity
         style={[styles.button, styles.primaryButton]}
         onPress={handleLogin}
@@ -110,6 +128,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: 32,
   },
+  actionsContainer: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
   input: {
     backgroundColor: theme.colors.surface,
     paddingHorizontal: 16,
@@ -144,6 +166,10 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: theme.colors.primary,
+  },
+  forgotPasswordText: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.sm,
   },
 });
 

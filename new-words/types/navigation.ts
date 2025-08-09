@@ -5,12 +5,14 @@ import { WeeklySummary } from "../services/storage";
 export type AuthStackParamList = {
   Login: undefined;
   SignUp: undefined;
+  ForgotPassword: { email?: string };
 };
 
 export type RootStackParamList = {
   Onboarding: undefined;
   Auth: NavigatorScreenParams<AuthStackParamList>;
   MainApp: undefined; // Representa o AppNavigator com as tabs
+  UpdatePassword: undefined;
 };
 
 export type HomeStackParamList = {

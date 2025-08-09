@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/services/supabaseClient";
-import { Session } from "@supabase/supabase-js";
+import { Session, AuthError } from "@supabase/supabase-js";
+import { Linking } from "react-native";
 import { deleteDatabase, initializeDB } from "@/services/storage";
 import { eventStore } from "./eventStore";
 
@@ -8,24 +9,35 @@ interface AuthState {
   session: Session | null;
   isAuthenticating: boolean;
   isSyncing: boolean; // Novo estado para controlar a sincronização inicial
+  lastAuthEvent: string | null;
+  isRecoveringPassword: boolean;
   initialize: () => Promise<void>;
   signInWithEmail: (
     email: string,
     pass: string
-  ) => Promise<{ error: Error | null }>;
+  ) => Promise<{ error: AuthError | null }>;
   signUpWithEmail: (
     email: string,
     pass: string,
     metadata: { firstName: string; lastName: string }
-  ) => Promise<{ error: Error | null }>;
+  ) => Promise<{ error: AuthError | null }>;
+  updateUserPassword: (
+    password: string
+  ) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
+  sendPasswordResetEmail: (
+    email: string
+  ) => Promise<{ error: AuthError | null }>;
   setIsSyncing: (isSyncing: boolean) => void; // Nova action para controlar o estado
+  // Ação setLastAuthEvent removida, pois a nova flag a substitui para este fluxo.
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   isAuthenticating: true,
   isSyncing: false,
+  lastAuthEvent: null,
+  isRecoveringPassword: false,
 
   initialize: async () => {
     // 1. Tenta obter a sessão ativa quando a app arranca
@@ -37,8 +49,42 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 2. Ouve alterações no estado de autenticação (login, logout, etc.)
     // O Supabase trata da persistência da sessão no AsyncStorage automaticamente.
     supabase.auth.onAuthStateChange((_event, session) => {
-      set({ session });
+      // Adiciona este log para depuração.
+      console.log(`[Auth] Evento: ${_event}, Sessão: ${!!session}`);
+      set({ session, lastAuthEvent: _event });
     });
+
+    // 3. Lida com deep links para resolver a condição de corrida.
+    // Isto garante que o onAuthStateChange já está a ouvir antes de processarmos o URL.
+    const handleDeepLink = (url: string | null) => {
+      if (!url) return;
+      const fragment = url.split("#")[1];
+      if (!fragment) return;
+
+      const params = new URLSearchParams(fragment);
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+      const type = params.get("type");
+
+      if (accessToken && refreshToken && type === "recovery") {
+        // 1. Ativa o nosso sinalizador de recuperação PRIMEIRO.
+        set({ isRecoveringPassword: true });
+        // 2. Depois, define a sessão para que o Supabase nos autentique.
+        console.log(
+          "[Auth] A definir sessão a partir do deep link de recuperação..."
+        );
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      }
+    };
+
+    // Verifica se a app foi aberta por um link (arranque a frio)
+    Linking.getInitialURL().then(handleDeepLink);
+
+    // Ouve por novos links enquanto a app está aberta
+    Linking.addEventListener("url", (event) => handleDeepLink(event.url));
   },
 
   signInWithEmail: async (email, password) => {
@@ -65,6 +111,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     return { error };
   },
 
+  updateUserPassword: async (password) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return { error };
+  },
+
   signOut: async () => {
     // 1. Termina a sessão no Supabase
     await supabase.auth.signOut();
@@ -76,6 +127,19 @@ export const useAuthStore = create<AuthState>((set) => ({
     // 3. Publica um evento para que todos os outros stores se resetem.
     // Isto quebra a dependência circular.
     eventStore.getState().publish("userLoggedOut", {});
+    // Garante que todos os estados de autenticação são limpos.
+    set({ lastAuthEvent: null, isRecoveringPassword: false });
+  },
+
+  sendPasswordResetEmail: async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // Para produção, o ideal é configurar um deep link para a sua aplicação.
+      // Ex: redirectTo: 'newwords://auth/update-password'
+      // Durante o desenvolvimento, o Supabase usará o "Site URL" definido no seu painel
+      // de autenticação como base.
+    });
+
+    return { error };
   },
 
   setIsSyncing: (isSyncing) => {
