@@ -29,8 +29,8 @@ type SessionResultsProps = {
   confettiAnimation: any;
   onPlayAgain: () => void;
   onExit: () => void;
-  deckId?: number;
-  origin?: "DeckDetail" | "Stats";
+  deckId?: string;
+  origin?: "HomeDashboard" | "DeckDetail" | "Stats";
 };
 
 export default function SessionResults({

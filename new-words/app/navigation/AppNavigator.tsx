@@ -18,6 +18,11 @@ import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
 import { useAchievementStore } from "@/stores/useAchievementStore";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useDeckStore } from "@/stores/deckStore";
+import { useWordStore } from "@/stores/wordStore";
+// import { useUserStore } from "@/stores/useUserStore";
+import { usePracticeStore } from "@/stores/usePracticeStore";
 import * as hapticService from "../../services/hapticService";
 import * as soundService from "../../services/soundService";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
@@ -329,6 +334,21 @@ export default function AppNavigator() {
     "Satoshi-Medium": SatoshiMedium,
     "Satoshi-Bold": SatoshiBold,
   });
+
+  // Limpa os dados locais quando o utilizador faz logout.
+  // Este efeito é acionado quando o AppNavigator é montado ou quando a sessão muda.
+  // Se a sessão for nula (logout), todos os stores são reiniciados para garantir
+  // que o próximo utilizador começa com um estado limpo.
+  const session = useAuthStore((state) => state.session);
+  useEffect(() => {
+    if (session === null) {
+      useDeckStore.setState({ decks: [], isInitialized: false });
+      useWordStore.getState().clearWords();
+      usePracticeStore.getState().endSession();
+      // Os outros stores (user, league, achievements) serão reinicializados
+      // automaticamente pelo RootNavigator quando um novo utilizador entrar.
+    }
+  }, [session]);
 
   useEffect(() => {
     // Initialize league data when the app loads

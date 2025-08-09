@@ -37,7 +37,7 @@ export interface WordEditSheetRef {
 interface WordEditSheetProps {
   onSave: (
     data: { name: string; meaning: string; category: string | null },
-    wordId?: number
+    wordId?: string
   ) => Promise<void>;
 }
 
@@ -47,7 +47,7 @@ const WordEditSheet = forwardRef<WordEditSheetRef, WordEditSheetProps>(
     const nameInputRef = useRef<TextInput>(null);
     const meaningInputRef = useRef<TextInput>(null);
 
-    const [wordId, setWordId] = useState<number | undefined>(undefined);
+    const [wordId, setWordId] = useState<string | undefined>(undefined);
     const [name, setName] = useState("");
     const [meaning, setMeaning] = useState("");
     const [category, setCategory] = useState<string | null>(null);

@@ -15,10 +15,16 @@ import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import * as hapticService from "../../../services/hapticService";
 import { useUserStore } from "../../../stores/useUserStore";
-import { seedLevelUpHistory } from "../../../services/storage";
+import {
+  deleteDatabase,
+  initializeDB,
+  seedLevelUpHistory,
+} from "../../../services/storage";
 import { useNotificationStore } from "../../../stores/useNotificationStore";
 import { AchievementRank } from "../../../config/achievements";
 import Icon, { IconName } from "@/app/components/Icon";
+import { useAlertStore } from "../../../stores/useAlertStore";
+import { useAuthStore } from "../../../stores/useAuthStore";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Help">;
 
@@ -210,6 +216,7 @@ const HelpScreen = ({ navigation }: Props) => {
   const [testGoalIndex, setTestGoalIndex] = useState(0);
   const { addNotification } = useNotificationStore();
   const { fetchUserStats } = useUserStore.getState();
+  const { showAlert } = useAlertStore.getState();
 
   const handleTestLevelUp = () => {
     addNotification({
@@ -263,6 +270,32 @@ const HelpScreen = ({ navigation }: Props) => {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const handleResetLocalData = () => {
+    showAlert({
+      title: "Resetar Dados Locais",
+      message:
+        "Isto irá apagar todos os baralhos e palavras do seu dispositivo e fazer logout. Tem a certeza?",
+      buttons: [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar Tudo",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteDatabase();
+              await initializeDB();
+              // Força o logout para que o utilizador seja redirecionado para o ecrã de login
+              // e o fluxo de sincronização possa ser testado novamente.
+              useAuthStore.getState().signOut();
+            } catch (e) {
+              console.error("Falha ao resetar a base de dados local", e);
+            }
+          },
+        },
+      ],
+    });
   };
 
   useLayoutEffect(() => {
@@ -433,6 +466,19 @@ const HelpScreen = ({ navigation }: Props) => {
           <Icon name="bug" size={22} color={theme.colors.surface} />
           <AppText variant="bold" style={styles.contactButtonText}>
             Testar Histórico de Níveis
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.contactButton,
+            { marginTop: 12, backgroundColor: theme.colors.danger },
+          ]}
+          activeOpacity={0.8}
+          onPress={handleResetLocalData}
+        >
+          <Icon name="trash" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Resetar Dados Locais (Dev)
           </AppText>
         </TouchableOpacity>
         <View style={{ height: 20 }} />

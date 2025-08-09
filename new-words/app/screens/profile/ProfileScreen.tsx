@@ -1,12 +1,11 @@
 import React, { useLayoutEffect } from "react";
 import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
-import * as Updates from "expo-updates";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAlertStore } from "../../../stores/useAlertStore";
-import { setMetaValue } from "../../../services/storage";
+import { useAuthStore } from "../../../stores/useAuthStore";
 import Icon, { IconName } from "../../components/Icon";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "ProfileMain">;
@@ -31,8 +30,7 @@ const ProfileScreen = ({ navigation }: Props) => {
           text: "Terminar Sessão",
           style: "destructive",
           onPress: async () => {
-            await setMetaValue("has_completed_onboarding", "false");
-            await Updates.reloadAsync();
+            useAuthStore.getState().signOut();
           },
         },
       ],

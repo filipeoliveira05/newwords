@@ -17,17 +17,19 @@ import {
   updateWordStatsWithQuality as dbUpdateWordStatsWithQuality,
   updateWordDetails as dbUpdateWordDetails,
   toggleWordFavoriteStatus as dbToggleWordFavoriteStatus,
+  addOperationToQueue,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
+import { processSyncQueue } from "@/services/syncService";
 
 interface WordState {
   words: {
-    byId: { [wordId: number]: Word };
-    byDeckId: { [deckId: number]: number[] };
+    byId: { [wordId: string]: Word };
+    byDeckId: { [deckId: string]: string[] };
   };
   loading: boolean;
-  fetchWordsOfDeck: (deckId: number) => Promise<void>;
+  fetchWordsOfDeck: (deckId: string) => Promise<void>;
   fetchAllWords: () => Promise<void>;
   wrongWordsCount: number;
   fetchWrongWordsCount: () => Promise<void>;
@@ -35,60 +37,88 @@ interface WordState {
   fetchFavoriteWordsCount: () => Promise<void>;
   urgentWordsCount: number;
   fetchUrgentWordCount: () => Promise<void>;
-  fetchWordsForPractice: (deckId?: number, limit?: number) => Promise<Word[]>;
+  fetchWordsForPractice: (deckId?: string, limit?: number) => Promise<Word[]>;
   fetchLeastPracticedWords: (
-    deckId?: number,
+    deckId?: string,
     limit?: number,
-    excludeIds?: number[]
+    excludeIds?: string[]
   ) => Promise<Word[]>;
   fetchDistractorWords: (
-    correctWordId: number,
-    sessionDeckId?: number
+    correctWordId: string,
+    sessionDeckId?: string
   ) => Promise<Word[]>;
-  fetchWrongWords: (deckId?: number) => Promise<Word[]>;
+  fetchWrongWords: (deckId?: string) => Promise<Word[]>;
   fetchFavoriteWords: () => Promise<Word[]>;
-  fetchAllLeastPracticedWords: (deckId?: number) => Promise<Word[]>;
-  countWordsForPractice: (deckId?: number) => Promise<number>;
+  fetchAllLeastPracticedWords: (deckId?: string) => Promise<Word[]>;
+  countWordsForPractice: (deckId?: string) => Promise<number>;
   getTotalWordCount: () => Promise<number>;
   addWord: (
-    deckId: number,
+    deckId: string,
     name: string,
     meaning: string,
     category: string | null
   ) => Promise<void>;
   updateWord: (
-    id: number,
+    id: string,
     name: string,
     meaning: string,
     category: string | null
   ) => Promise<void>;
-  deleteWord: (id: number) => Promise<void>;
+  deleteWord: (id: string) => Promise<void>;
   updateWordDetails: (
-    id: number,
+    id: string,
     category: string | null,
     synonyms: string[],
     antonyms: string[],
     sentences: string[]
   ) => Promise<void>;
-  toggleFavoriteStatus: (id: number) => Promise<Word | null>;
-  clearWordsForDeck: (deckId: number) => void;
+  toggleFavoriteStatus: (id: string) => Promise<Word | null>;
+  clearWordsForDeck: (deckId: string) => void;
   clearWords: () => void;
-  updateStatsAfterAnswer: (wordId: number, quality: number) => Promise<void>;
+  updateStatsAfterAnswer: (wordId: string, quality: number) => Promise<void>;
+  reset: () => void;
 }
 
-export const useWordStore = create<WordState>((set, get) => ({
+const initialState: Omit<
+  WordState,
+  | "fetchWordsOfDeck"
+  | "fetchAllWords"
+  | "fetchWrongWordsCount"
+  | "fetchFavoriteWordsCount"
+  | "fetchUrgentWordCount"
+  | "fetchWordsForPractice"
+  | "fetchLeastPracticedWords"
+  | "fetchDistractorWords"
+  | "fetchWrongWords"
+  | "fetchFavoriteWords"
+  | "fetchAllLeastPracticedWords"
+  | "countWordsForPractice"
+  | "getTotalWordCount"
+  | "addWord"
+  | "updateWord"
+  | "deleteWord"
+  | "updateWordDetails"
+  | "toggleFavoriteStatus"
+  | "clearWordsForDeck"
+  | "clearWords"
+  | "updateStatsAfterAnswer"
+  | "reset"
+> = {
   words: { byId: {}, byDeckId: {} },
   wrongWordsCount: 0,
   favoriteWordsCount: 0,
   urgentWordsCount: 0,
   loading: false,
+};
 
+export const useWordStore = create<WordState>((set, get) => ({
+  ...initialState,
   fetchWordsOfDeck: async (deckId) => {
     set({ loading: true });
     try {
       const data = await dbGetWordsOfDeck(deckId);
-      const newWordsById: { [wordId: number]: Word } = {};
-      const wordIdsForDeck: number[] = [];
+      const newWordsById: { [wordId: string]: Word } = {};
+      const wordIdsForDeck: string[] = [];
 
       data.forEach((word) => {
         newWordsById[word.id] = word;
@@ -116,8 +146,8 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const allWords = await dbGetAllWords();
 
-      const wordsById: { [wordId: number]: Word } = {};
-      const wordsByDeckId: { [deckId: number]: number[] } = {};
+      const wordsById: { [wordId: string]: Word } = {};
+      const wordsByDeckId: { [deckId: string]: string[] } = {};
 
       allWords.forEach((word) => {
         wordsById[word.id] = word;
@@ -170,7 +200,7 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  fetchWordsForPractice: async (deckId?: number, limit?: number) => {
+  fetchWordsForPractice: async (deckId?: string, limit?: number) => {
     set({ loading: true });
     try {
       const practiceWords = await dbGetWordsForPractice(deckId, limit);
@@ -183,7 +213,7 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  countWordsForPractice: async (deckId?: number) => {
+  countWordsForPractice: async (deckId?: string) => {
     try {
       const count = await dbCountWordsForPractice(deckId);
       return count;
@@ -194,9 +224,9 @@ export const useWordStore = create<WordState>((set, get) => ({
   },
 
   fetchLeastPracticedWords: async (
-    deckId?: number,
+    deckId?: string,
     limit?: number,
-    excludeIds?: number[]
+    excludeIds?: string[]
   ) => {
     try {
       const fallbackWords = await dbGetLeastPracticedWords(
@@ -242,7 +272,7 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  fetchWrongWords: async (deckId?: number) => {
+  fetchWrongWords: async (deckId?: string) => {
     try {
       // No futuro, podemos filtrar por deckId se necessário
       const words = await dbGetWrongWords();
@@ -264,7 +294,7 @@ export const useWordStore = create<WordState>((set, get) => ({
     }
   },
 
-  fetchAllLeastPracticedWords: async (deckId?: number) => {
+  fetchAllLeastPracticedWords: async (deckId?: string) => {
     try {
       // Chama a função da DB sem limite para obter todas as palavras, ordenadas.
       const allWords = await dbGetLeastPracticedWords(deckId, undefined, []);
@@ -291,6 +321,17 @@ export const useWordStore = create<WordState>((set, get) => ({
   addWord: async (deckId, name, meaning, category) => {
     try {
       const newWord = await dbAddWord(deckId, name, meaning, category);
+
+      // Adiciona à fila de sincronização
+      // Agora enviamos o payload completo, incluindo o ID gerado no cliente.
+      await addOperationToQueue("CREATE_WORD", {
+        id: newWord.id,
+        deck_id: deckId,
+        name,
+        meaning,
+        category,
+        created_at: newWord.createdAt,
+      });
       set((state) => {
         const currentIds = state.words.byDeckId[deckId] || [];
         return {
@@ -306,6 +347,7 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       // Publica um evento para que o deckStore possa atualizar a contagem.
       eventStore.getState().publish("wordAdded", { deckId });
+      processSyncQueue();
     } catch (error) {
       console.error("Erro ao adicionar palavra no store", error);
       throw error;
@@ -315,6 +357,11 @@ export const useWordStore = create<WordState>((set, get) => ({
   updateWord: async (id, name, meaning, category) => {
     try {
       await dbUpdateWord(id, name, meaning, category);
+      await addOperationToQueue("UPDATE_WORD", {
+        id,
+        updates: { name, meaning, category },
+      });
+
       set((state) => {
         if (!state.words.byId[id]) {
           return state;
@@ -333,6 +380,7 @@ export const useWordStore = create<WordState>((set, get) => ({
         };
       });
       eventStore.getState().publish("wordUpdated", { wordId: id });
+      processSyncQueue();
     } catch (error) {
       console.error("Erro ao atualizar palavra no store", error);
       throw error;
@@ -342,6 +390,17 @@ export const useWordStore = create<WordState>((set, get) => ({
   updateWordDetails: async (id, category, synonyms, antonyms, sentences) => {
     try {
       await dbUpdateWordDetails(id, category, synonyms, antonyms, sentences);
+      await addOperationToQueue("UPDATE_WORD_DETAILS", {
+        id,
+        updates: {
+          category,
+          // O Supabase espera JSON, não strings
+          synonyms: synonyms,
+          antonyms: antonyms,
+          sentences: sentences,
+        },
+      });
+
       set((state) => {
         if (!state.words.byId[id]) {
           return state;
@@ -361,6 +420,7 @@ export const useWordStore = create<WordState>((set, get) => ({
         };
       });
       eventStore.getState().publish("wordUpdated", { wordId: id });
+      processSyncQueue();
     } catch (error) {
       console.error("Erro ao atualizar detalhes da palavra no store", error);
       throw error;
@@ -377,6 +437,8 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       const { deckId } = wordToDelete;
       await dbDeleteWord(id);
+      await addOperationToQueue("DELETE_WORD", { id });
+
       set((state) => {
         const newById = { ...state.words.byId };
         delete newById[id];
@@ -392,6 +454,7 @@ export const useWordStore = create<WordState>((set, get) => ({
       });
       // Publica um evento para que o deckStore possa atualizar a contagem.
       eventStore.getState().publish("wordDeleted", { deckId });
+      processSyncQueue();
     } catch (error) {
       console.error("Erro ao apagar palavra no store", error);
       throw error;
@@ -402,6 +465,11 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const updatedWord = await dbToggleWordFavoriteStatus(id);
       if (updatedWord) {
+        await addOperationToQueue("TOGGLE_WORD_FAVORITE", {
+          id,
+          is_favorite: updatedWord.isFavorite === 1,
+        });
+
         set((state) => {
           if (!state.words.byId[updatedWord.id]) {
             return state;
@@ -414,6 +482,7 @@ export const useWordStore = create<WordState>((set, get) => ({
           };
         });
         eventStore.getState().publish("wordUpdated", { wordId: id });
+        processSyncQueue();
       }
       return updatedWord;
     } catch (error) {
@@ -449,6 +518,22 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       if (!updatedWord) return;
 
+      // Adiciona a atualização de estatísticas à fila
+      await addOperationToQueue("UPDATE_WORD_STATS", {
+        id: wordId,
+        updates: {
+          times_trained: updatedWord.timesTrained,
+          times_correct: updatedWord.timesCorrect,
+          times_incorrect: updatedWord.timesIncorrect,
+          last_trained: updatedWord.lastTrained,
+          last_answer_correct: updatedWord.lastAnswerCorrect === 1,
+          mastery_level: updatedWord.masteryLevel,
+          next_review_date: updatedWord.nextReviewDate,
+          easiness_factor: updatedWord.easinessFactor,
+          interval: updatedWord.interval,
+          repetitions: updatedWord.repetitions,
+        },
+      });
       // Atualiza diretamente a palavra no estado normalizado.
       set((state) => {
         if (!state.words.byId[wordId]) return state;
@@ -471,6 +556,7 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       // Publish the generic wordUpdated event for other listeners
       eventStore.getState().publish("wordUpdated", { wordId });
+      processSyncQueue();
     } catch (error) {
       console.error(
         "Erro ao atualizar estatísticas da palavra com SM-2 no store",
@@ -478,6 +564,10 @@ export const useWordStore = create<WordState>((set, get) => ({
       );
       throw error;
     }
+  },
+
+  reset: () => {
+    set(initialState);
   },
 }));
 
@@ -488,6 +578,11 @@ export const useWordStore = create<WordState>((set, get) => ({
 // Adicionamos o tipo explícito para maior segurança.
 eventStore
   .getState()
-  .subscribe<{ deckId: number }>("deckDeleted", ({ deckId }) => {
+  .subscribe<{ deckId: string }>("deckDeleted", ({ deckId }) => {
     useWordStore.getState().clearWordsForDeck(deckId);
   });
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useWordStore.getState().reset();
+});

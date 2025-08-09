@@ -40,3 +40,6 @@ app-example
 
 # Pasta de inspiração e recursos visuais
 /inspiration/
+
+# Script Supabase
+supabaseScript.sql

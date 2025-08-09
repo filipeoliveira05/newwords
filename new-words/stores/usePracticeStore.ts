@@ -4,7 +4,7 @@ import { useWordStore } from "./wordStore";
 import { eventStore } from "./eventStore";
 
 interface PracticeWord {
-  id: number;
+  id: string;
   name: string;
   meaning: string;
   category: string;
@@ -23,33 +23,34 @@ interface PracticeState {
   currentRoundWords: PracticeWord[]; // The words for the current round (max 10)
   currentWordIndex: number; // Index within the current round
   currentPoolIndex: number; // Index within the full session pool
-  correctAnswers: number[]; // Correct IDs in the current round
-  incorrectAnswers: number[]; // Incorrect IDs in the current round
+  correctAnswers: string[]; // Correct IDs in the current round
+  incorrectAnswers: string[]; // Incorrect IDs in the current round
   gameMode: GameMode | null;
   sessionType: SessionType | null;
-  deckId?: number; // The deckId for the current session, if applicable
-  wordsPracticedInSession: Set<number>; // Unique IDs practiced in the whole session
+  deckId?: string; // The deckId for the current session, if applicable
+  wordsPracticedInSession: Set<string>; // Unique IDs practiced in the whole session
   streak: number;
   highestStreakThisRound: number;
   initializeSession: (
     fullWordPool: {
-      id: number;
+      id: string;
       name: string;
       meaning: string;
       category: string | null;
     }[],
     gameMode: GameMode,
     sessionType: SessionType,
-    deckId?: number
+    deckId?: string
   ) => void;
   startNextRound: () => void;
   startMistakesRound: (mistakeWords: PracticeWord[]) => void;
-  recordAnswer: (wordId: number, quality: number) => void;
+  recordAnswer: (wordId: string, quality: number) => void;
   completeRound: () => void;
   nextWord: () => void;
   endSession: () => void;
   getCurrentWord: () => PracticeWord | null;
   getSessionProgress: () => number;
+  reset: () => void;
 }
 
 const checkAndPublishPerfectRound = (get: () => PracticeState) => {
@@ -59,9 +60,20 @@ const checkAndPublishPerfectRound = (get: () => PracticeState) => {
   }
 };
 
-export const usePracticeStore = create<PracticeState>((set, get) => ({
-  // --- STATE ---
-  sessionState: "not-started", // 'not-started', 'in-progress', 'finished'
+const initialState: Omit<
+  PracticeState,
+  | "initializeSession"
+  | "startNextRound"
+  | "startMistakesRound"
+  | "recordAnswer"
+  | "completeRound"
+  | "nextWord"
+  | "endSession"
+  | "getCurrentWord"
+  | "getSessionProgress"
+  | "reset"
+> = {
+  sessionState: "not-started",
   fullSessionWordPool: [],
   currentRoundWords: [],
   currentWordIndex: 0,
@@ -74,7 +86,10 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   wordsPracticedInSession: new Set(),
   streak: 0,
   highestStreakThisRound: 0,
+};
 
+export const usePracticeStore = create<PracticeState>((set, get) => ({
+  ...initialState,
   // --- ACTIONS ---
   initializeSession: (fullWordPool, gameMode, sessionType, deckId) => {
     if (!fullWordPool || fullWordPool.length === 0) {
@@ -268,4 +283,13 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     // Progress is based on unique words practiced from the total session pool
     return (wordsPracticedInSession.size / fullSessionWordPool.length) * 100;
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  usePracticeStore.getState().reset();
+});

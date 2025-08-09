@@ -191,7 +191,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   }, []);
 
   const handleDeleteWord = useCallback(
-    (wordId: number) => {
+    (wordId: string) => {
       showAlert({
         title: "Apagar palavra",
         message: "Tens a certeza que queres apagar esta palavra?",
@@ -220,7 +220,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
   );
 
   const handleToggleFavorite = useCallback(
-    async (wordId: number) => {
+    async (wordId: string) => {
       try {
         // Chama a ação do store, que atualiza a DB e o estado global
         await toggleFavoriteStatus(wordId);
@@ -238,7 +238,7 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
 
   const handleSaveWord = async (
     data: { name: string; meaning: string; category: string | null },
-    wordId?: number
+    wordId?: string
   ) => {
     const { name, meaning, category } = data;
     if (!name.trim() || !meaning.trim()) {

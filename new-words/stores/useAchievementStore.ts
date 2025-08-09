@@ -36,14 +36,21 @@ interface AchievementState {
   isInitialized: boolean;
   initialize: () => void;
   checkAndProcessAchievements: () => Promise<void>;
+  reset: () => void;
 }
 
-export const useAchievementStore = create<AchievementState>((set, get) => ({
+const initialState: Omit<
+  AchievementState,
+  "initialize" | "checkAndProcessAchievements" | "reset"
+> = {
   achievements: [],
   unlockedCount: 0,
   loading: true,
   isInitialized: false,
+};
 
+export const useAchievementStore = create<AchievementState>((set, get) => ({
+  ...initialState,
   initialize: () => {
     if (get().isInitialized) return;
 
@@ -133,4 +140,13 @@ export const useAchievementStore = create<AchievementState>((set, get) => ({
       set({ loading: false });
     }
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useAchievementStore.getState().reset();
+});

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { eventStore } from "./eventStore";
 import { AchievementRank } from "../config/achievements";
 import { IconName } from "../app/components/Icon";
 
@@ -21,12 +22,22 @@ interface NotificationState {
   addNotification: (notification: NotificationPayload) => void;
   showNextNotification: () => void;
   clearCurrentNotification: () => void;
+  reset: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set, get) => ({
+const initialState: Omit<
+  NotificationState,
+  | "addNotification"
+  | "showNextNotification"
+  | "clearCurrentNotification"
+  | "reset"
+> = {
   queue: [],
   currentNotification: null,
+};
 
+export const useNotificationStore = create<NotificationState>((set, get) => ({
+  ...initialState,
   addNotification: (notification) => {
     set((state) => ({ queue: [...state.queue, notification] }));
     // Se não houver notificação a ser exibida, mostra a próxima
@@ -53,4 +64,13 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
       get().showNextNotification();
     }, 300); // Pequeno atraso para a animação de saída
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useNotificationStore.getState().reset();
+});

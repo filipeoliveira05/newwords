@@ -1,5 +1,6 @@
 import * as SQLite from "expo-sqlite";
 import { Deck, Word } from "@/types/database";
+import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system";
 import {
   startOfDay,
@@ -13,16 +14,22 @@ import { calculateSm2Factors } from "../utils/sm2";
 import { achievements } from "../config/achievements";
 import { IconName } from "../app/components/Icon";
 
-const db = SQLite.openDatabaseSync("flashcards.db");
+let db: SQLite.SQLiteDatabase | null = null;
 
 export const initializeDB = async () => {
   try {
+    // Garante que a conexão com a base de dados é criada aqui e apenas aqui.
+    // Se já existir (por exemplo, em hot-reloads), não faz nada. Se for nula, cria.
+    if (!db) {
+      db = SQLite.openDatabaseSync("flashcards.db");
+    }
+
     await db.withTransactionAsync(async () => {
       await db.runAsync(`PRAGMA foreign_keys = ON;`);
 
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS decks (
-            id INTEGER PRIMARY KEY NOT NULL,
+            id TEXT PRIMARY KEY NOT NULL,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
             createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
@@ -30,8 +37,8 @@ export const initializeDB = async () => {
       `);
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS words (
-            id INTEGER PRIMARY KEY NOT NULL,
-            deckId INTEGER NOT NULL,
+            id TEXT PRIMARY KEY NOT NULL,
+            deckId TEXT NOT NULL,
             name TEXT NOT NULL,
             meaning TEXT NOT NULL,
             timesTrained INTEGER NOT NULL DEFAULT 0,
@@ -70,7 +77,7 @@ export const initializeDB = async () => {
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS practice_log (
             id INTEGER PRIMARY KEY NOT NULL,
-            word_id INTEGER NOT NULL,
+            word_id TEXT NOT NULL,
             practice_date TEXT NOT NULL,
             was_correct INTEGER NOT NULL,
             FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
@@ -96,17 +103,15 @@ export const initializeDB = async () => {
         );
       `);
 
-      // --- MIGRATION: Add masteredAt column if it doesn't exist ---
-      // This prevents crashes on existing installations that have an older DB schema.
-      const columns = await db.getAllAsync<{ name: string }>(
-        "PRAGMA table_info(words);"
-      );
-      if (!columns.some((col) => col.name === "masteredAt")) {
-        console.log(
-          "Migrating database: Adding 'masteredAt' column to 'words' table."
+      await db.runAsync(`
+        CREATE TABLE IF NOT EXISTS sync_queue (
+            id INTEGER PRIMARY KEY NOT NULL,
+            operation_type TEXT NOT NULL, -- 'CREATE_DECK', 'UPDATE_WORD', etc.
+            payload TEXT NOT NULL, -- JSON string of the data
+            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            attempts INTEGER NOT NULL DEFAULT 0
         );
-        await db.runAsync(`ALTER TABLE words ADD COLUMN masteredAt TEXT;`);
-      }
+      `);
 
       // --- Insere valores padrão para gamificação se não existirem ---
       await db.runAsync(
@@ -194,14 +199,19 @@ export const initializeDB = async () => {
 
 export const deleteDatabase = async (): Promise<void> => {
   try {
-    // Fecha a conexão com a base de dados se estiver aberta
-    await db.closeAsync();
+    // Primeiro, fecha a conexão se ela existir.
+    // Fecha a conexão com a base de dados se estiver aberta.
+    if (db) {
+      await db.closeAsync();
+    }
 
     const dbFilePath = `${FileSystem.documentDirectory}SQLite/flashcards.db`;
     const fileInfo = await FileSystem.getInfoAsync(dbFilePath);
 
     if (fileInfo.exists) {
       await FileSystem.deleteAsync(dbFilePath);
+      // Importante: define a variável db como nula para que a próxima chamada a initializeDB a recrie.
+      db = null;
       console.log("Base de dados apagada com sucesso.");
     }
   } catch (error) {
@@ -438,7 +448,7 @@ export async function getDecks(): Promise<Deck[]> {
   }
 }
 
-export async function getDeckById(id: number): Promise<Deck | null> {
+export async function getDeckById(id: string): Promise<Deck | null> {
   try {
     return await db.getFirstAsync<Deck>("SELECT * FROM decks WHERE id = ?", [
       id,
@@ -449,7 +459,7 @@ export async function getDeckById(id: number): Promise<Deck | null> {
   }
 }
 
-export async function getWordCountByDeck(deckId: number): Promise<number> {
+export async function getWordCountByDeck(deckId: string): Promise<number> {
   try {
     const result = await db.getFirstAsync<{ count: number }>(
       "SELECT COUNT(*) as count FROM words WHERE deckId = ?",
@@ -463,7 +473,7 @@ export async function getWordCountByDeck(deckId: number): Promise<number> {
 }
 
 export async function countMasteredWordsByDeck(
-  deckId: number
+  deckId: string
 ): Promise<number> {
   try {
     const result = await db.getFirstAsync<{ count: number }>(
@@ -482,9 +492,10 @@ export async function addDeck(title: string, author: string): Promise<Deck> {
     throw new Error("Título e autor são obrigatórios.");
   }
   try {
+    const newId = Crypto.randomUUID();
     const result = await db.getFirstAsync<Deck>(
-      "INSERT INTO decks (title, author) VALUES (?, ?) RETURNING *",
-      [title, author]
+      "INSERT INTO decks (id, title, author) VALUES (?, ?, ?) RETURNING *",
+      [newId, title, author]
     );
     if (!result) {
       throw new Error("Falha ao adicionar deck e obter o resultado.");
@@ -497,7 +508,7 @@ export async function addDeck(title: string, author: string): Promise<Deck> {
 }
 
 export async function updateDeck(
-  id: number,
+  id: string,
   title: string,
   author: string
 ): Promise<void> {
@@ -516,7 +527,7 @@ export async function updateDeck(
   }
 }
 
-export async function deleteDeck(id: number): Promise<void> {
+export async function deleteDeck(id: string): Promise<void> {
   try {
     // Usa uma transação para garantir que tanto as palavras como o deck são apagados.
     await db.withTransactionAsync(async () => {
@@ -529,7 +540,7 @@ export async function deleteDeck(id: number): Promise<void> {
   }
 }
 
-export async function deleteDecks(ids: number[]): Promise<void> {
+export async function deleteDecks(ids: string[]): Promise<void> {
   if (ids.length === 0) {
     return;
   }
@@ -564,7 +575,7 @@ export async function getAllWords(): Promise<Word[]> {
   }
 }
 
-export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
+export async function getWordsOfDeck(deckId: string): Promise<Word[]> {
   try {
     return await db.getAllAsync<Word>(
       "SELECT * FROM words WHERE deckId = ? ORDER BY createdAt",
@@ -576,7 +587,7 @@ export async function getWordsOfDeck(deckId: number): Promise<Word[]> {
   }
 }
 
-export async function getWordById(id: number): Promise<Word | null> {
+export async function getWordById(id: string): Promise<Word | null> {
   try {
     return await db.getFirstAsync<Word>("SELECT * FROM words WHERE id = ?", [
       id,
@@ -588,7 +599,7 @@ export async function getWordById(id: number): Promise<Word | null> {
 }
 
 export async function addWord(
-  deckId: number,
+  deckId: string,
   name: string,
   meaning: string,
   category: string | null
@@ -597,9 +608,10 @@ export async function addWord(
     throw new Error("Nome e significado são obrigatórios.");
   }
   try {
+    const newId = Crypto.randomUUID();
     const result = await db.getFirstAsync<Word>(
-      "INSERT INTO words (deckId, name, meaning, category, nextReviewDate) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) RETURNING *",
-      [deckId, name, meaning, category]
+      "INSERT INTO words (id, deckId, name, meaning, category, nextReviewDate) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) RETURNING *",
+      [newId, deckId, name, meaning, category]
     );
     if (!result) {
       throw new Error("Falha ao adicionar palavra e obter o resultado.");
@@ -612,7 +624,7 @@ export async function addWord(
 }
 
 export async function updateWord(
-  id: number,
+  id: string,
   name: string,
   meaning: string,
   category: string | null
@@ -632,7 +644,7 @@ export async function updateWord(
 }
 
 export async function toggleWordFavoriteStatus(
-  id: number
+  id: string
 ): Promise<Word | null> {
   try {
     // 1. Obter o estado atual do favorito
@@ -654,7 +666,7 @@ export async function toggleWordFavoriteStatus(
 }
 
 export async function updateWordDetails(
-  id: number,
+  id: string,
   category: string | null,
   synonyms: string[],
   antonyms: string[],
@@ -677,7 +689,7 @@ export async function updateWordDetails(
   }
 }
 
-export async function deleteWord(id: number): Promise<void> {
+export async function deleteWord(id: string): Promise<void> {
   try {
     await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
   } catch (e) {
@@ -686,8 +698,212 @@ export async function deleteWord(id: number): Promise<void> {
   }
 }
 
+/**
+ * Tipos de operações que podem ser adicionadas à fila de sincronização.
+ */
+export type SyncOperationType =
+  | "CREATE_DECK"
+  | "UPDATE_DECK"
+  | "DELETE_DECK"
+  | "CREATE_WORD"
+  | "UPDATE_WORD"
+  | "DELETE_WORD"
+  | "UPDATE_WORD_DETAILS"
+  | "TOGGLE_WORD_FAVORITE"
+  | "UPDATE_WORD_STATS";
+
+export interface SyncOperation {
+  id: number;
+  operation_type: SyncOperationType;
+  payload: string;
+  attempts: number;
+}
+
+export async function addOperationToQueue(
+  operation_type: SyncOperationType,
+  payload: object
+): Promise<void> {
+  try {
+    await db.runAsync(
+      "INSERT INTO sync_queue (operation_type, payload) VALUES (?, ?)",
+      [operation_type, JSON.stringify(payload)]
+    );
+  } catch (e) {
+    console.error("Erro ao adicionar operação à fila de sincronização:", e);
+  }
+}
+
+export async function getPendingOperations(): Promise<SyncOperation[]> {
+  try {
+    return await db.getAllAsync<SyncOperation>(
+      "SELECT * FROM sync_queue ORDER BY id ASC"
+    );
+  } catch (e) {
+    console.error("Erro ao obter operações pendentes:", e);
+    return [];
+  }
+}
+
+export async function deleteProcessedOperations(ids: number[]): Promise<void> {
+  if (ids.length === 0) return;
+  const placeholders = ids.map(() => "?").join(",");
+  await db.runAsync(
+    `DELETE FROM sync_queue WHERE id IN (${placeholders})`,
+    ids
+  );
+}
+
+/**
+ * Insere múltiplos decks na base de dados local.
+ * Usado pelo syncService para popular a BD após o download da nuvem.
+ * @param decks Array de objetos de Deck a inserir.
+ */
+export async function bulkInsertDecks(decks: Deck[]): Promise<void> {
+  if (decks.length === 0) return;
+  try {
+    await db.withTransactionAsync(async () => {
+      // Usamos ON CONFLICT para evitar erros se um deck com o mesmo ID já existir,
+      // substituindo-o. Isto torna a função de download mais robusta.
+      for (const deck of decks) {
+        await db.runAsync(
+          "INSERT OR REPLACE INTO decks (id, title, author, createdAt) VALUES (?, ?, ?, ?)",
+          [deck.id, deck.title, deck.author, deck.createdAt]
+        );
+      }
+    });
+  } catch (e) {
+    console.error("Erro ao inserir decks em massa:", e);
+    throw e;
+  }
+}
+
+/**
+ * Insere múltiplas palavras na base de dados local.
+ * Usado pelo syncService para popular a BD após o download da nuvem.
+ * @param words Array de objetos de Word a inserir.
+ */
+export async function bulkInsertWords(words: Word[]): Promise<void> {
+  if (words.length === 0) return;
+  try {
+    await db.withTransactionAsync(async () => {
+      for (const word of words) {
+        // A query completa com todos os campos para garantir a inserção correta.
+        await db.runAsync(
+          `INSERT OR REPLACE INTO words (id, deckId, name, meaning, timesTrained, timesCorrect, timesIncorrect, lastTrained, lastAnswerCorrect, masteryLevel, nextReviewDate, createdAt, category, synonyms, antonyms, sentences, isFavorite, masteredAt, easinessFactor, interval, repetitions)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            word.id,
+            word.deckId,
+            word.name,
+            word.meaning,
+            word.timesTrained,
+            word.timesCorrect,
+            word.timesIncorrect,
+            word.lastTrained,
+            word.lastAnswerCorrect,
+            word.masteryLevel,
+            word.nextReviewDate,
+            word.createdAt,
+            word.category,
+            word.synonyms,
+            word.antonyms,
+            word.sentences,
+            word.isFavorite,
+            word.masteredAt,
+            word.easinessFactor,
+            word.interval,
+            word.repetitions,
+          ]
+        );
+      }
+    });
+  } catch (e) {
+    console.error("Erro ao inserir palavras em massa:", e);
+    throw e;
+  }
+}
+
+/**
+ * Obtém o histórico de subida de nível local para o upload.
+ */
+export async function getLocalLevelUpHistory(): Promise<LevelUpRecord[]> {
+  try {
+    return await db.getAllAsync<LevelUpRecord>(
+      "SELECT * FROM level_up_history"
+    );
+  } catch (e) {
+    console.error("Erro ao obter histórico de subida de nível local:", e);
+    return [];
+  }
+}
+
+/**
+ * Obtém as conquistas desbloqueadas localmente para o upload.
+ */
+export async function getLocalUnlockedAchievements(): Promise<
+  { achievement_id: string; unlocked_at: string }[]
+> {
+  try {
+    return await db.getAllAsync<{
+      achievement_id: string;
+      unlocked_at: string;
+    }>("SELECT * FROM unlocked_achievements");
+  } catch (e) {
+    console.error("Erro ao obter conquistas locais:", e);
+    return [];
+  }
+}
+
+/**
+ * Insere o histórico de subida de nível em massa. Usado no download.
+ */
+export async function bulkInsertLevelUpHistory(
+  history: LevelUpRecord[]
+): Promise<void> {
+  if (history.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const record of history) {
+      await db.runAsync(
+        "INSERT OR REPLACE INTO level_up_history (level, unlocked_at) VALUES (?, ?)",
+        [record.level, record.unlocked_at]
+      );
+    }
+  });
+}
+
+/**
+ * Insere as conquistas desbloqueadas em massa. Usado no download.
+ */
+export async function bulkInsertUnlockedAchievements(
+  achievements: { achievement_id: string; unlocked_at: string }[]
+): Promise<void> {
+  if (achievements.length === 0) return;
+  await db.withTransactionAsync(async () => {
+    for (const achievement of achievements) {
+      await db.runAsync(
+        "INSERT OR REPLACE INTO unlocked_achievements (achievement_id, unlocked_at) VALUES (?, ?)",
+        [achievement.achievement_id, achievement.unlocked_at]
+      );
+    }
+  });
+}
+
+/**
+ * Obtém os detalhes do perfil do utilizador guardados localmente.
+ */
+export async function getLocalUserDetails(): Promise<{
+  firstName: string | null;
+  lastName: string | null;
+}> {
+  const [firstName, lastName] = await Promise.all([
+    getMetaValue("first_name"),
+    getMetaValue("last_name"),
+  ]);
+  return { firstName, lastName };
+}
+
 export async function getWordsForPractice(
-  deckId?: number,
+  deckId?: string,
   limit?: number
 ): Promise<Word[]> {
   try {
@@ -711,7 +927,7 @@ export async function getWordsForPractice(
   }
 }
 
-export async function countWordsForPractice(deckId?: number): Promise<number> {
+export async function countWordsForPractice(deckId?: string): Promise<number> {
   try {
     const query = `
       SELECT COUNT(*) as count FROM words
@@ -728,9 +944,9 @@ export async function countWordsForPractice(deckId?: number): Promise<number> {
 }
 
 export async function getLeastPracticedWords(
-  deckId?: number,
+  deckId?: string,
   limit?: number,
-  excludeIds: number[] = []
+  excludeIds: string[] = []
 ): Promise<Word[]> {
   try {
     let whereClause = deckId ? "WHERE deckId = ?" : "WHERE 1=1";
@@ -759,8 +975,8 @@ export async function getLeastPracticedWords(
 
 export async function getRandomWords(
   limit: number,
-  deckId?: number,
-  excludeIds: number[] = []
+  deckId?: string,
+  excludeIds: string[] = []
 ): Promise<Word[]> {
   try {
     let whereClause = deckId ? "WHERE deckId = ?" : "WHERE 1=1";
@@ -849,7 +1065,7 @@ export async function getTotalWordCount(): Promise<number> {
 }
 
 export async function updateWordStatsWithQuality(
-  wordId: number,
+  wordId: string,
   quality: number
 ): Promise<Word | null> {
   try {
@@ -1014,7 +1230,7 @@ export async function getPracticeHistory(): Promise<PracticeHistory[]> {
 
 export async function updateUserPracticeMetrics(
   sessionStreak: number,
-  deckId?: number
+  deckId?: string
 ): Promise<void> {
   try {
     const currentLongestStreak = parseInt(
@@ -1047,7 +1263,7 @@ export async function updateUserPracticeMetrics(
       setMetaValue("last_practice_date", today.toISOString()),
     ]);
     if (deckId) {
-      await setMetaValue("last_practiced_deck_id", deckId.toString());
+      await setMetaValue("last_practiced_deck_id", deckId);
     }
   } catch (e) {
     console.error("Erro ao atualizar métricas de prática do utilizador:", e);

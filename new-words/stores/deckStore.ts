@@ -8,9 +8,11 @@ import {
   getWordCountByDeck,
   countMasteredWordsByDeck,
   getWordsOfDeck,
+  addOperationToQueue,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Deck } from "../types/database";
+import { processSyncQueue } from "@/services/syncService";
 
 export interface DeckWithCount extends Deck {
   wordCount: number;
@@ -23,19 +25,34 @@ interface DeckState {
   isInitialized: boolean;
   fetchDecks: () => Promise<void>;
   addDeck: (title: string, author: string) => Promise<void>;
-  updateDeck: (id: number, title: string, author: string) => Promise<void>;
-  deleteDeck: (id: number) => Promise<void>;
-  deleteDecks: (ids: number[]) => Promise<void>;
-  incrementWordCount: (id: number) => void;
-  decrementWordCount: (id: number) => void;
-  updateMasteredCount: (deckId: number, change: 1 | -1) => void;
+  updateDeck: (id: string, title: string, author: string) => Promise<void>;
+  deleteDeck: (id: string) => Promise<void>;
+  deleteDecks: (ids: string[]) => Promise<void>;
+  incrementWordCount: (id: string) => void;
+  decrementWordCount: (id: string) => void;
+  updateMasteredCount: (deckId: string, change: 1 | -1) => void;
+  reset: () => void;
 }
 
-export const useDeckStore = create<DeckState>((set, get) => ({
+const initialState: Omit<
+  DeckState,
+  | "fetchDecks"
+  | "addDeck"
+  | "updateDeck"
+  | "deleteDeck"
+  | "deleteDecks"
+  | "incrementWordCount"
+  | "decrementWordCount"
+  | "updateMasteredCount"
+  | "reset"
+> = {
   decks: [],
   loading: false,
   isInitialized: false,
+};
 
+export const useDeckStore = create<DeckState>((set, get) => ({
+  ...initialState,
   fetchDecks: async () => {
     // Só faz a busca inicial se os dados ainda não foram carregados.
     // As atualizações (add, update, delete) são reativas e não precisam de um refetch.
@@ -61,7 +78,19 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
   addDeck: async (title, author) => {
     try {
+      // 1. Escreve na BD local primeiro
       const newDeckData = await dbAddDeck(title, author);
+
+      // 2. Adiciona a operação à fila de sincronização
+      await addOperationToQueue("CREATE_DECK", {
+        // Agora enviamos o payload completo, incluindo o ID gerado no cliente.
+        id: newDeckData.id,
+        title: newDeckData.title,
+        author: newDeckData.author,
+        created_at: newDeckData.createdAt,
+      });
+
+      // 3. Atualiza o estado da UI de forma otimista
       const newDeckWithCount: DeckWithCount = {
         ...newDeckData,
         wordCount: 0,
@@ -69,6 +98,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       };
       set((state) => ({ decks: [newDeckWithCount, ...state.decks] }));
       eventStore.getState().publish("deckAdded", { deckId: newDeckData.id });
+      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao adicionar deck no store", error);
       throw error;
@@ -78,11 +108,19 @@ export const useDeckStore = create<DeckState>((set, get) => ({
   updateDeck: async (id, title, author) => {
     try {
       await dbUpdateDeck(id, title, author);
+      await addOperationToQueue("UPDATE_DECK", {
+        id,
+        updates: { title, author },
+      });
+
       set((state) => ({
         decks: state.decks.map((deck) =>
           deck.id === id ? { ...deck, title, author } : deck
         ),
       }));
+
+      eventStore.getState().publish("deckUpdated", { deckId: id });
+      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao atualizar deck no store", error);
       throw error;
@@ -95,6 +133,8 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       const wordsInDeck = await getWordsOfDeck(id);
 
       await dbDeleteDeck(id);
+      await addOperationToQueue("DELETE_DECK", { id });
+
       set((state) => ({
         decks: state.decks.filter((deck) => deck.id !== id),
       }));
@@ -103,13 +143,14 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       wordsInDeck.forEach(() => {
         eventStore.getState().publish("wordDeleted", { deckId: id });
       });
+      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao apagar deck no store", error);
       throw error;
     }
   },
 
-  deleteDecks: async (ids: number[]) => {
+  deleteDecks: async (ids: string[]) => {
     if (ids.length === 0) return;
     try {
       // Para manter a consistência do estado, precisamos de saber que palavras
@@ -120,6 +161,11 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       const allWordsToDelete = wordsInDecks.flat();
 
       await dbDeleteDecks(ids); // A nova função que apaga tudo numa só transação.
+
+      // Adiciona cada operação de delete à fila
+      for (const id of ids) {
+        await addOperationToQueue("DELETE_DECK", { id });
+      }
 
       const idsToDeleteSet = new Set(ids);
       // Atualiza o estado uma única vez, removendo todos os decks selecionados.
@@ -134,6 +180,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       allWordsToDelete.forEach((word) => {
         eventStore.getState().publish("wordDeleted", { deckId: word.deckId });
       });
+      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao apagar múltiplos decks no store", error);
       throw error;
@@ -165,6 +212,10 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       ),
     }));
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
 
 // --- Subscrições de Eventos ---
@@ -175,18 +226,18 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
 eventStore
   .getState()
-  .subscribe<{ deckId: number }>("wordAdded", ({ deckId }) => {
+  .subscribe<{ deckId: string }>("wordAdded", ({ deckId }) => {
     useDeckStore.getState().incrementWordCount(deckId);
   });
 
 eventStore
   .getState()
-  .subscribe<{ deckId: number }>("wordDeleted", ({ deckId }) => {
+  .subscribe<{ deckId: string }>("wordDeleted", ({ deckId }) => {
     useDeckStore.getState().decrementWordCount(deckId);
   });
 
 eventStore.getState().subscribe<{
-  deckId: number;
+  deckId: string;
   isNowMastered: boolean;
   wasMastered: boolean;
 }>("masteryLevelChanged", ({ deckId, isNowMastered, wasMastered }) => {
@@ -196,4 +247,9 @@ eventStore.getState().subscribe<{
   } else if (!isNowMastered && wasMastered) {
     store.updateMasteredCount(deckId, -1);
   }
+});
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useDeckStore.getState().reset();
 });

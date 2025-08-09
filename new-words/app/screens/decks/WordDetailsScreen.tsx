@@ -181,7 +181,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     // for this word actually changes (e.g., after a practice session or an edit).
     const unsubscribe = eventStore
       .getState()
-      .subscribe<{ wordId: number }>(
+      .subscribe<{ wordId: string }>(
         "wordUpdated",
         ({ wordId: updatedWordId }) => {
           if (updatedWordId === wordId) {
@@ -263,7 +263,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         meaning,
         category,
       }: { name: string; meaning: string; category: string | null },
-      wordId?: number
+      wordId?: string
     ) => {
       if (!name.trim() || !meaning.trim()) {
         showAlert({

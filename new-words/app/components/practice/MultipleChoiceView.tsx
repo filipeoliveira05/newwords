@@ -29,7 +29,7 @@ export default function MultipleChoiceView() {
 
   const [options, setOptions] = useState<Word[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
@@ -108,7 +108,7 @@ export default function MultipleChoiceView() {
     }, 1200); // 1.2 segundos de delay
   };
 
-  const getButtonStyle = (optionId: number) => {
+  const getButtonStyle = (optionId: string) => {
     if (!isAnswered) {
       return styles.optionButton; // Default style
     }

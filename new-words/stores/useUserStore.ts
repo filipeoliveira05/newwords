@@ -79,12 +79,20 @@ interface UserState extends GamificationStats {
   totalAchievements: number;
   levelUpHistory: LevelUpRecord[];
   urgentWordsCount: number;
+  reset: () => void;
 }
 
 const getXPForNextLevel = (level: number) =>
   Math.floor(100 * Math.pow(level, 1.5));
 
-export const useUserStore = create<UserState>((set) => ({
+const initialState: Omit<
+  UserState,
+  | "fetchUserStats"
+  | "addXP"
+  | "updateUserDetails"
+  | "clearPendingLevelUpAnimation"
+  | "reset"
+> = {
   xp: 0,
   level: 1,
   xpForNextLevel: 100,
@@ -104,6 +112,10 @@ export const useUserStore = create<UserState>((set) => ({
   totalAchievements: 0,
   levelUpHistory: [],
   urgentWordsCount: 0,
+};
+
+export const useUserStore = create<UserState>((set) => ({
+  ...initialState,
 
   fetchUserStats: async () => {
     // Previne múltiplas chamadas em simultâneo, que podem causar o erro "Maximum update depth exceeded".
@@ -259,8 +271,7 @@ export const useUserStore = create<UserState>((set) => ({
       // Garante que todas as operações de escrita na DB terminam antes de continuar.
       await Promise.all(notificationPromises);
 
-      const lastDeckId = lastDeckIdStr ? parseInt(lastDeckIdStr, 10) : null;
-      const lastDeck = lastDeckId ? await getDeckById(lastDeckId) : null;
+      const lastDeck = lastDeckIdStr ? await getDeckById(lastDeckIdStr) : null;
 
       set({
         ...stats,
@@ -352,6 +363,11 @@ export const useUserStore = create<UserState>((set) => ({
   clearPendingLevelUpAnimation: () => {
     set({ pendingLevelUpAnimation: null });
   },
+
+  // Adiciona a função de reset
+  reset: () => {
+    set(initialState);
+  },
 }));
 
 // --- Event Subscriptions for Gamification ---
@@ -360,7 +376,7 @@ export const useUserStore = create<UserState>((set) => ({
 
 eventStore
   .getState()
-  .subscribe<{ wordId: number; quality: number }>(
+  .subscribe<{ wordId: string; quality: number }>(
     "answerRecorded",
     ({ quality }) => {
       if (quality >= 3) {
@@ -439,3 +455,8 @@ eventStore
       }
     }
   );
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useUserStore.getState().reset();
+});

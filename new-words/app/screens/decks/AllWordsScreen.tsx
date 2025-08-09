@@ -83,7 +83,7 @@ const AllWordsScreen = ({ navigation }: Props) => {
   };
 
   const handleToggleFavorite = useCallback(
-    async (wordId: number) => {
+    async (wordId: string) => {
       try {
         await toggleFavoriteStatus(wordId);
       } catch (error) {
@@ -99,7 +99,7 @@ const AllWordsScreen = ({ navigation }: Props) => {
   );
 
   const handleDeleteWord = useCallback(
-    (wordId: number) => {
+    (wordId: string) => {
       showAlert({
         title: "Apagar palavra",
         message: "Tens a certeza que queres apagar esta palavra?",

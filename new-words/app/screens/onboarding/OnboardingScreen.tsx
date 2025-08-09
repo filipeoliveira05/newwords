@@ -64,9 +64,10 @@ type OnboardingScreenNavigationProp = NativeStackNavigationProp<
 
 type Props = {
   navigation: OnboardingScreenNavigationProp;
+  onComplete: () => void;
 };
 
-const OnboardingScreen = ({ navigation }: Props) => {
+const OnboardingScreen = ({ navigation, onComplete }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slidesRef = useRef<FlatList>(null);
   const scrollX = useSharedValue(0);
@@ -85,8 +86,7 @@ const OnboardingScreen = ({ navigation }: Props) => {
 
   const handleCompleteOnboarding = async () => {
     await setMetaValue("has_completed_onboarding", "true");
-    // Substitui o ecrã de onboarding pelo da app principal para que o utilizador não possa voltar atrás.
-    navigation.replace("MainApp");
+    onComplete();
   };
 
   const scrollToNext = () => {

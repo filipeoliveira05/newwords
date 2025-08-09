@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { getMetaValue, setMetaValue } from "../services/storage";
+import { eventStore } from "./eventStore";
 
 interface SettingsState {
   hapticsEnabled: boolean;
@@ -8,13 +9,20 @@ interface SettingsState {
   fetchSettings: () => Promise<void>;
   setHapticsEnabled: (enabled: boolean) => Promise<void>;
   setGameSoundsEnabled: (enabled: boolean) => Promise<void>;
+  reset: () => void;
 }
 
-export const useSettingsStore = create<SettingsState>((set) => ({
+const initialState: Omit<
+  SettingsState,
+  "fetchSettings" | "setHapticsEnabled" | "setGameSoundsEnabled" | "reset"
+> = {
   hapticsEnabled: true, // Default value
   gameSoundsEnabled: true, // Default value
   isLoading: true,
+};
 
+export const useSettingsStore = create<SettingsState>((set) => ({
+  ...initialState,
   fetchSettings: async () => {
     try {
       set({ isLoading: true });
@@ -57,4 +65,13 @@ export const useSettingsStore = create<SettingsState>((set) => ({
       set({ gameSoundsEnabled: !enabled });
     }
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useSettingsStore.getState().reset();
+});

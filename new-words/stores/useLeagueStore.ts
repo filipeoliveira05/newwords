@@ -90,6 +90,7 @@ interface LeagueState {
   leagueStartDate: string | null;
   checkAndInitializeLeagues: () => Promise<void>;
   addXP: (xp: number) => Promise<void>;
+  reset: () => void;
 }
 
 const generateSimulatedLeaderboard = (
@@ -139,18 +140,26 @@ const generateSimulatedLeaderboard = (
     }));
 };
 
-export const useLeagueStore = create<LeagueState>((set, get) => ({
+const initialState: Omit<
+  LeagueState,
+  "checkAndInitializeLeagues" | "addXP" | "reset"
+> = {
   isLoading: true,
   currentLeague: null,
-  leagues: LEAGUES, // Initialize with all leagues
+  leagues: LEAGUES,
   leaderboard: [],
   userRank: 0,
   currentLeagueIndex: -1,
   weeklyXP: 0,
   leagueStartDate: null,
+};
+
+export const useLeagueStore = create<LeagueState>((set, get) => ({
+  ...initialState,
 
   checkAndInitializeLeagues: async () => {
-    set({ isLoading: true });
+    // Apenas reinicia o loading se não estiver a ser resetado.
+    if (!get().isLoading) set({ isLoading: true });
     let {
       currentLeague: leagueName,
       weeklyXP,
@@ -286,6 +295,10 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
       };
     });
   },
+
+  reset: () => {
+    set(initialState);
+  },
 }));
 
 // --- Event Subscription ---
@@ -294,4 +307,9 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
 eventStore.getState().subscribe<{ xp: number }>("xpUpdated", ({ xp }) => {
   // Avoid calling checkAndInitializeLeagues if not needed, just add XP
   useLeagueStore.getState().addXP(xp);
+});
+
+// Ouve o evento de logout para se resetar.
+eventStore.getState().subscribe("userLoggedOut", () => {
+  useLeagueStore.getState().reset();
 });

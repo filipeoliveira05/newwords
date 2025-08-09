@@ -19,12 +19,12 @@ import AppText from "../AppText";
 import { theme } from "../../../config/theme";
 
 interface ListItem {
-  id: number;
+  id: string;
   text: string;
 }
 
 interface Selection {
-  id: number;
+  id: string;
   index: number;
 }
 
@@ -155,7 +155,7 @@ export default function CombineListsView() {
   const [selectedMeaning, setSelectedMeaning] = useState<Selection | null>(
     null
   );
-  const [matchedPairs, setMatchedPairs] = useState<number[]>([]);
+  const [matchedPairs, setMatchedPairs] = useState<string[]>([]);
   const [incorrectPair, setIncorrectPair] = useState<{
     wordIndex: number;
     meaningIndex: number;

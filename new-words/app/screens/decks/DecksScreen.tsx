@@ -55,7 +55,7 @@ export default function DecksScreen({ navigation }: Props) {
   const [isBatchProcessing, setIsBatchProcessing] = useState(false);
 
   const sortBottomSheetRef = useRef<BottomSheetModal>(null);
-  const [selectedDeckIds, setSelectedDeckIds] = useState<Set<number>>(
+  const [selectedDeckIds, setSelectedDeckIds] = useState<Set<string>>(
     new Set()
   );
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
@@ -223,7 +223,7 @@ export default function DecksScreen({ navigation }: Props) {
     }
   };
 
-  const handleLongPress = useCallback((deckId: number) => {
+  const handleLongPress = useCallback((deckId: string) => {
     setSelectedDeckIds((prev) => new Set(prev).add(deckId));
   }, []);
 
