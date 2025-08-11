@@ -1,5 +1,34 @@
 .
+├── @filipeoliveira05__new-words.jks
 ├── README.md
+├── android
+│   ├── app
+│   │   └── src
+│   │       ├── debug
+│   │       └── main
+│   │           ├── java
+│   │           │   └── com
+│   │           │       └── filipeoliveira05
+│   │           └── res
+│   │               ├── drawable
+│   │               ├── drawable-hdpi
+│   │               ├── drawable-mdpi
+│   │               ├── drawable-xhdpi
+│   │               ├── drawable-xxhdpi
+│   │               ├── drawable-xxxhdpi
+│   │               ├── mipmap-anydpi-v26
+│   │               ├── mipmap-hdpi
+│   │               ├── mipmap-mdpi
+│   │               ├── mipmap-xhdpi
+│   │               ├── mipmap-xxhdpi
+│   │               ├── mipmap-xxxhdpi
+│   │               ├── values
+│   │               └── values-night
+│   ├── build
+│   │   └── generated
+│   │       └── autolinking
+│   └── gradle
+│       └── wrapper
 ├── app
 │   ├── _layout.tsx
 │   ├── components
@@ -74,8 +103,10 @@
 │   └── screens
 │       ├── LoadingScreen.tsx
 │       ├── auth
+│       │   ├── ForgotPasswordScreen.tsx
 │       │   ├── LoginScreen.tsx
-│       │   └── SignUpScreen.tsx
+│       │   ├── SignUpScreen.tsx
+│       │   └── UpdatePasswordScreen.tsx
 │       ├── community
 │       │   └── CommunityScreen.tsx
 │       ├── decks
@@ -164,6 +195,7 @@
 │   └── navigation.ts
 └── utils
     ├── arrayUtils.ts
+    ├── authErrorUtils.ts
     └── sm2.ts
 
-35 directories, 131 files
+63 directories, 135 files

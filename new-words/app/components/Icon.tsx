@@ -127,6 +127,9 @@ export const iconMap = {
   settings: { name: "cog-outline", library: "ionicons" },
   helpBuoy: { name: "help-buoy-outline", library: "ionicons" },
   logout: { name: "log-out-outline", library: "ionicons" },
+
+  //Logos
+  google: { name: "logo-google", library: "ionicons" },
 } as const;
 
 // 3. Define os tipos para as props do componente

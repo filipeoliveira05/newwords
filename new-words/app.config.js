@@ -16,7 +16,10 @@ module.exports = {
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/images/mascot/mascot_neutral.png",
-    scheme: "newwords",
+    // O 'scheme' deve ser dinâmico e corresponder ao package name da aplicação.
+    // Isto garante que o deep link (ex: com.filipeoliveira05.newwords.dev://)
+    // é único e seguro, cumprindo as políticas do Google OAuth.
+    scheme: androidPackage,
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
     ios: {
@@ -69,6 +72,9 @@ module.exports = {
         // O projectId continua aqui para referência do EAS.
         projectId: EAS_PROJECT_ID,
       },
+      googleWebClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      googleAndroidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+      googleIOSClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     },
   },
 };

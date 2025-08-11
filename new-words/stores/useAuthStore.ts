@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { supabase } from "@/services/supabaseClient";
 import { Session, AuthError } from "@supabase/supabase-js";
-import { Linking } from "react-native";
+import { Linking } from "react-native"; // Core Linking para os event listeners
 import { deleteDatabase, initializeDB } from "@/services/storage";
 import { eventStore } from "./eventStore";
 
@@ -16,6 +16,10 @@ interface AuthState {
     email: string,
     pass: string
   ) => Promise<{ error: AuthError | null }>;
+  // A função signInWithGoogle é removida.
+  // A lógica de autenticação com Google passa a ser gerida pelo LoginScreen com expo-auth-session,
+  // que depois chama esta função para validar o token.
+  signInWithIdToken: (idToken: string) => Promise<{ error: AuthError | null }>;
   signUpWithEmail: (
     email: string,
     pass: string,
@@ -57,22 +61,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // 3. Lida com deep links para resolver a condição de corrida.
     // Isto garante que o onAuthStateChange já está a ouvir antes de processarmos o URL.
     const handleDeepLink = (url: string | null) => {
-      if (!url) return;
+      if (!url) {
+        return;
+      }
+
       const fragment = url.split("#")[1];
-      if (!fragment) return;
+      if (!fragment) {
+        return;
+      }
 
       const params = new URLSearchParams(fragment);
+
       const accessToken = params.get("access_token");
       const refreshToken = params.get("refresh_token");
       const type = params.get("type");
 
-      if (accessToken && refreshToken && type === "recovery") {
-        // 1. Ativa o nosso sinalizador de recuperação PRIMEIRO.
-        set({ isRecoveringPassword: true });
-        // 2. Depois, define a sessão para que o Supabase nos autentique.
-        console.log(
-          "[Auth] A definir sessão a partir do deep link de recuperação..."
-        );
+      // Se tivermos tokens de acesso, é um redirecionamento de autenticação.
+      if (accessToken && refreshToken) {
+        if (type === "recovery") {
+          // É um link de recuperação de palavra-passe
+          console.log(
+            "[Auth] A definir sessão a partir do deep link de recuperação..."
+          );
+          set({ isRecoveringPassword: true });
+        } else {
+          // É um login OAuth (Google, etc.)
+          console.log("[Auth] A definir sessão a partir do deep link OAuth...");
+        }
+        // Define a sessão manualmente para garantir que o onAuthStateChange é disparado.
         supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
@@ -93,6 +109,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       password,
     });
     // O onAuthStateChange irá atualizar o estado da sessão automaticamente
+    return { error };
+  },
+
+  signInWithIdToken: async (idToken: string) => {
+    // Usa o id_token obtido do Google para fazer login no Supabase de forma segura.
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: "google",
+      token: idToken,
+    });
+    // O onAuthStateChange tratará da atualização do estado da sessão.
     return { error };
   },
 
