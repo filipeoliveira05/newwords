@@ -3,6 +3,7 @@ import { supabase } from "@/services/supabaseClient";
 import { Session, AuthError } from "@supabase/supabase-js";
 import { Linking } from "react-native";
 import { deleteDatabase, initializeDB, setMetaValue } from "@/services/storage";
+import { useUserStore } from "./useUserStore";
 import { eventStore } from "./eventStore";
 
 interface AuthState {
@@ -60,7 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     // 2. Ouve alterações no estado de autenticação (login, logout, etc.)
     // O Supabase trata da persistência da sessão no AsyncStorage automaticamente.
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange(async (_event, session) => {
       // Adiciona este log para depuração.
       console.log(`[Auth] Evento: ${_event}, Sessão: ${!!session}`);
       set({
@@ -69,6 +70,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         hasCompletedOnboarding:
           session?.user?.user_metadata?.has_completed_onboarding ?? false,
       });
+
+      // --- SINCRONIZAÇÃO DE DADOS NO PRIMEIRO LOGIN ---
+      // Se o utilizador acabou de fazer login e não tem um nome definido,
+      // significa que é o primeiro login (provavelmente via Google).
+      if (
+        _event === "SIGNED_IN" &&
+        session &&
+        !session.user.user_metadata.first_name
+      ) {
+        const { full_name, avatar_url, email } = session.user.user_metadata;
+
+        if (full_name && email) {
+          const nameParts = full_name.split(" ");
+          const firstName = nameParts[0];
+          const lastName = nameParts.slice(1).join(" ");
+
+          // 1. Atualiza os metadados no Supabase para persistir os dados.
+          await supabase.auth.updateUser({
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              profile_picture_url: avatar_url,
+            },
+          });
+
+          // 2. Atualiza a base de dados local para a UI reagir imediatamente.
+          await Promise.all([
+            setMetaValue("first_name", firstName),
+            setMetaValue("last_name", lastName),
+            setMetaValue("email", email),
+            setMetaValue("profile_picture_url", avatar_url || ""),
+          ]);
+
+          // 3. Força a recarga dos dados do utilizador para a UI ser atualizada.
+          useUserStore.getState().fetchUserStats();
+        }
+      }
     });
 
     // 3. Lida com deep links para resolver a condição de corrida.

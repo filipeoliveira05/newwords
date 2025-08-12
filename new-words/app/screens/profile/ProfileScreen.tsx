@@ -22,8 +22,7 @@ const ProfileScreen = ({ navigation }: Props) => {
   const handleLogout = () => {
     showAlert({
       title: "Terminar Sessão",
-      message:
-        "Isto irá levá-lo para o ecrã inicial. O seu progresso e palavras não serão apagados. Quer continuar?",
+      message: "Isto irá levá-lo para o ecrã inicial. Quer continuar?",
       buttons: [
         { text: "Cancelar", style: "cancel", onPress: () => {} },
         {
