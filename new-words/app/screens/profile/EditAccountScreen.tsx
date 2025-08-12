@@ -6,15 +6,17 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import Toast from "react-native-toast-message";
+import * as ImagePicker from "expo-image-picker";
 
 import { ProfileStackParamList } from "../../../types/navigation";
 import { useUserStore } from "../../../stores/useUserStore";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
@@ -23,15 +25,16 @@ import Icon from "../../components/Icon";
 type Props = NativeStackScreenProps<ProfileStackParamList, "EditAccount">;
 
 const EditAccountScreen = ({ navigation }: Props) => {
-  const { user, updateUserDetails } = useUserStore();
+  const { user, updateUserDetails, updateProfilePicture } = useUserStore();
   const { showAlert } = useAlertStore.getState();
+  const { addNotification } = useNotificationStore();
 
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
   const [email, setEmail] = useState(user?.email || "");
-
   const [isDirty, setIsDirty] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Set initial state for comparison
   useEffect(() => {
@@ -110,10 +113,12 @@ const EditAccountScreen = ({ navigation }: Props) => {
         lastName: lastName.trim(),
         email: email.trim(),
       });
-      Toast.show({
-        type: "success",
-        text1: "Guardado!",
-        text2: "Os seus detalhes foram atualizados.",
+      addNotification({
+        id: `save-success-${Date.now()}`,
+        type: "generic",
+        icon: "checkmarkCircle",
+        title: "Guardado!",
+        subtitle: "Os seus detalhes foram atualizados.",
       });
       navigation.goBack();
     } catch (error) {
@@ -128,6 +133,56 @@ const EditAccountScreen = ({ navigation }: Props) => {
     }
   };
 
+  const handleImagePick = async () => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      showAlert({
+        title: "Permissão necessária",
+        message:
+          "É necessário permitir o acesso à galeria para escolher uma foto.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+      return;
+    }
+
+    const pickerResult = await ImagePicker.launchImageLibraryAsync({
+      // A sintaxe `MediaTypeOptions` foi depreciada.
+      // A nova sintaxe usa um array de strings para especificar os tipos de media.
+      // Ver: https://docs.expo.dev/versions/latest/sdk/imagepicker/#imagepickermediatype
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.5,
+    });
+
+    if (pickerResult.canceled) return;
+
+    if (pickerResult.assets && pickerResult.assets.length > 0) {
+      const uri = pickerResult.assets[0].uri;
+      setIsUploading(true);
+      try {
+        await updateProfilePicture(uri);
+        addNotification({
+          id: `avatar-success-${Date.now()}`,
+          type: "generic",
+          icon: "camera",
+          title: "Foto de perfil atualizada!",
+          subtitle: "A sua nova foto está visível em toda a aplicação.",
+        });
+      } catch (error) {
+        showAlert({
+          title: "Erro de Upload",
+          message: "Não foi possível enviar a sua foto. Tente novamente.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+        console.error("Erro ao mudar a foto de perfil: ", error);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -137,6 +192,34 @@ const EditAccountScreen = ({ navigation }: Props) => {
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={styles.avatarSection}>
+          <TouchableOpacity onPress={handleImagePick} disabled={isUploading}>
+            <View style={styles.avatarContainer}>
+              {user?.profilePictureUrl ? (
+                <Image
+                  source={{ uri: user.profilePictureUrl }}
+                  style={styles.avatar}
+                />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Icon name="person" size={50} color={theme.colors.primary} />
+                </View>
+              )}
+              {isUploading ? (
+                <View style={styles.uploadingOverlay}>
+                  <ActivityIndicator
+                    color={theme.colors.surface}
+                    size="large"
+                  />
+                </View>
+              ) : (
+                <View style={styles.editIconContainer}>
+                  <Icon name="camera" size={20} color={theme.colors.surface} />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        </View>
         <View style={styles.form}>
           <View style={styles.inputGroup}>
             <AppText style={styles.label}>PRIMEIRO NOME</AppText>
@@ -215,6 +298,51 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "space-between",
     padding: 24,
+  },
+  avatarSection: {
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  avatarContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    position: "relative",
+  },
+  avatar: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 60,
+  },
+  avatarPlaceholder: {
+    width: "100%",
+    height: "100%",
+    borderRadius: 60,
+    backgroundColor: theme.colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: theme.colors.border,
+  },
+  editIconContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: theme.colors.primary,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: theme.colors.background,
+  },
+  uploadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 60,
   },
   form: {
     flex: 1,

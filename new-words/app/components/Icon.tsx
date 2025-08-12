@@ -40,8 +40,8 @@ export const iconMap = {
   swapVertical: { name: "swap-vertical-outline", library: "ionicons" },
   ellipsis: { name: "ellipsis-vertical", library: "ionicons" },
   share: { name: "share-social-outline", library: "ionicons" },
-
   bug: { name: "bug-outline", library: "ionicons" },
+
   // General UI
   bookmark: { name: "bookmark-outline", library: "ionicons" },
   flash: { name: "flash", library: "ionicons" },
@@ -91,8 +91,9 @@ export const iconMap = {
   text: { name: "text-outline", library: "ionicons" },
   chat: { name: "chatbox-ellipses-outline", library: "ionicons" },
   folder: { name: "folder-open-outline", library: "ionicons" },
-
   cloudOffline: { name: "cloud-offline-outline", library: "ionicons" },
+  camera: { name: "camera-outline", library: "ionicons" },
+
   // Practice & Learning
   school: { name: "school-outline", library: "ionicons" },
   trendingUp: { name: "trending-up-outline", library: "ionicons" },

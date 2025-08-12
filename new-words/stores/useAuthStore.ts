@@ -3,7 +3,6 @@ import { supabase } from "@/services/supabaseClient";
 import { Session, AuthError } from "@supabase/supabase-js";
 import { Linking } from "react-native";
 import { deleteDatabase, initializeDB, setMetaValue } from "@/services/storage";
-import { useUserStore } from "./useUserStore";
 import { eventStore } from "./eventStore";
 
 interface AuthState {
@@ -101,10 +100,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             setMetaValue("last_name", lastName),
             setMetaValue("email", email),
             setMetaValue("profile_picture_url", avatar_url || ""),
+            setMetaValue("profile_picture_path", ""), // Limpa o caminho do avatar personalizado
           ]);
 
-          // 3. Força a recarga dos dados do utilizador para a UI ser atualizada.
-          useUserStore.getState().fetchUserStats();
+          // 3. Publica um evento para que o useUserStore possa recarregar os dados.
+          eventStore.getState().publish("userProfileUpdated", {});
         }
       }
     });

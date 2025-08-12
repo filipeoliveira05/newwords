@@ -46,7 +46,10 @@ import {
 } from "../config/dailyGoals";
 import { shuffle } from "../utils/arrayUtils";
 import { Word, Deck } from "../types/database";
+import { uploadAvatar } from "../services/uploadService";
+import { useAuthStore } from "./useAuthStore";
 import { GameMode, SessionType } from "./usePracticeStore";
+import { supabase } from "@/services/supabaseClient";
 import { format } from "date-fns";
 
 // A DailyGoal with its progress calculated for the current day.
@@ -58,7 +61,7 @@ interface UserDetails {
   firstName: string;
   lastName: string;
   email: string;
-  profilePictureUrl: string;
+  profilePictureUrl: string | null; // Pode ser uma URL pública do Google ou uma URL assinada temporária
 }
 
 interface UserState extends GamificationStats {
@@ -67,7 +70,10 @@ interface UserState extends GamificationStats {
   fetchUserStats: () => Promise<void>;
   addXP: (xp: number) => Promise<void>;
   // Função mais genérica para atualizar qualquer detalhe do utilizador
-  updateUserDetails: (details: Partial<UserDetails>) => Promise<void>;
+  updateUserDetails: (
+    details: Partial<UserDetails & { profilePicturePath?: string }>
+  ) => Promise<void>;
+  updateProfilePicture: (uri: string) => Promise<void>;
   dailyGoals: ProcessedDailyGoal[];
   challengingWords: ChallengingWord[];
   lastPracticedDeck: Deck | null;
@@ -91,6 +97,7 @@ const initialState: Omit<
   | "addXP"
   | "updateUserDetails"
   | "clearPendingLevelUpAnimation"
+  | "updateProfilePicture"
   | "reset"
 > = {
   xp: 0,
@@ -139,7 +146,8 @@ export const useUserStore = create<UserState>((set) => ({
         firstName,
         lastName,
         email,
-        profilePictureUrl,
+        avatarPath,
+        googleAvatarUrl,
         weeklySummary,
         onThisDayWord,
         totalAchievements,
@@ -168,7 +176,8 @@ export const useUserStore = create<UserState>((set) => ({
         getMetaValue("first_name", "Novo"),
         getMetaValue("last_name", "Utilizador"),
         getMetaValue("email", ""),
-        getMetaValue("profile_picture_url", ""),
+        getMetaValue("profile_picture_path", null), // Obtém o caminho do avatar personalizado
+        getMetaValue("profile_picture_url", null), // Obtém a URL pública do Google como fallback
         getWeeklySummaryStats(),
         getWordLearnedOnThisDay(),
         getAchievementsCount(),
@@ -189,6 +198,22 @@ export const useUserStore = create<UserState>((set) => ({
         getNotifiedGoalIdsToday(),
         getHighestStreakToday(),
       ]);
+
+      let displayUrl: string | null = googleAvatarUrl; // Usa a URL do Google como fallback
+
+      // Se existir um caminho para um avatar personalizado, ele tem prioridade.
+      // Geramos uma URL assinada (temporária e segura) para o exibir.
+      if (avatarPath) {
+        const { data, error } = await supabase.storage
+          .from("avatars")
+          .createSignedUrl(avatarPath, 60 * 60); // Expira em 1 hora
+
+        if (error) {
+          console.error("Erro ao criar URL assinada para o avatar:", error);
+        } else {
+          displayUrl = data.signedUrl;
+        }
+      }
 
       let finalGoals: DailyGoal[] = [];
       if (todaysActiveGoalIds) {
@@ -279,7 +304,7 @@ export const useUserStore = create<UserState>((set) => ({
           firstName: firstName ?? "Novo",
           lastName: lastName ?? "Utilizador",
           email: email ?? "",
-          profilePictureUrl: profilePictureUrl ?? "",
+          profilePictureUrl: displayUrl, // Usa a URL de exibição que foi determinada
         },
         dailyGoals: newProcessedGoals,
         challengingWords: challenging,
@@ -346,17 +371,42 @@ export const useUserStore = create<UserState>((set) => ({
         updatePromises.push(setMetaValue("last_name", details.lastName));
       if (details.email !== undefined)
         updatePromises.push(setMetaValue("email", details.email));
-      if (details.profilePictureUrl !== undefined)
+      // Agora, esta função lida com o caminho do ficheiro, não com a URL.
+      if (details.profilePicturePath !== undefined) {
         updatePromises.push(
-          setMetaValue("profile_picture_url", details.profilePictureUrl)
+          setMetaValue("profile_picture_path", details.profilePicturePath)
         );
+        // Quando o utilizador faz upload de uma foto nova, limpamos a URL de fallback do Google.
+        updatePromises.push(setMetaValue("profile_picture_url", ""));
+      }
 
       await Promise.all(updatePromises);
 
       // Atualiza o estado localmente
-      set((state) => ({ user: { ...state.user!, ...details } }));
+      const userDetailsToUpdate: Partial<UserDetails> = { ...details };
+      delete (userDetailsToUpdate as any).profilePicturePath;
+      set((state) => ({ user: { ...state.user!, ...userDetailsToUpdate } }));
     } catch (error) {
       console.error("Erro ao atualizar os detalhes do utilizador:", error);
+    }
+  },
+
+  updateProfilePicture: async (uri: string) => {
+    const { session } = useAuthStore.getState();
+    if (!session?.user) {
+      throw new Error("Utilizador não autenticado");
+    }
+    const userId = session.user.id;
+
+    try {
+      const filePath = await uploadAvatar(uri, userId);
+      await useUserStore
+        .getState()
+        .updateUserDetails({ profilePicturePath: filePath });
+      // Após guardar o caminho, re-executamos o fetch para gerar a nova URL assinada e atualizar a UI.
+      await useUserStore.getState().fetchUserStats();
+    } catch (error) {
+      throw error;
     }
   },
 
@@ -459,4 +509,9 @@ eventStore
 // Ouve o evento de logout para se resetar.
 eventStore.getState().subscribe("userLoggedOut", () => {
   useUserStore.getState().reset();
+});
+
+// Ouve o evento de atualização de perfil (ex: após login com Google) para recarregar os dados.
+eventStore.getState().subscribe("userProfileUpdated", () => {
+  useUserStore.getState().fetchUserStats();
 });
