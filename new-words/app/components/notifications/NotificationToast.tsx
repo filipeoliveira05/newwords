@@ -81,6 +81,16 @@ const getNotificationColors = (
         primary: theme.colors.primary,
         secondary: theme.colors.primaryLight,
       };
+    case "generic": // Notificações de sucesso genéricas
+      return {
+        primary: theme.colors.success,
+        secondary: theme.colors.successLight,
+      };
+    case "error": // Notificações de erro
+      return {
+        primary: theme.colors.danger,
+        secondary: theme.colors.dangerLight,
+      };
     case "dailyGoal":
     default:
       return {
@@ -246,6 +256,14 @@ const NotificationToast = () => {
       headerText = "SUBIU DE NÍVEL!";
       titleText = `Nível ${currentNotification.newLevel}`;
       subtitleText = `Você alcançou o nível ${currentNotification.newLevel}!`;
+      break;
+    case "generic":
+      headerText = "SUCESSO";
+      // titleText and subtitleText are already set from the payload by default.
+      break;
+    case "error":
+      headerText = "AVISO";
+      // titleText and subtitleText are already set from the payload by default.
       break;
   }
 

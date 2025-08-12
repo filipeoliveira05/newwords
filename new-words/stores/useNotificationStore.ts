@@ -3,7 +3,12 @@ import { eventStore } from "./eventStore";
 import { AchievementRank } from "../config/achievements";
 import { IconName } from "../app/components/Icon";
 
-export type NotificationType = "dailyGoal" | "achievement" | "levelUp";
+export type NotificationType =
+  | "dailyGoal"
+  | "achievement"
+  | "levelUp"
+  | "generic"
+  | "error";
 
 export interface NotificationPayload {
   id: string;

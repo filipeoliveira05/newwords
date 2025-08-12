@@ -10,13 +10,13 @@ import {
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../../types/navigation";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAuthStore } from "../../../stores/useAuthStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import Icon from "@/app/components/Icon";
 import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
-import Toast from "react-native-toast-message";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "ForgotPassword">;
 
@@ -24,6 +24,7 @@ const ForgotPasswordScreen = ({ navigation, route }: Props) => {
   const [email, setEmail] = useState(route.params?.email || "");
   const [loading, setLoading] = useState(false);
   const showAlert = useAlertStore((state) => state.showAlert);
+  const { addNotification } = useNotificationStore();
 
   const handleSendResetLink = async () => {
     if (!email.trim()) {
@@ -49,10 +50,13 @@ const ForgotPasswordScreen = ({ navigation, route }: Props) => {
         buttons: [{ text: "OK", onPress: () => {} }],
       });
     } else {
-      Toast.show({
-        type: "success",
-        text1: "Email Enviado!",
-        text2: "Verifique a sua caixa de entrada para o link de recuperação.",
+      addNotification({
+        id: `reset-link-sent-${Date.now()}`,
+        type: "generic",
+        icon: "mail",
+        title: "Email Enviado!",
+        subtitle:
+          "Verifique a sua caixa de entrada para o link de recuperação.",
       });
       // Volta ao início da stack de autenticação (LoginScreen)
       navigation.popToTop();

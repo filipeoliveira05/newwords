@@ -7,7 +7,6 @@ import {
   LayoutAnimation,
 } from "react-native";
 import * as Linking from "expo-linking";
-import Toast from "react-native-toast-message";
 import * as StoreReview from "expo-store-review";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ProfileStackParamList } from "../../../types/navigation";
@@ -262,10 +261,12 @@ const HelpScreen = ({ navigation }: Props) => {
     try {
       await seedLevelUpHistory();
       await fetchUserStats(); // Recarrega os dados no store
-      Toast.show({
-        type: "success",
-        text1: "Dados de teste inseridos!",
-        text2: "O histórico de níveis foi populado.",
+      addNotification({
+        id: `seed-history-success-${Date.now()}`,
+        type: "generic",
+        icon: "bug",
+        title: "Dados de teste inseridos!",
+        subtitle: "O histórico de níveis foi populado.",
       });
     } catch (e) {
       console.error(e);
@@ -278,7 +279,7 @@ const HelpScreen = ({ navigation }: Props) => {
       message:
         "Isto irá apagar todos os baralhos e palavras do seu dispositivo e fazer logout. Tem a certeza?",
       buttons: [
-        { text: "Cancelar", style: "cancel" },
+        { text: "Cancelar", style: "cancel", onPress: () => {} },
         {
           text: "Apagar Tudo",
           style: "destructive",

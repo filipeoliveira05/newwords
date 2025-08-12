@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { startOfWeek, isBefore, formatISO } from "date-fns";
-import Toast from "react-native-toast-message";
 import {
   getLeagueData,
   updateLeagueData,
@@ -15,6 +14,7 @@ import {
   getLeagueIndex,
 } from "../config/leagues";
 import { eventStore } from "./eventStore";
+import { useNotificationStore } from "./useNotificationStore";
 
 const FAKE_NAMES = [
   "Alex",
@@ -204,10 +204,12 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
           if (leagueIndex < LEAGUES.length - 1) {
             newLeagueName = LEAGUES[leagueIndex + 1].name;
             leagueResult = "promoted";
-            Toast.show({
-              type: "success",
-              text1: "Promovido!",
-              text2: `Bem-vindo à Liga ${newLeagueName}!`,
+            useNotificationStore.getState().addNotification({
+              id: `promoted-${newLeagueName}-${Date.now()}`,
+              type: "generic",
+              icon: "caretUp",
+              title: "Promovido!",
+              subtitle: `Bem-vindo à Liga ${newLeagueName}!`,
             });
           }
         } else if (
@@ -217,10 +219,12 @@ export const useLeagueStore = create<LeagueState>((set, get) => ({
           if (leagueIndex > 0) {
             newLeagueName = LEAGUES[leagueIndex - 1].name;
             leagueResult = "demoted";
-            Toast.show({
+            useNotificationStore.getState().addNotification({
+              id: `demoted-${newLeagueName}-${Date.now()}`,
               type: "error",
-              text1: "Despromovido",
-              text2: `Você voltou para a Liga ${newLeagueName}.`,
+              icon: "caretDown",
+              title: "Despromovido",
+              subtitle: `Você voltou para a Liga ${newLeagueName}.`,
             });
           }
         }

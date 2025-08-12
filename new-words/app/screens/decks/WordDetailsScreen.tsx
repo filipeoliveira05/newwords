@@ -16,7 +16,6 @@ import {
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { format, parseISO } from "date-fns";
 import { pt } from "date-fns/locale";
-import Toast from "react-native-toast-message";
 // import * as Speech from "expo-speech"; // Descomentar quando for gerada uma nova build de desenvolvimento
 import { eventStore } from "../../../stores/eventStore";
 
@@ -24,6 +23,7 @@ import { getWordById } from "../../../services/storage";
 import { Word } from "../../../types/database";
 import { DecksStackParamList } from "../../../types/navigation";
 import { useWordStore } from "../../../stores/wordStore";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import ChipInput from "../../components/ChipInput";
 import CategorySelectionModal from "../../components/modals/CategorySelectionModal";
@@ -62,6 +62,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
   const { wordId } = route.params;
   const { updateWordDetails, deleteWord, updateWord } = useWordStore.getState();
   const { showAlert } = useAlertStore.getState();
+  const { addNotification } = useNotificationStore();
 
   const [wordDetails, setWordDetails] = useState<Word | null>(null);
   const [loading, setLoading] = useState(true);
@@ -288,9 +289,11 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
           };
         });
 
-        Toast.show({
-          type: "success",
-          text1: "Palavra atualizada!",
+        addNotification({
+          id: `word-updated-${wordId}`,
+          type: "generic",
+          icon: "pencil",
+          title: "Palavra atualizada!",
         });
 
         wordEditSheetRef.current?.dismiss();
@@ -305,7 +308,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         return Promise.reject(error);
       }
     },
-    [updateWord, showAlert]
+    [updateWord, showAlert, addNotification]
   );
   const handleSave = useCallback(async () => {
     if (!wordDetails) return;
@@ -329,10 +332,12 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
         sentences,
       });
 
-      Toast.show({
-        type: "success",
-        text1: "Guardado!",
-        text2: "Os detalhes da palavra foram atualizados.",
+      addNotification({
+        id: `word-details-saved-${wordDetails.id}`,
+        type: "generic",
+        icon: "checkmarkCircle",
+        title: "Guardado!",
+        subtitle: "Os detalhes da palavra foram atualizados.",
       });
     } catch (error) {
       console.error("Erro ao guardar detalhes da palavra:", error);
@@ -352,6 +357,7 @@ const WordDetailsScreen = ({ navigation, route }: Props) => {
     sentences,
     updateWordDetails,
     showAlert,
+    addNotification,
   ]);
 
   const getCategoryColor = (categoryName: string | null): string => {

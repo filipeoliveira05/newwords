@@ -8,10 +8,10 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import AppText from "../../components/AppText";
 import { theme } from "../../../config/theme";
 import { useAuthStore } from "../../../stores/useAuthStore";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
 
@@ -20,6 +20,7 @@ const UpdatePasswordScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const showAlert = useAlertStore((state) => state.showAlert);
+  const { addNotification } = useNotificationStore();
 
   const handleUpdatePassword = async () => {
     if (!password) {
@@ -54,10 +55,12 @@ const UpdatePasswordScreen = () => {
       });
     } else {
       // 1. Mostra uma mensagem de sucesso clara.
-      Toast.show({
-        type: "success",
-        text1: "Palavra-passe atualizada!",
-        text2: "Pode agora fazer login com as novas credenciais.",
+      addNotification({
+        id: `password-updated-${Date.now()}`,
+        type: "generic",
+        icon: "lock",
+        title: "Palavra-passe atualizada!",
+        subtitle: "Pode agora fazer login com as novas credenciais.",
       });
       // 2. Termina a sessão imediatamente. O RootNavigator irá detetar
       //    que a sessão é nula e redirecionar para o ecrã de login.

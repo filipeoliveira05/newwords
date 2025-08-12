@@ -16,13 +16,13 @@ import {
   Image,
 } from "react-native";
 import Animated, { ZoomOut, LinearTransition } from "react-native-reanimated";
-import Toast from "react-native-toast-message";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetBackdrop,
 } from "@gorhom/bottom-sheet";
+import { useNotificationStore } from "../../../stores/useNotificationStore";
 
 import AppText from "../../components/AppText";
 import { useDeckStore } from "../../../stores/deckStore";
@@ -65,6 +65,7 @@ export default function DecksScreen({ navigation }: Props) {
   const decks = sortedDecks;
 
   const isSelectionMode = selectedDeckIds.size > 0;
+  const { addNotification } = useNotificationStore();
 
   const { showAlert } = useAlertStore.getState();
 
@@ -207,9 +208,12 @@ export default function DecksScreen({ navigation }: Props) {
     setIsBatchProcessing(true);
     try {
       await seedDatabase();
-      Toast.show({
-        type: "success",
-        text1: "Dados de teste carregados!",
+      addNotification({
+        id: `seed-data-success-${Date.now()}`,
+        type: "generic",
+        icon: "leaf",
+        title: "Dados de teste carregados!",
+        subtitle: "A sua biblioteca foi populada com conjuntos de exemplo.",
       });
     } catch (error) {
       console.error("Falha ao carregar os dados de teste.", error);
