@@ -21,7 +21,7 @@ import { useAchievementStore } from "@/stores/useAchievementStore";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useDeckStore } from "@/stores/deckStore";
 import { useWordStore } from "@/stores/wordStore";
-// import { useUserStore } from "@/stores/useUserStore";
+import { useUserStore } from "@/stores/useUserStore";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import * as hapticService from "../../services/hapticService";
 import * as soundService from "../../services/soundService";
@@ -333,6 +333,8 @@ export default function AppNavigator() {
     "Satoshi-Bold": SatoshiBold,
   });
 
+  const { user } = useUserStore();
+
   // Limpa os dados locais quando o utilizador faz logout.
   // Este efeito é acionado quando o AppNavigator é montado ou quando a sessão muda.
   // Se a sessão for nula (logout), todos os stores são reiniciados para garantir
@@ -466,6 +468,7 @@ export default function AppNavigator() {
                   name="profile"
                   size={28}
                   color={color}
+                  profilePictureUrl={user?.profilePictureUrl}
                 />
               ),
             }}
