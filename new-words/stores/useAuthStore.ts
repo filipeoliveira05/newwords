@@ -1,14 +1,15 @@
 import { create } from "zustand";
 import { supabase } from "@/services/supabaseClient";
 import { Session, AuthError } from "@supabase/supabase-js";
-import { Linking } from "react-native"; // Core Linking para os event listeners
-import { deleteDatabase, initializeDB } from "@/services/storage";
+import { Linking } from "react-native";
+import { deleteDatabase, initializeDB, setMetaValue } from "@/services/storage";
 import { eventStore } from "./eventStore";
 
 interface AuthState {
   session: Session | null;
   isAuthenticating: boolean;
   isSyncing: boolean; // Novo estado para controlar a sincronização inicial
+  hasCompletedOnboarding: boolean; // Novo estado para o onboarding do utilizador
   lastAuthEvent: string | null;
   isRecoveringPassword: boolean;
   initialize: () => Promise<void>;
@@ -32,6 +33,7 @@ interface AuthState {
   sendPasswordResetEmail: (
     email: string
   ) => Promise<{ error: AuthError | null }>;
+  completeOnboarding: () => Promise<{ error: AuthError | null }>;
   setIsSyncing: (isSyncing: boolean) => void; // Nova action para controlar o estado
   // Ação setLastAuthEvent removida, pois a nova flag a substitui para este fluxo.
 }
@@ -40,6 +42,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   session: null,
   isAuthenticating: true,
   isSyncing: false,
+  hasCompletedOnboarding: false,
   lastAuthEvent: null,
   isRecoveringPassword: false,
 
@@ -48,14 +51,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const {
       data: { session },
     } = await supabase.auth.getSession();
-    set({ session, isAuthenticating: false });
+    set({
+      session,
+      isAuthenticating: false,
+      hasCompletedOnboarding:
+        session?.user?.user_metadata?.has_completed_onboarding ?? false,
+    });
 
     // 2. Ouve alterações no estado de autenticação (login, logout, etc.)
     // O Supabase trata da persistência da sessão no AsyncStorage automaticamente.
     supabase.auth.onAuthStateChange((_event, session) => {
       // Adiciona este log para depuração.
       console.log(`[Auth] Evento: ${_event}, Sessão: ${!!session}`);
-      set({ session, lastAuthEvent: _event });
+      set({
+        session,
+        lastAuthEvent: _event,
+        hasCompletedOnboarding:
+          session?.user?.user_metadata?.has_completed_onboarding ?? false,
+      });
     });
 
     // 3. Lida com deep links para resolver a condição de corrida.
@@ -165,6 +178,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // de autenticação como base.
     });
 
+    return { error };
+  },
+
+  completeOnboarding: async () => {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.updateUser({
+      data: { has_completed_onboarding: true },
+    });
+    if (!error && user) {
+      // Atualiza também o valor na base de dados local para consistência.
+      await setMetaValue("has_completed_onboarding", "true");
+      set({ hasCompletedOnboarding: true });
+    }
     return { error };
   },
 

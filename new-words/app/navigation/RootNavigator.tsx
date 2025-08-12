@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { getMetaValue, initializeDB } from "../../services/storage";
+import { initializeDB } from "../../services/storage";
 import { useAuthStore } from "../../stores/useAuthStore";
 import AppNavigator from "./AppNavigator";
 import OnboardingScreen from "../screens/onboarding/OnboardingScreen";
@@ -17,13 +17,12 @@ import NetInfo from "@react-native-community/netinfo";
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator = () => {
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<
-    boolean | null
-  >(null);
+  const [isDbInitialized, setIsDbInitialized] = useState(false);
   const {
     session,
     isAuthenticating,
     isSyncing,
+    hasCompletedOnboarding,
     initialize,
     isRecoveringPassword,
   } = useAuthStore();
@@ -34,14 +33,11 @@ const RootNavigator = () => {
       try {
         // 1. Garante que a base de dados e as tabelas existem antes de qualquer leitura.
         await initializeDB();
-        // 2. Verifica se o onboarding foi concluído.
-        const status = await getMetaValue("has_completed_onboarding");
-        setHasCompletedOnboarding(status === "true");
-        // 3. Inicializa o estado de autenticação (verifica se há sessão ativa).
+        setIsDbInitialized(true);
+        // 2. Inicializa o estado de autenticação (verifica se há sessão ativa).
         initialize();
       } catch (error) {
         console.error("Falha ao preparar a aplicação:", error);
-        setHasCompletedOnboarding(false);
         initialize();
       }
     };
@@ -61,9 +57,8 @@ const RootNavigator = () => {
 
   // Efeito para processar a fila de sincronização quando a app arranca ou fica online.
   useEffect(() => {
-    // Garante que este efeito só corre depois de a DB estar inicializada.
-    // O hasCompletedOnboarding só é definido após o initializeDB().
-    if (hasCompletedOnboarding === null) {
+    // Garante que este efeito só corre depois de a DB estar inicializada
+    if (!isDbInitialized) {
       return;
     }
 
@@ -79,9 +74,9 @@ const RootNavigator = () => {
     });
 
     return () => unsubscribe(); // Limpa a subscrição ao desmontar.
-  }, [hasCompletedOnboarding]); // Adiciona a dependência
+  }, [isDbInitialized]); // Adiciona a dependência
 
-  if (hasCompletedOnboarding === null || isAuthenticating || isSyncing) {
+  if (!isDbInitialized || isAuthenticating || isSyncing) {
     // Mostra um ecrã de loading enquanto verificamos o estado de onboarding e autenticação.
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -96,18 +91,12 @@ const RootNavigator = () => {
         <RootStack.Screen
           name="UpdatePassword"
           component={UpdatePasswordScreen}
-        />
-      ) : !hasCompletedOnboarding ? (
-        <RootStack.Screen name="Onboarding">
-          {(props) => (
-            <OnboardingScreen
-              {...props}
-              onComplete={() => setHasCompletedOnboarding(true)}
-            />
-          )}
-        </RootStack.Screen>
+        /> // Se não há sessão, o utilizador deve autenticar-se primeiro.
       ) : !session ? (
         <RootStack.Screen name="Auth" component={AuthNavigator} />
+      ) : !hasCompletedOnboarding ? (
+        // Se há sessão mas o onboarding não foi feito, mostra o onboarding.
+        <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : (
         <RootStack.Screen name="MainApp" component={AppNavigator} />
       )}

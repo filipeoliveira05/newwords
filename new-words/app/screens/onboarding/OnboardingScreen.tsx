@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import Animated, {
@@ -13,8 +14,9 @@ import Animated, {
 } from "react-native-reanimated";
 import { RootStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
-import { theme } from "../../../config/theme";
-import { setMetaValue } from "../../../services/storage";
+import { theme } from "@/config/theme";
+import { useAuthStore } from "@/stores/useAuthStore";
+import { useAlertStore } from "@/stores/useAlertStore";
 import OnboardingSlide from "../../components/onboarding/OnboardingSlide";
 import OnboardingPaginator from "../../components/onboarding/OnboardingPaginator";
 import { ImageName } from "@/services/imageService";
@@ -63,13 +65,14 @@ type OnboardingScreenNavigationProp = NativeStackNavigationProp<
 >;
 
 type Props = {
-  navigation: OnboardingScreenNavigationProp;
-  onComplete: () => void;
+  navigation: OnboardingScreenNavigationProp; // A prop onComplete é removida
 };
 
-const OnboardingScreen = ({ navigation, onComplete }: Props) => {
+const OnboardingScreen = ({ navigation }: Props) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slidesRef = useRef<FlatList>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
+  const showAlert = useAlertStore((state) => state.showAlert);
   const scrollX = useSharedValue(0);
 
   const scrollHandler = useAnimatedScrollHandler((event) => {
@@ -85,8 +88,23 @@ const OnboardingScreen = ({ navigation, onComplete }: Props) => {
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
   const handleCompleteOnboarding = async () => {
-    await setMetaValue("has_completed_onboarding", "true");
-    onComplete();
+    if (isCompleting) return;
+
+    setIsCompleting(true);
+    // Chama a função do store para atualizar o estado no Supabase.
+    // O RootNavigator irá reagir automaticamente à mudança de estado.
+    const { error } = await useAuthStore.getState().completeOnboarding();
+
+    if (error) {
+      showAlert({
+        title: "Erro de Rede",
+        message:
+          "Não foi possível guardar a sua preferência. Por favor, verifique a sua ligação à internet e tente novamente.",
+        buttons: [{ text: "OK", onPress: () => {} }],
+      });
+      setIsCompleting(false); // Permite ao utilizador tentar novamente.
+    }
+    // Se não houver erro, o RootNavigator irá mudar de ecrã, pelo que não é preciso fazer setIsCompleting(false).
   };
 
   const scrollToNext = () => {
@@ -121,12 +139,17 @@ const OnboardingScreen = ({ navigation, onComplete }: Props) => {
           style={styles.button}
           activeOpacity={0.8}
           onPress={scrollToNext}
+          disabled={isCompleting && currentIndex === slides.length - 1}
         >
-          <AppText variant="bold" style={styles.buttonText}>
-            {currentIndex === slides.length - 1
-              ? "Começar a Aprender"
-              : "Próximo"}
-          </AppText>
+          {isCompleting && currentIndex === slides.length - 1 ? (
+            <ActivityIndicator color={theme.colors.surface} />
+          ) : (
+            <AppText variant="bold" style={styles.buttonText}>
+              {currentIndex === slides.length - 1
+                ? "Começar a Aprender"
+                : "Próximo"}
+            </AppText>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
