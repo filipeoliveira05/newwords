@@ -1,5 +1,12 @@
 import * as SQLite from "expo-sqlite";
-import { Deck, Word } from "@/types/database";
+import {
+  Deck,
+  Word,
+  PracticeHistory,
+  PracticeLog,
+  LevelUpRecord,
+  DailyActiveGoal,
+} from "@/types/database";
 import * as Crypto from "expo-crypto";
 import * as FileSystem from "expo-file-system";
 import {
@@ -32,7 +39,9 @@ export const initializeDB = async () => {
             id TEXT PRIMARY KEY NOT NULL,
             title TEXT NOT NULL,
             author TEXT NOT NULL,
-            createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            createdAt TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0
         );
       `);
       await db.runAsync(`
@@ -58,6 +67,8 @@ export const initializeDB = async () => {
             easinessFactor REAL NOT NULL DEFAULT 2.5,
             interval INTEGER NOT NULL DEFAULT 0,
             repetitions INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (deckId) REFERENCES decks(id) ON DELETE CASCADE
         );
       `);
@@ -65,51 +76,52 @@ export const initializeDB = async () => {
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS user_metadata (
             key TEXT PRIMARY KEY NOT NULL,
-            value TEXT NOT NULL
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0
         );
       `);
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS practice_history (
             date TEXT PRIMARY KEY NOT NULL,
-            words_trained INTEGER NOT NULL DEFAULT 0
+            words_trained INTEGER NOT NULL DEFAULT 0,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
         );
       `);
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS practice_log (
-            id INTEGER PRIMARY KEY NOT NULL,
+            id TEXT PRIMARY KEY NOT NULL,
             word_id TEXT NOT NULL,
             practice_date TEXT NOT NULL,
             was_correct INTEGER NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0,
             FOREIGN KEY (word_id) REFERENCES words(id) ON DELETE CASCADE
         );
       `);
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS unlocked_achievements (
             achievement_id TEXT PRIMARY KEY NOT NULL,
-            unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+            unlocked_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0
         );
       `);
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS level_up_history (
             level INTEGER PRIMARY KEY NOT NULL,
-            unlocked_at TEXT NOT NULL
+            unlocked_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0
         );
       `);
 
       await db.runAsync(`
         CREATE TABLE IF NOT EXISTS daily_active_goals (
             date TEXT PRIMARY KEY NOT NULL,
-            goal_ids TEXT NOT NULL
-        );
-      `);
-
-      await db.runAsync(`
-        CREATE TABLE IF NOT EXISTS sync_queue (
-            id INTEGER PRIMARY KEY NOT NULL,
-            operation_type TEXT NOT NULL, -- 'CREATE_DECK', 'UPDATE_WORD', etc.
-            payload TEXT NOT NULL, -- JSON string of the data
-            created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
-            attempts INTEGER NOT NULL DEFAULT 0
+            goal_ids TEXT NOT NULL,
+            updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+            is_deleted INTEGER NOT NULL DEFAULT 0
         );
       `);
 
@@ -162,6 +174,10 @@ export const initializeDB = async () => {
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('profile_picture_url', '');`
       );
+      // Adiciona o caminho para a foto de perfil personalizada
+      await db.runAsync(
+        `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('profile_picture_path', '');`
+      );
       await db.runAsync(
         `INSERT OR IGNORE INTO user_metadata (key, value) VALUES ('haptics_enabled', 'true');`
       );
@@ -190,6 +206,80 @@ export const initializeDB = async () => {
       await db.runAsync(
         `CREATE INDEX IF NOT EXISTS idx_practice_log_date ON practice_log(practice_date);`
       );
+
+      // --- TRIGGERS FOR updated_at ---
+      // Trigger for 'decks' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_decks_updated_at
+        AFTER UPDATE ON decks
+        FOR EACH ROW
+        BEGIN
+            UPDATE decks SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = OLD.id;
+        END;
+      `);
+      // Trigger for 'words' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_words_updated_at
+        AFTER UPDATE ON words
+        FOR EACH ROW
+        BEGIN
+            UPDATE words SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = OLD.id;
+        END;
+      `);
+      // Trigger for 'user_metadata' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_user_metadata_updated_at
+        AFTER UPDATE ON user_metadata
+        FOR EACH ROW
+        BEGIN
+            UPDATE user_metadata SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE key = OLD.key;
+        END;
+      `);
+      // Trigger for 'unlocked_achievements' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_unlocked_achievements_updated_at
+        AFTER UPDATE ON unlocked_achievements
+        FOR EACH ROW
+        BEGIN
+            UPDATE unlocked_achievements SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE achievement_id = OLD.achievement_id;
+        END;
+      `);
+      // Trigger for 'practice_history' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_practice_history_updated_at
+        AFTER UPDATE ON practice_history
+        FOR EACH ROW
+        BEGIN
+            UPDATE practice_history SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE date = OLD.date;
+        END;
+      `);
+      // Trigger for 'practice_log' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_practice_log_updated_at
+        AFTER UPDATE ON practice_log
+        FOR EACH ROW
+        BEGIN
+            UPDATE practice_log SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = OLD.id;
+        END;
+      `);
+      // Trigger for 'level_up_history' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_level_up_history_updated_at
+        AFTER UPDATE ON level_up_history
+        FOR EACH ROW
+        BEGIN
+            UPDATE level_up_history SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE level = OLD.level;
+        END;
+      `);
+      // Trigger for 'daily_active_goals' table
+      await db.runAsync(`
+        CREATE TRIGGER IF NOT EXISTS update_daily_active_goals_updated_at
+        AFTER UPDATE ON daily_active_goals
+        FOR EACH ROW
+        BEGIN
+            UPDATE daily_active_goals SET updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE date = OLD.date;
+        END;
+      `);
     });
   } catch (e) {
     console.error("Erro ao inicializar a base de dados:", e);
@@ -218,6 +308,15 @@ export const deleteDatabase = async (): Promise<void> => {
     console.error("Erro ao apagar a base de dados:", error);
   }
 };
+
+/**
+ * Expõe a funcionalidade de transação da base de dados para ser usada por outros serviços.
+ */
+export async function withTransaction(
+  action: () => Promise<void>
+): Promise<void> {
+  await db.withTransactionAsync(action);
+}
 
 // --- Metadata Helper Functions ---
 
@@ -313,11 +412,6 @@ export async function updateUserXP(
   ]);
 
   return { newXP, newLevel: currentLevel, didLevelUp };
-}
-
-export interface LevelUpRecord {
-  level: number;
-  unlocked_at: string;
 }
 
 export async function getLevelUpHistory(): Promise<LevelUpRecord[]> {
@@ -530,9 +624,15 @@ export async function updateDeck(
 export async function deleteDeck(id: string): Promise<void> {
   try {
     // Usa uma transação para garantir que tanto as palavras como o deck são apagados.
+    // SOFT DELETE: Em vez de apagar, marcamos os registos como apagados.
+    // O trigger que criámos irá atualizar o `updated_at` automaticamente.
     await db.withTransactionAsync(async () => {
-      await db.runAsync("DELETE FROM words WHERE deckId = ?", [id]); // 1. Apaga as palavras associadas
-      await db.runAsync("DELETE FROM decks WHERE id = ?", [id]); // 2. Apaga o deck
+      // 1. Marca as palavras associadas como apagadas
+      await db.runAsync("UPDATE words SET is_deleted = 1 WHERE deckId = ?", [
+        id,
+      ]);
+      // 2. Marca o deck como apagado
+      await db.runAsync("UPDATE decks SET is_deleted = 1 WHERE id = ?", [id]);
     });
   } catch (e) {
     console.error("Erro ao apagar deck:", e);
@@ -545,16 +645,20 @@ export async function deleteDecks(ids: string[]): Promise<void> {
     return;
   }
   try {
-    // Usa uma transação para garantir que tanto as palavras como os decks são apagados.
+    // SOFT DELETE: Em vez de apagar, marcamos os registos como apagados.
+    // O trigger que criámos irá atualizar o `updated_at` automaticamente.
     await db.withTransactionAsync(async () => {
       const placeholders = ids.map(() => "?").join(",");
-      // 1. Apaga as palavras associadas a todos os decks selecionados
+      // 1. Marca as palavras associadas a todos os decks selecionados como apagadas
       await db.runAsync(
-        `DELETE FROM words WHERE deckId IN (${placeholders})`,
+        `UPDATE words SET is_deleted = 1 WHERE deckId IN (${placeholders})`,
         ids
       );
-      // 2. Apaga todos os decks selecionados
-      await db.runAsync(`DELETE FROM decks WHERE id IN (${placeholders})`, ids);
+      // 2. Marca todos os decks selecionados como apagados
+      await db.runAsync(
+        `UPDATE decks SET is_deleted = 1 WHERE id IN (${placeholders})`,
+        ids
+      );
     });
   } catch (e) {
     console.error("Erro ao apagar múltiplos decks:", e);
@@ -562,6 +666,80 @@ export async function deleteDecks(ids: string[]): Promise<void> {
   }
 }
 
+/**
+ * Apaga permanentemente um deck e as suas palavras associadas da base de dados local.
+ * Usado após receber a confirmação de que o deck foi apagado na nuvem.
+ */
+export async function hardDeleteDeck(id: string): Promise<void> {
+  try {
+    await db.runAsync("DELETE FROM words WHERE deckId = ?", [id]);
+    await db.runAsync("DELETE FROM decks WHERE id = ?", [id]);
+  } catch (e) {
+    console.error("Erro ao apagar permanentemente o deck:", e);
+    throw e;
+  }
+}
+
+/**
+ * Apaga permanentemente uma palavra da base de dados local.
+ * Usado após receber a confirmação de que a palavra foi apagada na nuvem.
+ */
+export async function hardDeleteWord(id: string): Promise<void> {
+  try {
+    await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
+  } catch (e) {
+    console.error("Erro ao apagar permanentemente a palavra:", e);
+    throw e;
+  }
+}
+
+/**
+ * Apaga permanentemente uma conquista da base de dados local.
+ */
+export async function hardDeleteUnlockedAchievement(
+  achievementId: string
+): Promise<void> {
+  await db.runAsync(
+    "DELETE FROM unlocked_achievements WHERE achievement_id = ?",
+    [achievementId]
+  );
+}
+
+/**
+ * Apaga permanentemente um registo de log da base de dados local.
+ */
+export async function hardDeletePracticeLog(id: string): Promise<void> {
+  try {
+    await db.runAsync("DELETE FROM practice_log WHERE id = ?", [id]);
+  } catch (e) {
+    console.error("Erro ao apagar permanentemente o log de prática:", e);
+    throw e;
+  }
+}
+
+/**
+ * Apaga permanentemente um registo de histórico de nível da base de dados local.
+ */
+export async function hardDeleteLevelUpHistory(level: number): Promise<void> {
+  try {
+    await db.runAsync("DELETE FROM level_up_history WHERE level = ?", [level]);
+  } catch (e) {
+    console.error("Erro ao apagar permanentemente o histórico de nível:", e);
+    throw e;
+  }
+}
+
+/**
+ * Apaga permanentemente um registo de metas diárias da base de dados local.
+ */
+export async function hardDeleteDailyActiveGoals(date: string): Promise<void> {
+  try {
+    await db.runAsync("DELETE FROM daily_active_goals WHERE date = ?", [date]);
+  } catch (e) {
+    console.error("Erro ao apagar permanentemente as metas diárias ativas:", e);
+    throw e;
+  }
+}
 // --- Word Functions
 
 export async function getAllWords(): Promise<Word[]> {
@@ -573,6 +751,83 @@ export async function getAllWords(): Promise<Word[]> {
     console.error("Erro ao obter palavras:", e);
     throw e;
   }
+}
+
+// --- Funções para Delta Sync ---
+
+export interface LocalChanges {
+  decks: Deck[];
+  words: Word[];
+  user_metadata: { key: string; value: string; updated_at: string }[];
+  unlocked_achievements: {
+    achievement_id: string;
+    unlocked_at: string;
+    updated_at: string;
+    is_deleted: number;
+  }[];
+  practice_history: PracticeHistory[];
+  practice_log: PracticeLog[];
+  level_up_history: LevelUpRecord[];
+  daily_active_goals: DailyActiveGoal[];
+}
+
+/**
+ * Obtém todos os registos locais que foram modificados desde o último timestamp de sincronização.
+ */
+export async function getLocalChanges(
+  timestamp: string
+): Promise<LocalChanges> {
+  const [
+    decks,
+    words,
+    user_metadata,
+    unlocked_achievements,
+    practice_history,
+    practice_log,
+    level_up_history,
+    daily_active_goals,
+  ] = await Promise.all([
+    db.getAllAsync<Deck>("SELECT * FROM decks WHERE updated_at > ?", [
+      timestamp,
+    ]),
+    db.getAllAsync<Word>("SELECT * FROM words WHERE updated_at > ?", [
+      timestamp,
+    ]),
+    db.getAllAsync<any>("SELECT * FROM user_metadata WHERE updated_at > ?", [
+      timestamp,
+    ]),
+    db.getAllAsync<any>(
+      "SELECT * FROM unlocked_achievements WHERE updated_at > ?",
+      [timestamp]
+    ),
+    db.getAllAsync<PracticeHistory>(
+      "SELECT * FROM practice_history WHERE updated_at > ?",
+      [timestamp]
+    ),
+    db.getAllAsync<PracticeLog>(
+      "SELECT * FROM practice_log WHERE updated_at > ?",
+      [timestamp]
+    ),
+    db.getAllAsync<LevelUpRecord>(
+      "SELECT * FROM level_up_history WHERE updated_at > ?",
+      [timestamp]
+    ),
+    db.getAllAsync<DailyActiveGoal>(
+      "SELECT * FROM daily_active_goals WHERE updated_at > ?",
+      [timestamp]
+    ),
+  ]);
+
+  return {
+    decks,
+    words,
+    user_metadata,
+    unlocked_achievements,
+    practice_history,
+    practice_log,
+    level_up_history,
+    daily_active_goals,
+  };
 }
 
 export async function getWordsOfDeck(deckId: string): Promise<Word[]> {
@@ -691,7 +946,9 @@ export async function updateWordDetails(
 
 export async function deleteWord(id: string): Promise<void> {
   try {
-    await db.runAsync("DELETE FROM words WHERE id = ?", [id]);
+    // SOFT DELETE: Em vez de apagar, marcamos a palavra como apagada.
+    // O trigger que criámos irá atualizar o `updated_at` automaticamente.
+    await db.runAsync("UPDATE words SET is_deleted = 1 WHERE id = ?", [id]);
   } catch (e) {
     console.error("Erro ao apagar palavra:", e);
     throw e;
@@ -699,78 +956,30 @@ export async function deleteWord(id: string): Promise<void> {
 }
 
 /**
- * Tipos de operações que podem ser adicionadas à fila de sincronização.
- */
-export type SyncOperationType =
-  | "CREATE_DECK"
-  | "UPDATE_DECK"
-  | "DELETE_DECK"
-  | "CREATE_WORD"
-  | "UPDATE_WORD"
-  | "DELETE_WORD"
-  | "UPDATE_WORD_DETAILS"
-  | "TOGGLE_WORD_FAVORITE"
-  | "UPDATE_WORD_STATS";
-
-export interface SyncOperation {
-  id: number;
-  operation_type: SyncOperationType;
-  payload: string;
-  attempts: number;
-}
-
-export async function addOperationToQueue(
-  operation_type: SyncOperationType,
-  payload: object
-): Promise<void> {
-  try {
-    await db.runAsync(
-      "INSERT INTO sync_queue (operation_type, payload) VALUES (?, ?)",
-      [operation_type, JSON.stringify(payload)]
-    );
-  } catch (e) {
-    console.error("Erro ao adicionar operação à fila de sincronização:", e);
-  }
-}
-
-export async function getPendingOperations(): Promise<SyncOperation[]> {
-  try {
-    return await db.getAllAsync<SyncOperation>(
-      "SELECT * FROM sync_queue ORDER BY id ASC"
-    );
-  } catch (e) {
-    console.error("Erro ao obter operações pendentes:", e);
-    return [];
-  }
-}
-
-export async function deleteProcessedOperations(ids: number[]): Promise<void> {
-  if (ids.length === 0) return;
-  const placeholders = ids.map(() => "?").join(",");
-  await db.runAsync(
-    `DELETE FROM sync_queue WHERE id IN (${placeholders})`,
-    ids
-  );
-}
-
-/**
  * Insere múltiplos decks na base de dados local.
  * Usado pelo syncService para popular a BD após o download da nuvem.
  * @param decks Array de objetos de Deck a inserir.
  */
-export async function bulkInsertDecks(decks: Deck[]): Promise<void> {
+export async function bulkInsertDecks(
+  decks: (Deck & { updated_at: string; is_deleted: number })[]
+): Promise<void> {
   if (decks.length === 0) return;
   try {
-    await db.withTransactionAsync(async () => {
-      // Usamos ON CONFLICT para evitar erros se um deck com o mesmo ID já existir,
-      // substituindo-o. Isto torna a função de download mais robusta.
-      for (const deck of decks) {
-        await db.runAsync(
-          "INSERT OR REPLACE INTO decks (id, title, author, createdAt) VALUES (?, ?, ?, ?)",
-          [deck.id, deck.title, deck.author, deck.createdAt]
-        );
-      }
-    });
+    // Usamos ON CONFLICT para evitar erros se um deck com o mesmo ID já existir,
+    // substituindo-o. Isto torna a função de download mais robusta.
+    for (const deck of decks) {
+      await db.runAsync(
+        "INSERT OR REPLACE INTO decks (id, title, author, createdAt, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?)",
+        [
+          deck.id,
+          deck.title,
+          deck.author,
+          deck.createdAt,
+          deck.updated_at,
+          deck.is_deleted,
+        ]
+      );
+    }
   } catch (e) {
     console.error("Erro ao inserir decks em massa:", e);
     throw e;
@@ -782,75 +991,46 @@ export async function bulkInsertDecks(decks: Deck[]): Promise<void> {
  * Usado pelo syncService para popular a BD após o download da nuvem.
  * @param words Array de objetos de Word a inserir.
  */
-export async function bulkInsertWords(words: Word[]): Promise<void> {
+export async function bulkInsertWords(
+  words: (Word & { updated_at: string; is_deleted: number })[]
+): Promise<void> {
   if (words.length === 0) return;
   try {
-    await db.withTransactionAsync(async () => {
-      for (const word of words) {
-        // A query completa com todos os campos para garantir a inserção correta.
-        await db.runAsync(
-          `INSERT OR REPLACE INTO words (id, deckId, name, meaning, timesTrained, timesCorrect, timesIncorrect, lastTrained, lastAnswerCorrect, masteryLevel, nextReviewDate, createdAt, category, synonyms, antonyms, sentences, isFavorite, masteredAt, easinessFactor, interval, repetitions)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            word.id,
-            word.deckId,
-            word.name,
-            word.meaning,
-            word.timesTrained,
-            word.timesCorrect,
-            word.timesIncorrect,
-            word.lastTrained,
-            word.lastAnswerCorrect,
-            word.masteryLevel,
-            word.nextReviewDate,
-            word.createdAt,
-            word.category,
-            word.synonyms,
-            word.antonyms,
-            word.sentences,
-            word.isFavorite,
-            word.masteredAt,
-            word.easinessFactor,
-            word.interval,
-            word.repetitions,
-          ]
-        );
-      }
-    });
+    for (const word of words) {
+      // A query completa com todos os campos para garantir a inserção correta.
+      await db.runAsync(
+        `INSERT OR REPLACE INTO words (id, deckId, name, meaning, timesTrained, timesCorrect, timesIncorrect, lastTrained, lastAnswerCorrect, masteryLevel, nextReviewDate, createdAt, category, synonyms, antonyms, sentences, isFavorite, masteredAt, easinessFactor, interval, repetitions, updated_at, is_deleted)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          word.id,
+          word.deckId,
+          word.name,
+          word.meaning,
+          word.timesTrained,
+          word.timesCorrect,
+          word.timesIncorrect,
+          word.lastTrained,
+          word.lastAnswerCorrect,
+          word.masteryLevel,
+          word.nextReviewDate,
+          word.createdAt,
+          word.category,
+          word.synonyms,
+          word.antonyms,
+          word.sentences,
+          word.isFavorite,
+          word.masteredAt,
+          word.easinessFactor,
+          word.interval,
+          word.repetitions,
+          word.updated_at,
+          word.is_deleted,
+        ]
+      );
+    }
   } catch (e) {
     console.error("Erro ao inserir palavras em massa:", e);
     throw e;
-  }
-}
-
-/**
- * Obtém o histórico de subida de nível local para o upload.
- */
-export async function getLocalLevelUpHistory(): Promise<LevelUpRecord[]> {
-  try {
-    return await db.getAllAsync<LevelUpRecord>(
-      "SELECT * FROM level_up_history"
-    );
-  } catch (e) {
-    console.error("Erro ao obter histórico de subida de nível local:", e);
-    return [];
-  }
-}
-
-/**
- * Obtém as conquistas desbloqueadas localmente para o upload.
- */
-export async function getLocalUnlockedAchievements(): Promise<
-  { achievement_id: string; unlocked_at: string }[]
-> {
-  try {
-    return await db.getAllAsync<{
-      achievement_id: string;
-      unlocked_at: string;
-    }>("SELECT * FROM unlocked_achievements");
-  } catch (e) {
-    console.error("Erro ao obter conquistas locais:", e);
-    return [];
   }
 }
 
@@ -861,45 +1041,37 @@ export async function bulkInsertLevelUpHistory(
   history: LevelUpRecord[]
 ): Promise<void> {
   if (history.length === 0) return;
-  await db.withTransactionAsync(async () => {
-    for (const record of history) {
-      await db.runAsync(
-        "INSERT OR REPLACE INTO level_up_history (level, unlocked_at) VALUES (?, ?)",
-        [record.level, record.unlocked_at]
-      );
-    }
-  });
+  for (const record of history) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO level_up_history (level, unlocked_at, updated_at, is_deleted) VALUES (?, ?, ?, ?)",
+      [record.level, record.unlocked_at, record.updated_at, record.is_deleted]
+    );
+  }
 }
 
 /**
  * Insere as conquistas desbloqueadas em massa. Usado no download.
  */
 export async function bulkInsertUnlockedAchievements(
-  achievements: { achievement_id: string; unlocked_at: string }[]
+  achievements: {
+    achievement_id: string;
+    unlocked_at: string;
+    updated_at: string;
+    is_deleted: number;
+  }[]
 ): Promise<void> {
   if (achievements.length === 0) return;
-  await db.withTransactionAsync(async () => {
-    for (const achievement of achievements) {
-      await db.runAsync(
-        "INSERT OR REPLACE INTO unlocked_achievements (achievement_id, unlocked_at) VALUES (?, ?)",
-        [achievement.achievement_id, achievement.unlocked_at]
-      );
-    }
-  });
-}
-
-/**
- * Obtém os detalhes do perfil do utilizador guardados localmente.
- */
-export async function getLocalUserDetails(): Promise<{
-  firstName: string | null;
-  lastName: string | null;
-}> {
-  const [firstName, lastName] = await Promise.all([
-    getMetaValue("first_name"),
-    getMetaValue("last_name"),
-  ]);
-  return { firstName, lastName };
+  for (const achievement of achievements) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO unlocked_achievements (achievement_id, unlocked_at, updated_at, is_deleted) VALUES (?, ?, ?, ?)",
+      [
+        achievement.achievement_id,
+        achievement.unlocked_at,
+        achievement.updated_at,
+        achievement.is_deleted,
+      ]
+    );
+  }
 }
 
 export async function getWordsForPractice(
@@ -924,6 +1096,74 @@ export async function getWordsForPractice(
   } catch (e) {
     console.error("Erro ao obter palavras para praticar:", e);
     throw e;
+  }
+}
+
+/**
+ * Insere o histórico de prática em massa. Usado no download.
+ */
+export async function bulkInsertPracticeHistory(
+  history: (PracticeHistory & { updated_at: string })[]
+): Promise<void> {
+  if (history.length === 0) return;
+  for (const record of history) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO practice_history (date, words_trained, updated_at) VALUES (?, ?, ?)",
+      [record.date, record.words_trained, record.updated_at]
+    );
+  }
+}
+
+/**
+ * Insere o log de prática em massa. Usado no download.
+ */
+export async function bulkInsertPracticeLog(
+  logs: PracticeLog[]
+): Promise<void> {
+  if (logs.length === 0) return;
+  for (const record of logs) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO practice_log (id, word_id, practice_date, was_correct, updated_at, is_deleted) VALUES (?, ?, ?, ?, ?, ?)",
+      [
+        record.id,
+        record.word_id,
+        record.practice_date,
+        record.was_correct,
+        record.updated_at,
+        record.is_deleted,
+      ]
+    );
+  }
+}
+
+/**
+ * Insere as metas diárias em massa. Usado no download.
+ */
+export async function bulkInsertDailyActiveGoals(
+  goals: DailyActiveGoal[]
+): Promise<void> {
+  if (goals.length === 0) return;
+  for (const record of goals) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO daily_active_goals (date, goal_ids, updated_at, is_deleted) VALUES (?, ?, ?, ?)",
+      [record.date, record.goal_ids, record.updated_at, record.is_deleted]
+    );
+  }
+}
+
+/**
+ * Insere ou atualiza múltiplos metadados do perfil em massa.
+ * Usado no download dos dados do perfil.
+ */
+export async function bulkSetMetaValues(
+  metadata: { key: string; value: string }[]
+): Promise<void> {
+  if (metadata.length === 0) return;
+  for (const item of metadata) {
+    await db.runAsync(
+      "INSERT OR REPLACE INTO user_metadata (key, value) VALUES (?, ?)",
+      [item.key, item.value]
+    );
   }
 }
 
@@ -1104,8 +1344,8 @@ export async function updateWordStatsWithQuality(
 
     // Log the individual practice event in the new table
     await db.runAsync(
-      `INSERT INTO practice_log (word_id, practice_date, was_correct) VALUES (?, ?, ?);`,
-      [wordId, todayStr, quality >= 3 ? 1 : 0]
+      `INSERT INTO practice_log (id, word_id, practice_date, was_correct) VALUES (?, ?, ?, ?);`,
+      [Crypto.randomUUID(), wordId, now.toISOString(), quality >= 3 ? 1 : 0]
     );
 
     await db.runAsync(
@@ -1211,11 +1451,6 @@ export async function getUserPracticeMetrics(): Promise<UserPracticeMetrics> {
     throw e;
   }
 }
-
-export type PracticeHistory = {
-  date: string; // YYYY-MM-DD
-  words_trained: number;
-};
 
 export async function getPracticeHistory(): Promise<PracticeHistory[]> {
   try {
@@ -1802,11 +2037,13 @@ export async function unlockAchievements(
   if (achievementIds.length === 0) return;
 
   try {
+    const now = new Date().toISOString();
     await db.withTransactionAsync(async () => {
       for (const id of achievementIds) {
+        // 1. Grava localmente com um timestamp explícito
         await db.runAsync(
-          "INSERT OR IGNORE INTO unlocked_achievements (achievement_id) VALUES (?)",
-          [id]
+          "INSERT OR IGNORE INTO unlocked_achievements (achievement_id, unlocked_at) VALUES (?, ?)",
+          [id, now]
         );
       }
     });

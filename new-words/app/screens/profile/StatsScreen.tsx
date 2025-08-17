@@ -23,8 +23,8 @@ import {
   GlobalStats,
   ChallengingWord,
   UserPracticeMetrics,
-  PracticeHistory,
 } from "../../../services/storage";
+import { PracticeHistory } from "@/types/database";
 import { eventStore } from "@/stores/eventStore";
 import {
   BottomSheetModal,

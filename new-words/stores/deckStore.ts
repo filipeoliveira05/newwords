@@ -8,11 +8,9 @@ import {
   getWordCountByDeck,
   countMasteredWordsByDeck,
   getWordsOfDeck,
-  addOperationToQueue,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Deck } from "../types/database";
-import { processSyncQueue } from "@/services/syncService";
 
 export interface DeckWithCount extends Deck {
   wordCount: number;
@@ -81,16 +79,7 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       // 1. Escreve na BD local primeiro
       const newDeckData = await dbAddDeck(title, author);
 
-      // 2. Adiciona a operação à fila de sincronização
-      await addOperationToQueue("CREATE_DECK", {
-        // Agora enviamos o payload completo, incluindo o ID gerado no cliente.
-        id: newDeckData.id,
-        title: newDeckData.title,
-        author: newDeckData.author,
-        created_at: newDeckData.createdAt,
-      });
-
-      // 3. Atualiza o estado da UI de forma otimista
+      // 2. Atualiza o estado da UI de forma otimista
       const newDeckWithCount: DeckWithCount = {
         ...newDeckData,
         wordCount: 0,
@@ -98,7 +87,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       };
       set((state) => ({ decks: [newDeckWithCount, ...state.decks] }));
       eventStore.getState().publish("deckAdded", { deckId: newDeckData.id });
-      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao adicionar deck no store", error);
       throw error;
@@ -108,10 +96,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
   updateDeck: async (id, title, author) => {
     try {
       await dbUpdateDeck(id, title, author);
-      await addOperationToQueue("UPDATE_DECK", {
-        id,
-        updates: { title, author },
-      });
 
       set((state) => ({
         decks: state.decks.map((deck) =>
@@ -120,7 +104,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       }));
 
       eventStore.getState().publish("deckUpdated", { deckId: id });
-      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao atualizar deck no store", error);
       throw error;
@@ -133,7 +116,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       const wordsInDeck = await getWordsOfDeck(id);
 
       await dbDeleteDeck(id);
-      await addOperationToQueue("DELETE_DECK", { id });
 
       set((state) => ({
         decks: state.decks.filter((deck) => deck.id !== id),
@@ -143,7 +125,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       wordsInDeck.forEach(() => {
         eventStore.getState().publish("wordDeleted", { deckId: id });
       });
-      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao apagar deck no store", error);
       throw error;
@@ -162,11 +143,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
 
       await dbDeleteDecks(ids); // A nova função que apaga tudo numa só transação.
 
-      // Adiciona cada operação de delete à fila
-      for (const id of ids) {
-        await addOperationToQueue("DELETE_DECK", { id });
-      }
-
       const idsToDeleteSet = new Set(ids);
       // Atualiza o estado uma única vez, removendo todos os decks selecionados.
       set((state) => ({
@@ -180,7 +156,6 @@ export const useDeckStore = create<DeckState>((set, get) => ({
       allWordsToDelete.forEach((word) => {
         eventStore.getState().publish("wordDeleted", { deckId: word.deckId });
       });
-      processSyncQueue(); // Tenta sincronizar imediatamente
     } catch (error) {
       console.error("Erro ao apagar múltiplos decks no store", error);
       throw error;

@@ -1,10 +1,16 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import React, {
+  useLayoutEffect,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   View,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import * as Updates from "expo-updates";
 import * as Application from "expo-application";
@@ -19,12 +25,19 @@ import { useSettingsStore } from "../../../stores/useSettingsStore";
 import Icon from "../../components/Icon";
 import * as hapticService from "../../../services/hapticService";
 import * as soundService from "../../../services/soundService";
+import { useAuthStore } from "../../../stores/useAuthStore";
+import { getLastSyncTimestamp } from "../../../services/syncState";
+import { formatDistanceToNow, parseISO } from "date-fns";
+import { pt } from "date-fns/locale";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = NativeStackScreenProps<ProfileStackParamList, "Settings">;
 
 const SettingsScreen = ({ navigation }: Props) => {
   const { showAlert } = useAlertStore.getState();
   const [appVersion, setAppVersion] = useState<string | null>(null);
+  const [lastSync, setLastSync] = useState<string | null>(null);
+  const { manualSync, isManuallySyncing } = useAuthStore();
   const {
     hapticsEnabled,
     setHapticsEnabled,
@@ -37,6 +50,27 @@ const SettingsScreen = ({ navigation }: Props) => {
     setAppVersion(Application.nativeApplicationVersion);
     fetchSettings();
   }, [fetchSettings]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchLastSync = async () => {
+        const timestamp = await getLastSyncTimestamp();
+        setLastSync(timestamp);
+      };
+      fetchLastSync();
+    }, [])
+  );
+
+  const formatLastSync = (timestamp: string | null): string => {
+    if (!timestamp) return "Nunca sincronizado";
+    try {
+      const date = parseISO(timestamp);
+      return `há ${formatDistanceToNow(date, { locale: pt })}`;
+    } catch (error) {
+      console.log("Erro a formatar a data lastSync: ", error);
+      return "Data inválida";
+    }
+  };
 
   const handleResetData = () => {
     showAlert({
@@ -127,6 +161,42 @@ const SettingsScreen = ({ navigation }: Props) => {
             />
           </View>
         </View>
+      </View>
+
+      <View style={styles.section}>
+        <AppText variant="bold" style={styles.sectionTitle}>
+          Dados e Sincronização
+        </AppText>
+        <TouchableOpacity
+          style={styles.syncButton}
+          activeOpacity={0.8}
+          onPress={async () => {
+            await manualSync();
+            // Refresh the last sync timestamp after sync completes
+            const timestamp = await getLastSyncTimestamp();
+            setLastSync(timestamp);
+          }}
+          disabled={isManuallySyncing}
+        >
+          {isManuallySyncing ? (
+            <ActivityIndicator color={theme.colors.primary} />
+          ) : (
+            <>
+              <Icon
+                name="cloud"
+                size={22}
+                color={theme.colors.primary}
+                style={styles.syncIcon}
+              />
+              <AppText variant="medium" style={styles.syncButtonText}>
+                Sincronizar Agora
+              </AppText>
+            </>
+          )}
+        </TouchableOpacity>
+        <AppText style={styles.lastSyncText}>
+          Última sincronização: {formatLastSync(lastSync)}
+        </AppText>
       </View>
 
       <View style={styles.section}>
@@ -229,6 +299,29 @@ const styles = StyleSheet.create({
   resetButtonText: {
     color: theme.colors.dangerDark,
     fontSize: theme.fontSizes.base,
+  },
+  syncButton: {
+    backgroundColor: theme.colors.surface,
+    padding: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  syncIcon: {
+    marginRight: 12,
+  },
+  syncButtonText: {
+    color: theme.colors.primary,
+    fontSize: theme.fontSizes.base,
+  },
+  lastSyncText: {
+    textAlign: "center",
+    marginTop: 8,
+    color: theme.colors.textSecondary,
+    fontSize: theme.fontSizes.sm,
   },
 });
 

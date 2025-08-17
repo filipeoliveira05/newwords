@@ -91,6 +91,8 @@ export const iconMap = {
   text: { name: "text-outline", library: "ionicons" },
   chat: { name: "chatbox-ellipses-outline", library: "ionicons" },
   folder: { name: "folder-open-outline", library: "ionicons" },
+  cloud: { name: "cloud-outline", library: "ionicons" },
+  cloudDone: { name: "cloud-done-outline", library: "ionicons" },
   cloudOffline: { name: "cloud-offline-outline", library: "ionicons" },
   camera: { name: "camera-outline", library: "ionicons" },
 

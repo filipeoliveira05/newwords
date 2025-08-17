@@ -43,3 +43,5 @@ app-example
 
 # Script Supabase
 supabaseScript.sql
+
+syncInstructions.txt

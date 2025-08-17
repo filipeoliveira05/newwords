@@ -174,6 +174,8 @@
 │   ├── storage.ts
 │   ├── supabaseClient.ts
 │   ├── syncService.ts
+│   ├── syncState.ts
+│   ├── uploadService.ts
 │   ├── welcomeMessageService.ts
 │   └── wordSorting.ts
 ├── stores
@@ -198,4 +200,4 @@
     ├── authErrorUtils.ts
     └── sm2.ts
 
-63 directories, 135 files
+63 directories, 137 files
