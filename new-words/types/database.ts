@@ -3,6 +3,8 @@ export interface Deck {
   title: string;
   author: string;
   createdAt: string;
+  updated_at: string;
+  is_deleted: number;
 }
 
 export interface Word {
@@ -28,4 +30,35 @@ export interface Word {
   easinessFactor: number; // How easy the word is (default: 2.5)
   interval: number; // The number of days until the next review
   repetitions: number; // Number of consecutive correct recalls
+  updated_at: string;
+  is_deleted: number;
+}
+
+export interface PracticeHistory {
+  date: string; // YYYY-MM-DD
+  words_trained: number;
+  updated_at: string;
+}
+
+export interface PracticeLog {
+  id: string; // UUID
+  word_id: string;
+  practice_date: string; // ISO String
+  was_correct: number; // 1 for true, 0 for false
+  updated_at: string;
+  is_deleted: number;
+}
+
+export interface LevelUpRecord {
+  level: number;
+  unlocked_at: string;
+  updated_at: string;
+  is_deleted: number;
+}
+
+export interface DailyActiveGoal {
+  date: string; // YYYY-MM-DD
+  goal_ids: string; // JSON string
+  updated_at: string;
+  is_deleted: number;
 }

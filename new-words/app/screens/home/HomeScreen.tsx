@@ -62,6 +62,7 @@ export default function HomeScreen({ navigation }: Props) {
       "deckDeleted",
       "wordUpdated",
     ];
+    eventsToSubscribe.push("initialSyncCompleted"); // Ouve o novo evento
 
     const unsubscribers = eventsToSubscribe.map((event) =>
       eventStore.getState().subscribe(event, fetchUserStats)

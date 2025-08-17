@@ -17,11 +17,9 @@ import {
   updateWordStatsWithQuality as dbUpdateWordStatsWithQuality,
   updateWordDetails as dbUpdateWordDetails,
   toggleWordFavoriteStatus as dbToggleWordFavoriteStatus,
-  addOperationToQueue,
 } from "../services/storage";
 import { eventStore } from "./eventStore";
 import type { Word } from "../types/database";
-import { processSyncQueue } from "@/services/syncService";
 
 interface WordState {
   words: {
@@ -322,16 +320,6 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const newWord = await dbAddWord(deckId, name, meaning, category);
 
-      // Adiciona à fila de sincronização
-      // Agora enviamos o payload completo, incluindo o ID gerado no cliente.
-      await addOperationToQueue("CREATE_WORD", {
-        id: newWord.id,
-        deck_id: deckId,
-        name,
-        meaning,
-        category,
-        created_at: newWord.createdAt,
-      });
       set((state) => {
         const currentIds = state.words.byDeckId[deckId] || [];
         return {
@@ -347,7 +335,6 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       // Publica um evento para que o deckStore possa atualizar a contagem.
       eventStore.getState().publish("wordAdded", { deckId });
-      processSyncQueue();
     } catch (error) {
       console.error("Erro ao adicionar palavra no store", error);
       throw error;
@@ -357,10 +344,6 @@ export const useWordStore = create<WordState>((set, get) => ({
   updateWord: async (id, name, meaning, category) => {
     try {
       await dbUpdateWord(id, name, meaning, category);
-      await addOperationToQueue("UPDATE_WORD", {
-        id,
-        updates: { name, meaning, category },
-      });
 
       set((state) => {
         if (!state.words.byId[id]) {
@@ -380,7 +363,6 @@ export const useWordStore = create<WordState>((set, get) => ({
         };
       });
       eventStore.getState().publish("wordUpdated", { wordId: id });
-      processSyncQueue();
     } catch (error) {
       console.error("Erro ao atualizar palavra no store", error);
       throw error;
@@ -390,16 +372,6 @@ export const useWordStore = create<WordState>((set, get) => ({
   updateWordDetails: async (id, category, synonyms, antonyms, sentences) => {
     try {
       await dbUpdateWordDetails(id, category, synonyms, antonyms, sentences);
-      await addOperationToQueue("UPDATE_WORD_DETAILS", {
-        id,
-        updates: {
-          category,
-          // O Supabase espera JSON, não strings
-          synonyms: synonyms,
-          antonyms: antonyms,
-          sentences: sentences,
-        },
-      });
 
       set((state) => {
         if (!state.words.byId[id]) {
@@ -420,7 +392,6 @@ export const useWordStore = create<WordState>((set, get) => ({
         };
       });
       eventStore.getState().publish("wordUpdated", { wordId: id });
-      processSyncQueue();
     } catch (error) {
       console.error("Erro ao atualizar detalhes da palavra no store", error);
       throw error;
@@ -437,7 +408,6 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       const { deckId } = wordToDelete;
       await dbDeleteWord(id);
-      await addOperationToQueue("DELETE_WORD", { id });
 
       set((state) => {
         const newById = { ...state.words.byId };
@@ -454,7 +424,6 @@ export const useWordStore = create<WordState>((set, get) => ({
       });
       // Publica um evento para que o deckStore possa atualizar a contagem.
       eventStore.getState().publish("wordDeleted", { deckId });
-      processSyncQueue();
     } catch (error) {
       console.error("Erro ao apagar palavra no store", error);
       throw error;
@@ -465,11 +434,6 @@ export const useWordStore = create<WordState>((set, get) => ({
     try {
       const updatedWord = await dbToggleWordFavoriteStatus(id);
       if (updatedWord) {
-        await addOperationToQueue("TOGGLE_WORD_FAVORITE", {
-          id,
-          is_favorite: updatedWord.isFavorite === 1,
-        });
-
         set((state) => {
           if (!state.words.byId[updatedWord.id]) {
             return state;
@@ -482,7 +446,6 @@ export const useWordStore = create<WordState>((set, get) => ({
           };
         });
         eventStore.getState().publish("wordUpdated", { wordId: id });
-        processSyncQueue();
       }
       return updatedWord;
     } catch (error) {
@@ -517,23 +480,6 @@ export const useWordStore = create<WordState>((set, get) => ({
       const updatedWord = await dbUpdateWordStatsWithQuality(wordId, quality);
 
       if (!updatedWord) return;
-
-      // Adiciona a atualização de estatísticas à fila
-      await addOperationToQueue("UPDATE_WORD_STATS", {
-        id: wordId,
-        updates: {
-          times_trained: updatedWord.timesTrained,
-          times_correct: updatedWord.timesCorrect,
-          times_incorrect: updatedWord.timesIncorrect,
-          last_trained: updatedWord.lastTrained,
-          last_answer_correct: updatedWord.lastAnswerCorrect === 1,
-          mastery_level: updatedWord.masteryLevel,
-          next_review_date: updatedWord.nextReviewDate,
-          easiness_factor: updatedWord.easinessFactor,
-          interval: updatedWord.interval,
-          repetitions: updatedWord.repetitions,
-        },
-      });
       // Atualiza diretamente a palavra no estado normalizado.
       set((state) => {
         if (!state.words.byId[wordId]) return state;
@@ -556,7 +502,6 @@ export const useWordStore = create<WordState>((set, get) => ({
 
       // Publish the generic wordUpdated event for other listeners
       eventStore.getState().publish("wordUpdated", { wordId });
-      processSyncQueue();
     } catch (error) {
       console.error(
         "Erro ao atualizar estatísticas da palavra com SM-2 no store",

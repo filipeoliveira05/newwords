@@ -3,6 +3,13 @@ import { supabase } from "@/services/supabaseClient";
 import { Session, AuthError } from "@supabase/supabase-js";
 import { Linking } from "react-native";
 import { deleteDatabase, initializeDB, setMetaValue } from "@/services/storage";
+import {
+  clearLastSyncTimestamp,
+  getLastLoggedInUserId,
+  setLastLoggedInUserId,
+} from "@/services/syncState";
+import { synchronize } from "@/services/syncService";
+import { useNotificationStore } from "./useNotificationStore";
 import { eventStore } from "./eventStore";
 
 interface AuthState {
@@ -11,6 +18,7 @@ interface AuthState {
   isSyncing: boolean; // Novo estado para controlar a sincronização inicial
   hasCompletedOnboarding: boolean; // Novo estado para o onboarding do utilizador
   lastAuthEvent: string | null;
+  isManuallySyncing: boolean;
   isRecoveringPassword: boolean;
   initialize: () => Promise<void>;
   signInWithEmail: (
@@ -35,6 +43,8 @@ interface AuthState {
   ) => Promise<{ error: AuthError | null }>;
   completeOnboarding: () => Promise<{ error: AuthError | null }>;
   setIsSyncing: (isSyncing: boolean) => void; // Nova action para controlar o estado
+  runAutomaticSync: () => Promise<void>;
+  manualSync: () => Promise<void>;
   // Ação setLastAuthEvent removida, pois a nova flag a substitui para este fluxo.
 }
 
@@ -44,6 +54,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isSyncing: false,
   hasCompletedOnboarding: false,
   lastAuthEvent: null,
+  isManuallySyncing: false,
   isRecoveringPassword: false,
 
   initialize: async () => {
@@ -61,36 +72,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // 2. Ouve alterações no estado de autenticação (login, logout, etc.)
     // O Supabase trata da persistência da sessão no AsyncStorage automaticamente.
     supabase.auth.onAuthStateChange(async (_event, session) => {
-      // Adiciona este log para depuração.
-      console.log(`[Auth] Evento: ${_event}, Sessão: ${!!session}`);
-      set({
-        session,
-        lastAuthEvent: _event,
-        hasCompletedOnboarding:
-          session?.user?.user_metadata?.has_completed_onboarding ?? false,
-      });
+      console.log(`[Auth] Evento: ${_event}, Sessão: ${!!session?.user?.id}`);
 
-      // --- SINCRONIZAÇÃO DE DADOS NO PRIMEIRO LOGIN ---
-      // Se o utilizador acabou de fazer login e não tem um nome definido,
-      // significa que é o primeiro login (provavelmente via Google).
-      if (
-        _event === "SIGNED_IN" &&
-        session &&
-        !session.user.user_metadata.first_name
-      ) {
-        const { full_name, avatar_url, email } = session.user.user_metadata;
+      // --- Lógica de Troca de Utilizador ---
+      if (_event === "SIGNED_IN" && session) {
+        const lastUserId = await getLastLoggedInUserId();
+        const newUserId = session.user.id;
 
-        if (full_name && email) {
-          const nameParts = full_name.split(" ");
-          const firstName = nameParts[0];
-          const lastName = nameParts.slice(1).join(" ");
+        if (lastUserId && lastUserId !== newUserId) {
+          console.log(
+            "[Auth] Detetada troca de utilizador. A limpar dados locais..."
+          );
+          // Apaga a base de dados do utilizador anterior.
+          await deleteDatabase();
+          // Limpa o timestamp de sincronização para forçar um full pull.
+          await clearLastSyncTimestamp();
+          // Recria as tabelas para um estado limpo.
+          await initializeDB();
+          // Publica um evento para que todos os outros stores se resetem.
+          eventStore.getState().publish("userLoggedOut", {});
+        }
+        // Guarda o ID do novo utilizador.
+        await setLastLoggedInUserId(newUserId);
+      }
 
-          // 1. Atualiza os metadados no Supabase para persistir os dados.
+      // --- Lógica de Sincronização de Perfil ---
+      // Esta função garante que os dados do perfil do provedor (ex: Google)
+      // são sincronizados para a nossa base de dados local e para os metadados do Supabase.
+      const syncUserProfile = async (session: Session) => {
+        const { user_metadata } = session.user;
+        // Apenas executa se for um login com provedor (ex: Google) e se os dados ainda não estiverem preenchidos.
+        if (user_metadata.full_name && !user_metadata.first_name) {
+          console.log(
+            "[Auth] A sincronizar perfil do provedor pela primeira vez..."
+          );
+          const nameParts = user_metadata.full_name.split(" ");
+          const firstName = nameParts[0] || "";
+          const lastName = nameParts.slice(1).join(" ") || "";
+
+          // 1. Atualiza os metadados no Supabase Auth para persistir.
           await supabase.auth.updateUser({
             data: {
               first_name: firstName,
               last_name: lastName,
-              profile_picture_url: avatar_url,
+              profile_picture_url: user_metadata.avatar_url,
             },
           });
 
@@ -98,14 +123,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           await Promise.all([
             setMetaValue("first_name", firstName),
             setMetaValue("last_name", lastName),
-            setMetaValue("email", email),
-            setMetaValue("profile_picture_url", avatar_url || ""),
+            setMetaValue("email", user_metadata.email || ""),
+            setMetaValue("profile_picture_url", user_metadata.avatar_url || ""),
             setMetaValue("profile_picture_path", ""), // Limpa o caminho do avatar personalizado
           ]);
 
-          // 3. Publica um evento para que o useUserStore possa recarregar os dados.
+          // 3. Notifica o resto da app que o perfil foi atualizado.
           eventStore.getState().publish("userProfileUpdated", {});
         }
+      };
+
+      // --- Lógica de Estado da Sessão e Sincronização Inicial ---
+      set({
+        session,
+        lastAuthEvent: _event,
+        hasCompletedOnboarding:
+          session?.user?.user_metadata?.has_completed_onboarding ?? false,
+      });
+
+      // A orquestração da sincronização inicial acontece aqui.
+      if ((_event === "SIGNED_IN" || _event === "INITIAL_SESSION") && session) {
+        console.log(
+          "[Auth] Sessão válida detetada. A preparar para sincronizar."
+        );
+        // 1. Garante que os dados do perfil (ex: Google) são guardados localmente PRIMEIRO.
+        await syncUserProfile(session);
+
+        // 2. Dispara a sincronização automática.
+        // Agora, quando a sincronização correr, os dados locais já estarão corretos.
+        console.log(
+          "[Auth] Perfil pronto. A iniciar sincronização automática."
+        );
+        get().runAutomaticSync();
       }
     });
 
@@ -194,18 +243,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
-    // 1. Termina a sessão no Supabase
+    const { session } = get();
+    // 1. Tenta uma sincronização final antes de fazer logout.
+    // Não bloqueia o logout se falhar (e.g., offline).
+    if (session?.user) {
+      try {
+        console.log("[Auth] A realizar sincronização final antes do logout...");
+        await synchronize(session.user.id);
+      } catch (err) {
+        console.error(
+          "[Auth] Sincronização final falhou, mas a continuar com o logout:",
+          err
+        );
+      }
+    }
+
+    // 2. Termina a sessão no Supabase, o que irá disparar o onAuthStateChange
     await supabase.auth.signOut();
 
-    // 2. Apaga completamente a base de dados local
-    await deleteDatabase();
-    await initializeDB(); // Recria as tabelas para um estado limpo
-
-    // 3. Publica um evento para que todos os outros stores se resetem.
-    // Isto quebra a dependência circular.
+    // 3. Publica um evento para que todos os outros stores limpem o seu estado em memória.
+    // A base de dados local NÃO é apagada aqui.
     eventStore.getState().publish("userLoggedOut", {});
-    // Garante que todos os estados de autenticação são limpos.
-    set({ lastAuthEvent: null, isRecoveringPassword: false });
+    // 4. Garante que o estado local da store de autenticação é limpo.
+    set({ isRecoveringPassword: false });
   },
 
   sendPasswordResetEmail: async (email) => {
@@ -236,5 +296,75 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   setIsSyncing: (isSyncing) => {
     set({ isSyncing });
+  },
+
+  runAutomaticSync: async () => {
+    const { session, isSyncing, setIsSyncing } = get();
+    if (isSyncing) {
+      console.log("Automatic Sync: Already in progress. Skipping.");
+      return;
+    }
+    if (!session?.user) {
+      console.log("Automatic Sync: No user session, skipping.");
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+      await synchronize(session.user.id);
+    } catch (error) {
+      console.error("Automatic sync failed:", error);
+      // Opcional: notificar sobre falha automática
+    } finally {
+      setIsSyncing(false);
+    }
+  },
+
+  manualSync: async () => {
+    const { session, isManuallySyncing, setIsSyncing } = get();
+    if (isManuallySyncing) {
+      console.log("Manual Sync: Already in progress. Skipping.");
+      return;
+    }
+    if (!session?.user) {
+      console.error("Manual Sync: No user session found.");
+      useNotificationStore.getState().addNotification({
+        id: `sync-error-nouser-${Date.now()}`,
+        type: "error",
+        icon: "cloudOffline",
+        title: "Erro de Sincronização",
+        subtitle: "Não foi encontrada uma sessão de utilizador ativa.",
+      });
+      return;
+    }
+
+    set({ isManuallySyncing: true }); // Controla o spinner do botão
+    setIsSyncing(true); // Controla o loading global, se houver
+    try {
+      const success = await synchronize(session.user.id);
+      if (success) {
+        useNotificationStore.getState().addNotification({
+          id: `sync-success-${Date.now()}`,
+          type: "generic",
+          icon: "cloudDone",
+          title: "Sincronização Concluída",
+          subtitle: "Os seus dados estão seguros na nuvem.",
+        });
+      } else {
+        throw new Error("A sincronização falhou ou foi ignorada.");
+      }
+    } catch (error) {
+      useNotificationStore.getState().addNotification({
+        id: `sync-error-${Date.now()}`,
+        type: "error",
+        icon: "cloudOffline",
+        title: "Falha na Sincronização",
+        subtitle: "Verifique a sua ligação à internet e tente novamente.",
+      });
+      console.log("Falha na sincronização manual: ", error);
+    } finally {
+      set({ isManuallySyncing: false });
+      setIsSyncing(false);
+    }
   },
 }));

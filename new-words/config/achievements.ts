@@ -1,8 +1,5 @@
-import {
-  GlobalStats,
-  UserPracticeMetrics,
-  PracticeHistory,
-} from "../services/storage";
+import { GlobalStats, UserPracticeMetrics } from "../services/storage";
+import { PracticeHistory } from "@/types/database";
 import { differenceInDays } from "date-fns";
 import { IconName } from "../app/components/Icon";
 import { theme } from "./theme";

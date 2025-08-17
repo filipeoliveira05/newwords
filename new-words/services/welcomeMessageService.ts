@@ -1,6 +1,6 @@
 import { differenceInDays } from "date-fns";
 import { DailyGoal } from "@/config/dailyGoals";
-import { PracticeHistory } from "@/services/storage";
+import { PracticeHistory } from "@/types/database";
 // --- Helper Functions & Data ---
 
 const getRandomItem = <T>(arr: T[]): T =>

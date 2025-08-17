@@ -1,8 +1,12 @@
 import { supabase } from "./supabaseClient";
 import * as localDB from "./storage";
-import { useAuthStore } from "@/stores/useAuthStore";
+import {
+  getLastSyncTimestamp,
+  setLastSyncTimestamp,
+} from "@/services/syncState";
+import { Word } from "@/types/database";
+import { eventStore } from "@/stores/eventStore";
 import NetInfo from "@react-native-community/netinfo";
-import { Deck, Word } from "@/types/database";
 
 // --- Tipos de Dados do Supabase (snake_case) ---
 
@@ -12,30 +16,35 @@ type SupabaseDeck = {
   title: string;
   author: string;
   created_at: string;
+  updated_at: string;
+  is_deleted: boolean;
 };
 
-type SupabaseWord = Omit<
-  Word,
-  | "deckId"
-  | "createdAt"
-  | "lastTrained"
-  | "lastAnswerCorrect"
-  | "masteryLevel"
-  | "nextReviewDate"
-  | "isFavorite"
-  | "masteredAt"
-  | "easinessFactor"
-> & {
-  deck_id: string; // UUID
+type SupabaseWord = {
+  id: string;
+  deck_id: string;
   user_id: string;
+  name: string;
+  meaning: string;
+  times_trained: number;
+  times_correct: number;
+  times_incorrect: number;
   created_at: string;
   last_trained: string | null;
   last_answer_correct: boolean | null;
   mastery_level: string;
   next_review_date: string;
+  category: string | null;
+  synonyms: any; // JSONB
+  antonyms: any; // JSONB
+  sentences: any; // JSONB
   is_favorite: boolean;
   mastered_at: string | null;
   easiness_factor: number;
+  interval: number;
+  repetitions: number;
+  updated_at: string;
+  is_deleted: boolean;
 };
 
 type SupabaseProfile = {
@@ -46,14 +55,16 @@ type SupabaseProfile = {
   level: number;
   current_league: string;
   weekly_xp: number;
+  last_practice_date: string | null;
+  consecutive_days: number;
+  longest_streak: number;
+  profile_picture_path: string | null;
+  profile_picture_url: string | null;
+  haptics_enabled: boolean;
+  game_sounds_enabled: boolean;
+  last_practiced_deck_id: string | null;
   updated_at: string;
-};
-
-type SupabaseLevelUpHistory = {
-  id: number;
-  user_id: string;
-  level: number;
-  unlocked_at: string;
+  is_deleted: boolean;
 };
 
 type SupabaseUnlockedAchievement = {
@@ -61,382 +72,713 @@ type SupabaseUnlockedAchievement = {
   user_id: string;
   achievement_id: string;
   unlocked_at: string;
+  updated_at: string;
+  is_deleted: boolean;
+};
+
+type SupabasePracticeHistory = {
+  id: number;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  words_trained: number;
+  updated_at: string;
+};
+
+type SupabasePracticeLog = {
+  id: string; // UUID
+  user_id: string;
+  word_id: string;
+  practice_date: string; // TIMESTAMPTZ
+  was_correct: boolean;
+  updated_at: string;
+  is_deleted: boolean;
+};
+
+type SupabaseLevelUpHistory = {
+  id: number;
+  user_id: string;
+  level: number;
+  unlocked_at: string;
+  updated_at: string;
+  is_deleted: boolean;
+};
+
+type SupabaseDailyActiveGoals = {
+  id: number;
+  user_id: string;
+  date: string; // YYYY-MM-DD
+  goal_ids: any; // JSONB
+  updated_at: string;
+  is_deleted: boolean;
 };
 
 // --- Lógica Principal de Sincronização ---
 
-/**
- * Ponto de entrada principal para a sincronização.
- * Decide se deve fazer upload de dados locais ou download de dados da nuvem.
- */
-export const performInitialSync = async (): Promise<void> => {
-  const { session, setIsSyncing } = useAuthStore.getState();
-  if (!session?.user) {
-    console.error("Sync Error: No user session found for sync.");
-    return;
-  }
-  const userId = session.user.id;
+async function pushLocalChanges(userId: string, lastSync: string) {
+  console.log("Sync (Push): Getting local changes since", lastSync);
+  const changes = await localDB.getLocalChanges(lastSync);
 
-  setIsSyncing(true);
-  try {
-    // 1. Verificar se existem dados na nuvem
-    const { count: cloudDecksCount, error: countError } = await supabase
-      .from("decks")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId);
-
-    if (countError) {
-      console.error("Sync Error: Could not check for cloud data.", countError);
-      return;
-    }
-
-    // 2. Verificar se existem dados locais
-    const localDecks = await localDB.getDecks();
-    const localDataExists = localDecks.length > 0;
-
-    if (
-      localDataExists &&
-      (cloudDecksCount === 0 || cloudDecksCount === null)
-    ) {
-      // Cenário 1: Primeiro login com dados locais -> UPLOAD
-      console.log("Sync: Local data found, cloud is empty. Uploading...");
-      await uploadAllLocalData(userId, localDecks);
-    } else if (cloudDecksCount && cloudDecksCount > 0) {
-      // Cenário 2: Dados na nuvem existem -> DOWNLOAD
-      console.log("Sync: Cloud data found. Downloading...");
-      await downloadAllCloudData(userId);
-    } else {
-      // Cenário 3: Ambos estão vazios, não é preciso fazer nada.
-      console.log("Sync: No data to sync initially.");
-    }
-  } catch (error) {
-    console.error("Erro crítico durante a sincronização inicial:", error);
-  } finally {
-    setIsSyncing(false);
-  }
-};
-
-/**
- * Faz o upload de todos os dados do SQLite local para o Supabase.
- * Usado quando um utilizador se regista pela primeira vez mas já tinha usado a app offline.
- */
-async function uploadAllLocalData(userId: string, localDecks: Deck[]) {
-  try {
-    // 1. Inserir Decks. Com UUIDs, os IDs são os mesmos localmente e na nuvem.
-    const decksToInsert = localDecks.map((deck) => ({
-      id: deck.id,
+  // --- Decks ---
+  const decksToUpsert = changes.decks
+    .filter((d) => !d.is_deleted)
+    .map((d) => ({
+      id: d.id,
       user_id: userId,
-      title: deck.title,
-      author: deck.author,
-      created_at: deck.createdAt,
+      title: d.title,
+      author: d.author,
+      created_at: d.createdAt,
+      updated_at: d.updated_at,
+      is_deleted: !!d.is_deleted,
     }));
+  const deckIdsToDelete = changes.decks
+    .filter((d) => d.is_deleted)
+    .map((d) => d.id);
 
-    const { error: deckError } = await supabase
+  if (decksToUpsert.length > 0) {
+    console.log(`Sync (Push): Upserting ${decksToUpsert.length} decks.`);
+    const { error } = await supabase.from("decks").upsert(decksToUpsert);
+    if (error) console.error("Sync (Push): Failed to upsert decks.", { error });
+  }
+  if (deckIdsToDelete.length > 0) {
+    console.log(`Sync (Push): Deleting ${deckIdsToDelete.length} decks.`);
+    const { error } = await supabase
       .from("decks")
-      .insert(decksToInsert);
+      .delete()
+      .in("id", deckIdsToDelete);
+    if (error) console.error("Sync (Push): Failed to delete decks.", { error });
+  }
 
-    if (deckError) throw deckError;
+  const otherPromises = [];
 
-    // 2. Preparar e inserir todas as palavras. O deckId já é o UUID correto.
-    let allWordsToInsert = [];
-    for (const localDeck of localDecks) {
-      const localWords = await localDB.getWordsOfDeck(localDeck.id);
+  // --- Words ---
+  const wordsToUpsert = changes.words
+    .filter((w) => !w.is_deleted)
+    .map((w) => ({
+      id: w.id,
+      deck_id: w.deckId,
+      user_id: userId,
+      name: w.name,
+      meaning: w.meaning,
+      times_trained: w.timesTrained,
+      times_correct: w.timesCorrect,
+      times_incorrect: w.timesIncorrect,
+      last_trained: w.lastTrained,
+      last_answer_correct:
+        w.lastAnswerCorrect === null ? null : !!w.lastAnswerCorrect,
+      mastery_level: w.masteryLevel,
+      next_review_date: w.nextReviewDate,
+      created_at: w.createdAt,
+      category: w.category,
+      synonyms: w.synonyms ? JSON.parse(w.synonyms) : null,
+      antonyms: w.antonyms ? JSON.parse(w.antonyms) : null,
+      sentences: w.sentences ? JSON.parse(w.sentences) : null,
+      is_favorite: !!w.isFavorite,
+      mastered_at: w.masteredAt,
+      easiness_factor: w.easinessFactor,
+      interval: w.interval,
+      repetitions: w.repetitions,
+      updated_at: w.updated_at,
+      is_deleted: !!w.is_deleted,
+    }));
+  const wordIdsToDelete = changes.words
+    .filter((w) => w.is_deleted)
+    .map((w) => w.id);
 
-      if (localWords.length > 0) {
-        const wordsForSupabase = localWords.map((word) => ({
-          ...word,
-          id: word.id,
-          deck_id: word.deckId, // O deckId já é o UUID correto
-          user_id: userId,
-          is_favorite: !!word.isFavorite,
-          last_answer_correct:
-            word.lastAnswerCorrect === null ? null : !!word.lastAnswerCorrect,
-          synonyms: word.synonyms ? JSON.parse(word.synonyms) : [],
-          antonyms: word.antonyms ? JSON.parse(word.antonyms) : [],
-          sentences: word.sentences ? JSON.parse(word.sentences) : [],
+  if (wordsToUpsert.length > 0) {
+    console.log(`Sync (Push): Upserting ${wordsToUpsert.length} words.`);
+    const { error } = await supabase.from("words").upsert(wordsToUpsert);
+    if (error) console.error("Sync (Push): Failed to upsert words.", { error });
+  }
+  if (wordIdsToDelete.length > 0) {
+    console.log(`Sync (Push): Deleting ${wordIdsToDelete.length} words.`);
+    const { error } = await supabase
+      .from("words")
+      .delete()
+      .in("id", wordIdsToDelete);
+    if (error) console.error("Sync (Push): Failed to delete words.", { error });
+  }
+
+  // --- Outras tabelas (podem ser executadas em paralelo) ---
+
+  const achievementsToUpsert = changes.unlocked_achievements
+    .filter((a) => !a.is_deleted)
+    .map((a) => ({
+      user_id: userId,
+      achievement_id: a.achievement_id,
+      unlocked_at: a.unlocked_at,
+      updated_at: a.updated_at,
+      is_deleted: !!a.is_deleted,
+    }));
+  const achievementIdsToDelete = changes.unlocked_achievements
+    .filter((a) => a.is_deleted)
+    .map((a) => a.achievement_id);
+
+  if (achievementsToUpsert.length > 0) {
+    console.log(
+      `Sync (Push): Upserting ${achievementsToUpsert.length} achievements.`
+    );
+    otherPromises.push(
+      supabase
+        .from("unlocked_achievements")
+        .upsert(achievementsToUpsert, { onConflict: "user_id,achievement_id" })
+    );
+  }
+  if (achievementIdsToDelete.length > 0) {
+    console.log(
+      `Sync (Push): Deleting ${achievementIdsToDelete.length} achievements.`
+    );
+    otherPromises.push(
+      supabase
+        .from("unlocked_achievements")
+        .delete()
+        .in("achievement_id", achievementIdsToDelete)
+        .eq("user_id", userId)
+    );
+  }
+
+  // --- Practice History ---
+  // This table is upsert-only, no deletes.
+  if (changes.practice_history.length > 0) {
+    const historyToUpsert = changes.practice_history.map((h) => ({
+      user_id: userId,
+      date: h.date,
+      words_trained: h.words_trained,
+      updated_at: h.updated_at,
+    }));
+    console.log(
+      `Sync (Push): Upserting ${historyToUpsert.length} practice history records.`
+    );
+    otherPromises.push(
+      supabase
+        .from("practice_history")
+        .upsert(historyToUpsert, { onConflict: "user_id,date" })
+    );
+  }
+
+  // --- Practice Log ---
+  const logsToUpsert = changes.practice_log
+    .filter((l) => !l.is_deleted)
+    .map((l) => ({
+      id: l.id,
+      user_id: userId,
+      word_id: l.word_id,
+      practice_date: l.practice_date,
+      was_correct: !!l.was_correct,
+      updated_at: l.updated_at,
+      is_deleted: !!l.is_deleted,
+    }));
+  const logIdsToDelete = changes.practice_log
+    .filter((l) => l.is_deleted)
+    .map((l) => l.id);
+
+  if (logsToUpsert.length > 0) {
+    console.log(`Sync (Push): Upserting ${logsToUpsert.length} practice logs.`);
+    otherPromises.push(supabase.from("practice_log").upsert(logsToUpsert));
+  }
+  if (logIdsToDelete.length > 0) {
+    console.log(
+      `Sync (Push): Deleting ${logIdsToDelete.length} practice logs.`
+    );
+    otherPromises.push(
+      supabase.from("practice_log").delete().in("id", logIdsToDelete)
+    );
+  }
+
+  // --- Level Up History ---
+  const levelUpsToUpsert = changes.level_up_history
+    .filter((l) => !l.is_deleted)
+    .map((l) => ({
+      user_id: userId,
+      level: l.level,
+      unlocked_at: l.unlocked_at,
+      updated_at: l.updated_at,
+      is_deleted: !!l.is_deleted,
+    }));
+  const levelUpsToDelete = changes.level_up_history
+    .filter((l) => l.is_deleted)
+    .map((l) => l.level);
+
+  if (levelUpsToUpsert.length > 0) {
+    console.log(
+      `Sync (Push): Upserting ${levelUpsToUpsert.length} level up records.`
+    );
+    otherPromises.push(
+      supabase
+        .from("level_up_history")
+        .upsert(levelUpsToUpsert, { onConflict: "user_id,level" })
+    );
+  }
+  if (levelUpsToDelete.length > 0) {
+    console.log(
+      `Sync (Push): Deleting ${levelUpsToDelete.length} level up records.`
+    );
+    otherPromises.push(
+      supabase
+        .from("level_up_history")
+        .delete()
+        .in("level", levelUpsToDelete)
+        .eq("user_id", userId)
+    );
+  }
+
+  // --- Daily Active Goals ---
+  const goalsToUpsert = changes.daily_active_goals
+    .filter((g) => !g.is_deleted)
+    .map((g) => ({
+      user_id: userId,
+      date: g.date,
+      goal_ids: JSON.parse(g.goal_ids),
+      updated_at: g.updated_at,
+      is_deleted: !!g.is_deleted,
+    }));
+  const goalsToDelete = changes.daily_active_goals
+    .filter((g) => g.is_deleted)
+    .map((g) => g.date);
+
+  if (goalsToUpsert.length > 0) {
+    console.log(`Sync (Push): Upserting ${goalsToUpsert.length} daily goals.`);
+    otherPromises.push(
+      supabase
+        .from("daily_active_goals")
+        .upsert(goalsToUpsert, { onConflict: "user_id,date" })
+    );
+  }
+  if (goalsToDelete.length > 0) {
+    console.log(`Sync (Push): Deleting ${goalsToDelete.length} daily goals.`);
+    otherPromises.push(
+      supabase
+        .from("daily_active_goals")
+        .delete()
+        .in("date", goalsToDelete)
+        .eq("user_id", userId)
+    );
+  }
+
+  const results = await Promise.allSettled(otherPromises);
+  results.forEach((result) => {
+    if (result.status === "rejected") {
+      console.error(
+        "Sync (Push): A non-critical push operation failed:",
+        result.reason
+      );
+    }
+  });
+
+  // --- User Metadata (Profile) - TRATADO SEPARADAMENTE COMO OPERAÇÃO CRÍTICA ---
+  if (changes.user_metadata.length > 0) {
+    const profileUpdate: Partial<SupabaseProfile> = {};
+
+    // Lista explícita de chaves que existem na tabela 'profiles' do Supabase.
+    const allowedProfileKeys: (keyof SupabaseProfile)[] = [
+      "first_name",
+      "last_name",
+      "xp",
+      "level",
+      "current_league",
+      "weekly_xp",
+      "last_practice_date",
+      "consecutive_days",
+      "longest_streak",
+      "profile_picture_path",
+      "profile_picture_url",
+      "haptics_enabled",
+      "game_sounds_enabled",
+      "last_practiced_deck_id",
+      "is_deleted",
+    ];
+
+    changes.user_metadata.forEach((item) => {
+      const keyMap: { [key: string]: keyof SupabaseProfile } = {
+        user_xp: "xp",
+        user_level: "level",
+      };
+      const supabaseKey =
+        keyMap[item.key] || (item.key as keyof SupabaseProfile);
+
+      // Apenas processa a chave se ela for permitida.
+      if (allowedProfileKeys.includes(supabaseKey)) {
+        // Converte explicitamente para NÚMERO para colunas numéricas.
+        if (
+          [
+            "xp",
+            "level",
+            "weekly_xp",
+            "consecutive_days",
+            "longest_streak",
+          ].includes(supabaseKey)
+        ) {
+          (profileUpdate as any)[supabaseKey] = parseInt(item.value, 10) || 0;
+          // Converte explicitamente para BOOLEANO para colunas booleanas.
+        } else if (
+          ["haptics_enabled", "game_sounds_enabled", "is_deleted"].includes(
+            supabaseKey
+          )
+        ) {
+          (profileUpdate as any)[supabaseKey] = item.value === "true";
+        } else {
+          // Mantém como string para as restantes colunas (first_name, etc.).
+          (profileUpdate as any)[supabaseKey] = item.value || null;
+        }
+      }
+    });
+
+    if (Object.keys(profileUpdate).length > 0) {
+      console.log(`Sync (Push): Updating profile with changes:`, profileUpdate);
+      const { error } = await supabase
+        .from("profiles")
+        .update(profileUpdate)
+        .eq("id", userId);
+      if (error) {
+        console.error(
+          "Sync (Push): CRITICAL - Failed to update profile:",
+          error
+        );
+        throw new Error(`Profile update failed: ${error.message}`);
+      }
+    }
+  }
+}
+
+async function pullRemoteChanges(userId: string, lastSync: string) {
+  console.log("Sync (Pull): Getting remote changes since", lastSync);
+
+  const [
+    decksRes,
+    wordsRes,
+    achievementsRes,
+    profileRes,
+    practiceHistoryRes,
+    practiceLogRes,
+    levelUpHistoryRes,
+    dailyActiveGoalsRes,
+  ] = await Promise.all([
+    supabase
+      .from("decks")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("words")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("unlocked_achievements")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .gt("updated_at", lastSync)
+      .single(),
+    supabase
+      .from("practice_history")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("practice_log")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("level_up_history")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+    supabase
+      .from("daily_active_goals")
+      .select("*")
+      .eq("user_id", userId)
+      .gt("updated_at", lastSync),
+  ]);
+
+  // Envolve todas as operações de escrita na base de dados local numa única transação
+  await localDB.withTransaction(async () => {
+    // --- Decks ---
+    if (decksRes.data && decksRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${decksRes.data.length} updated decks.`
+      );
+      const decksToHardDelete = decksRes.data
+        .filter((d: SupabaseDeck) => d.is_deleted)
+        .map((d: SupabaseDeck) => d.id);
+      const decksToUpsert = decksRes.data
+        .filter((d: SupabaseDeck) => !d.is_deleted)
+        .map((d: SupabaseDeck) => ({
+          id: d.id,
+          title: d.title,
+          author: d.author,
+          createdAt: d.created_at,
+          updated_at: d.updated_at,
+          is_deleted: d.is_deleted ? 1 : 0,
         }));
-        allWordsToInsert.push(...(wordsForSupabase as any));
+      if (decksToUpsert.length > 0)
+        await localDB.bulkInsertDecks(decksToUpsert);
+      if (decksToHardDelete.length > 0) {
+        for (const id of decksToHardDelete) {
+          await localDB.hardDeleteDeck(id);
+        }
       }
     }
 
-    if (allWordsToInsert.length > 0) {
-      const { error: wordError } = await supabase
-        .from("words")
-        .insert(allWordsToInsert as any);
-      if (wordError) throw wordError;
-    }
-
-    // 3. Upload dos dados de Gamificação (Perfil, Níveis, Conquistas)
-    // O perfil já foi criado pelo trigger, então aqui fazemos um UPDATE com os dados locais.
-    const localGamification = await localDB.getGamificationStats();
-    const localUserDetails = await localDB.getLocalUserDetails();
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({
-        first_name: localUserDetails.firstName,
-        last_name: localUserDetails.lastName,
-        xp: localGamification.xp,
-        level: localGamification.level,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", userId);
-
-    if (profileError)
-      console.error("Sync Error: Failed to upload profile data.", profileError);
-
-    const localLevelHistory = await localDB.getLocalLevelUpHistory();
-    if (localLevelHistory.length > 0) {
-      const levelHistoryToInsert = localLevelHistory.map((h) => ({
-        user_id: userId,
-        level: h.level,
-        unlocked_at: h.unlocked_at,
-      }));
-      await supabase.from("level_up_history").insert(levelHistoryToInsert);
-    }
-
-    const localAchievements = await localDB.getLocalUnlockedAchievements();
-    if (localAchievements.length > 0) {
-      const achievementsToInsert = localAchievements.map((a) => ({
-        user_id: userId,
-        achievement_id: a.achievement_id,
-        unlocked_at: a.unlocked_at,
-      }));
-      await supabase.from("unlocked_achievements").insert(achievementsToInsert);
-    }
-
-    console.log("Sync: Upload completed successfully.");
-  } catch (error) {
-    console.error("Sync Error: Failed to upload local data.", error);
-  }
-}
-
-/**
- * Faz o download de todos os dados do Supabase e substitui a base de dados local.
- * Usado quando um utilizador faz login num novo dispositivo.
- */
-async function downloadAllCloudData(userId: string) {
-  try {
-    // 1. Apagar a base de dados local para garantir um estado limpo
-    await localDB.deleteDatabase();
-    await localDB.initializeDB();
-
-    // 2. Fazer o download de todos os dados da nuvem
-    const [
-      profileResult,
-      decksResult,
-      wordsResult,
-      levelHistoryResult,
-      achievementsResult,
-    ] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", userId).single(),
-      supabase.from("decks").select("*").eq("user_id", userId),
-      supabase.from("words").select("*").eq("user_id", userId),
-      supabase.from("level_up_history").select("*").eq("user_id", userId),
-      supabase.from("unlocked_achievements").select("*").eq("user_id", userId),
-    ]);
-
-    const cloudProfile = profileResult.data as SupabaseProfile | null;
-    const cloudDecks = decksResult.data;
-    const cloudWords = wordsResult.data;
-    const cloudLevelHistory = levelHistoryResult.data;
-    const cloudAchievements = achievementsResult.data;
-
-    // 3. Inserir os dados na base de dados local
-    if (cloudProfile) {
-      // O perfil é guardado na tabela de metadados local
-      await localDB.setMetaValue("first_name", cloudProfile.first_name || "");
-      await localDB.setMetaValue("last_name", cloudProfile.last_name || "");
-      await localDB.setMetaValue("user_xp", (cloudProfile.xp || 0).toString());
-      await localDB.setMetaValue(
-        "user_level",
-        (cloudProfile.level || 1).toString()
+    // --- Words ---
+    if (wordsRes.data && wordsRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${wordsRes.data.length} updated words.`
       );
-      await localDB.setMetaValue(
-        "current_league",
-        cloudProfile.current_league || "Bronze"
+      const wordsToHardDelete = wordsRes.data
+        .filter((w: SupabaseWord) => w.is_deleted)
+        .map((w: SupabaseWord) => w.id);
+      const wordsToUpsert = wordsRes.data
+        .filter((w: SupabaseWord) => !w.is_deleted)
+        .map((w: SupabaseWord) => ({
+          id: w.id,
+          deckId: w.deck_id,
+          name: w.name,
+          meaning: w.meaning,
+          timesTrained: w.times_trained,
+          timesCorrect: w.times_correct,
+          timesIncorrect: w.times_incorrect,
+          lastTrained: w.last_trained,
+          lastAnswerCorrect:
+            w.last_answer_correct === null
+              ? null
+              : w.last_answer_correct
+              ? 1
+              : 0,
+          masteryLevel: w.mastery_level as Word["masteryLevel"],
+          nextReviewDate: w.next_review_date,
+          createdAt: w.created_at,
+          category: w.category,
+          synonyms: JSON.stringify(w.synonyms || null),
+          antonyms: JSON.stringify(w.antonyms || null),
+          sentences: JSON.stringify(w.sentences || null),
+          isFavorite: w.is_favorite ? 1 : 0,
+          masteredAt: w.mastered_at,
+          easinessFactor: w.easiness_factor,
+          interval: w.interval,
+          repetitions: w.repetitions,
+          updated_at: w.updated_at,
+          is_deleted: w.is_deleted ? 1 : 0,
+        }));
+      if (wordsToUpsert.length > 0)
+        await localDB.bulkInsertWords(wordsToUpsert);
+      if (wordsToHardDelete.length > 0) {
+        for (const id of wordsToHardDelete) {
+          await localDB.hardDeleteWord(id);
+        }
+      }
+    }
+
+    // --- Achievements ---
+    if (achievementsRes.data && achievementsRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${achievementsRes.data.length} updated achievements.`
       );
+      const achievementsToHardDelete = (
+        achievementsRes.data as SupabaseUnlockedAchievement[]
+      )
+        .filter((a: SupabaseUnlockedAchievement) => a.is_deleted)
+        .map((a: SupabaseUnlockedAchievement) => a.achievement_id);
+      const achievementsToUpsert = (
+        achievementsRes.data as SupabaseUnlockedAchievement[]
+      )
+        .filter((a: SupabaseUnlockedAchievement) => !a.is_deleted)
+        .map((a: SupabaseUnlockedAchievement) => ({
+          achievement_id: a.achievement_id,
+          unlocked_at: a.unlocked_at,
+          updated_at: a.updated_at,
+          is_deleted: a.is_deleted ? 1 : 0,
+        }));
+      if (achievementsToUpsert.length > 0)
+        await localDB.bulkInsertUnlockedAchievements(achievementsToUpsert);
+      if (achievementsToHardDelete.length > 0) {
+        for (const id of achievementsToHardDelete) {
+          await localDB.hardDeleteUnlockedAchievement(id);
+        }
+      }
     }
 
-    if (cloudDecks && cloudDecks.length > 0) {
-      const localDecks = (cloudDecks as SupabaseDeck[]).map((d) => ({
-        id: d.id,
-        title: d.title,
-        author: d.author,
-        createdAt: d.created_at,
+    // --- Profile ---
+    if (profileRes.data) {
+      console.log(`Sync (Pull): Received updated profile.`);
+      const profile = profileRes.data as SupabaseProfile;
+      const metadataToUpdate = [];
+      const keyMap: { [key in keyof SupabaseProfile]?: string } = {
+        xp: "user_xp",
+        level: "user_level",
+      };
+
+      for (const key in profile) {
+        const localKey = keyMap[key as keyof SupabaseProfile] || key;
+        const value = (profile as any)[key];
+        if (value !== null && value !== undefined) {
+          metadataToUpdate.push({ key: localKey, value: String(value) });
+        }
+      }
+      if (metadataToUpdate.length > 0) {
+        await localDB.bulkSetMetaValues(metadataToUpdate);
+      }
+    }
+
+    // --- Practice History ---
+    if (practiceHistoryRes.data && practiceHistoryRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${practiceHistoryRes.data.length} updated practice history records.`
+      );
+      // No deletes for this table
+      const historyToUpsert = (
+        practiceHistoryRes.data as SupabasePracticeHistory[]
+      ).map((h: SupabasePracticeHistory) => ({
+        date: h.date,
+        words_trained: h.words_trained,
+        updated_at: h.updated_at,
       }));
-      await localDB.bulkInsertDecks(localDecks);
+      if (historyToUpsert.length > 0)
+        await localDB.bulkInsertPracticeHistory(historyToUpsert);
     }
 
-    if (cloudWords && cloudWords.length > 0) {
-      const localWords = (cloudWords as SupabaseWord[]).map((w) => ({
-        ...w,
-        deckId: w.deck_id,
-        createdAt: w.created_at,
-        lastTrained: w.last_trained,
-        lastAnswerCorrect:
-          w.last_answer_correct === null ? null : w.last_answer_correct ? 1 : 0,
-        masteryLevel: w.mastery_level as Word["masteryLevel"],
-        nextReviewDate: w.next_review_date,
-        isFavorite: w.is_favorite ? 1 : 0,
-        masteredAt: w.mastered_at,
-        easinessFactor: w.easiness_factor,
-        synonyms: JSON.stringify(w.synonyms || []),
-        antonyms: JSON.stringify(w.antonyms || []),
-        sentences: JSON.stringify(w.sentences || []),
+    // --- Practice Log ---
+    if (practiceLogRes.data && practiceLogRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${practiceLogRes.data.length} updated practice logs.`
+      );
+      const logsToHardDelete = (practiceLogRes.data as SupabasePracticeLog[])
+        .filter((l) => l.is_deleted)
+        .map((l) => l.id);
+      const logsToUpsert = (practiceLogRes.data as SupabasePracticeLog[]).map(
+        (l: SupabasePracticeLog) => ({
+          id: l.id,
+          word_id: l.word_id,
+          practice_date: l.practice_date,
+          was_correct: l.was_correct ? 1 : 0,
+          updated_at: l.updated_at,
+          is_deleted: l.is_deleted ? 1 : 0,
+        })
+      );
+      if (logsToUpsert.length > 0)
+        await localDB.bulkInsertPracticeLog(logsToUpsert);
+      if (logsToHardDelete.length > 0) {
+        for (const id of logsToHardDelete) {
+          await localDB.hardDeletePracticeLog(id);
+        }
+      }
+    }
+
+    // --- Level Up History ---
+    if (levelUpHistoryRes.data && levelUpHistoryRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${levelUpHistoryRes.data.length} updated level up records.`
+      );
+      const levelUpsToHardDelete = (
+        levelUpHistoryRes.data as SupabaseLevelUpHistory[]
+      )
+        .filter((l) => l.is_deleted)
+        .map((l) => l.level);
+      const levelUpsToUpsert = (
+        levelUpHistoryRes.data as SupabaseLevelUpHistory[]
+      ).map((l: SupabaseLevelUpHistory) => ({
+        level: l.level,
+        unlocked_at: l.unlocked_at,
+        updated_at: l.updated_at,
+        is_deleted: l.is_deleted ? 1 : 0,
       }));
-      await localDB.bulkInsertWords(localWords);
+      if (levelUpsToUpsert.length > 0)
+        await localDB.bulkInsertLevelUpHistory(levelUpsToUpsert);
+      if (levelUpsToHardDelete.length > 0) {
+        for (const level of levelUpsToHardDelete) {
+          await localDB.hardDeleteLevelUpHistory(level);
+        }
+      }
     }
 
-    if (cloudLevelHistory && cloudLevelHistory.length > 0) {
-      const localLevelHistory = (
-        cloudLevelHistory as SupabaseLevelUpHistory[]
-      ).map((h) => ({
-        level: h.level,
-        unlocked_at: h.unlocked_at,
+    // --- Daily Active Goals ---
+    if (dailyActiveGoalsRes.data && dailyActiveGoalsRes.data.length > 0) {
+      console.log(
+        `Sync (Pull): Received ${dailyActiveGoalsRes.data.length} updated daily goals.`
+      );
+      const goalsToHardDelete = (
+        dailyActiveGoalsRes.data as SupabaseDailyActiveGoals[]
+      )
+        .filter((g) => g.is_deleted)
+        .map((g) => g.date);
+      const goalsToUpsert = (
+        dailyActiveGoalsRes.data as SupabaseDailyActiveGoals[]
+      ).map((g: SupabaseDailyActiveGoals) => ({
+        date: g.date,
+        goal_ids: JSON.stringify(g.goal_ids),
+        updated_at: g.updated_at,
+        is_deleted: g.is_deleted ? 1 : 0,
       }));
-      await localDB.bulkInsertLevelUpHistory(localLevelHistory);
+      if (goalsToUpsert.length > 0)
+        await localDB.bulkInsertDailyActiveGoals(goalsToUpsert);
+      if (goalsToHardDelete.length > 0) {
+        for (const date of goalsToHardDelete) {
+          await localDB.hardDeleteDailyActiveGoals(date);
+        }
+      }
     }
-
-    if (cloudAchievements && cloudAchievements.length > 0) {
-      const localAchievements = (
-        cloudAchievements as SupabaseUnlockedAchievement[]
-      ).map((a) => ({
-        achievement_id: a.achievement_id,
-        unlocked_at: a.unlocked_at,
-      }));
-      await localDB.bulkInsertUnlockedAchievements(localAchievements);
-    }
-
-    console.log("Sync: Download completed successfully.");
-  } catch (error) {
-    console.error("Sync Error: Failed to download cloud data.", error);
-  }
+  });
 }
-
-// --- Lógica de Sincronização Contínua com Fila Offline ---
 
 let isSyncing = false;
 
-/**
- * Processa a fila de operações pendentes, enviando-as para o Supabase.
- * Executa apenas se houver ligação à internet e não estiver já a sincronizar.
- */
-export const processSyncQueue = async (): Promise<void> => {
+export async function synchronize(userId: string): Promise<boolean> {
   const networkState = await NetInfo.fetch();
   if (!networkState.isConnected || !networkState.isInternetReachable) {
-    console.log("Sync Queue: Sem ligação à internet. A saltar.");
-    return;
+    console.log("Sync: No internet connection. Skipping.");
+    return false;
+  }
+
+  if (!userId) {
+    console.error("Sync Error: No user ID provided for sync.");
+    return false;
   }
 
   if (isSyncing) {
-    console.log("Sync Queue: Sincronização já em progresso. A saltar.");
-    return;
+    console.log("Sync: Already in progress. Skipping.");
+    return false;
   }
 
   isSyncing = true;
-  console.log(
-    "Sync Queue: A iniciar o processamento de operações pendentes..."
-  );
+  console.log("Sync: Starting delta synchronization...");
 
   try {
-    const pendingOperations = await localDB.getPendingOperations();
-    if (pendingOperations.length === 0) {
-      console.log("Sync Queue: Nenhuma operação pendente.");
-      isSyncing = false;
-      return;
+    // Fase 1: Obter Timestamps
+    const lastSyncTimestamp = await getLastSyncTimestamp();
+    const newSyncTimestamp = new Date().toISOString();
+    const isFirstSync = !lastSyncTimestamp;
+
+    if (isFirstSync) {
+      console.log("Sync: First sync detected. Pulling all remote data.");
+      // Numa primeira sincronização, a nuvem é a fonte da verdade.
+      // Apenas puxamos os dados para popular a base de dados local.
+      // NÃO fazemos push, para evitar sobrescrever dados da nuvem com os valores padrão locais.
+      await pullRemoteChanges(userId, new Date(0).toISOString());
+    } else {
+      // Para sincronizações normais, a ordem é Push e depois Pull.
+      // Fase 2: Push (enviar alterações locais para a nuvem)
+      await pushLocalChanges(userId, lastSyncTimestamp);
+
+      // Fase 3: Pull (puxar alterações da nuvem para o local)
+      await pullRemoteChanges(userId, lastSyncTimestamp);
     }
 
-    const { session } = useAuthStore.getState();
-    if (!session?.user) {
-      console.error(
-        "Sync Queue: Sem sessão de utilizador, impossível processar a fila."
-      );
-      isSyncing = false;
-      return;
-    }
-    const userId = session.user.id;
-
-    const processedIds: number[] = [];
-
-    for (const op of pendingOperations) {
-      try {
-        const payload = JSON.parse(op.payload);
-        let error = null;
-
-        switch (op.operation_type) {
-          case "CREATE_DECK":
-            ({ error } = await supabase
-              .from("decks")
-              .insert({ ...payload, user_id: userId }));
-            break;
-          case "UPDATE_DECK":
-            ({ error } = await supabase
-              .from("decks")
-              .update(payload.updates)
-              .eq("id", payload.id));
-            break;
-          case "DELETE_DECK":
-            ({ error } = await supabase
-              .from("decks")
-              .delete()
-              .eq("id", payload.id));
-            break;
-          case "CREATE_WORD":
-            ({ error } = await supabase
-              .from("words")
-              .insert({ ...payload, user_id: userId }));
-            break;
-          case "UPDATE_WORD":
-          case "UPDATE_WORD_DETAILS":
-          case "UPDATE_WORD_STATS":
-            ({ error } = await supabase
-              .from("words")
-              .update(payload.updates)
-              .eq("id", payload.id));
-            break;
-          case "TOGGLE_WORD_FAVORITE":
-            ({ error } = await supabase
-              .from("words")
-              .update({ is_favorite: payload.is_favorite })
-              .eq("id", payload.id));
-            break;
-          case "DELETE_WORD":
-            ({ error } = await supabase
-              .from("words")
-              .delete()
-              .eq("id", payload.id));
-            break;
-        }
-
-        if (error) {
-          console.error(
-            `Sync Queue: Falha ao processar operação ${op.id} (${op.operation_type}). Erro:`,
-            error.message
-          );
-          // Aqui poderia implementar lógica de tentativas ou uma "dead-letter queue"
-        } else {
-          processedIds.push(op.id);
-        }
-      } catch (e) {
-        console.error(
-          `Sync Queue: Erro ao fazer parse do payload para a operação ${op.id}.`,
-          e
-        );
-      }
-    }
-
-    if (processedIds.length > 0) {
-      await localDB.deleteProcessedOperations(processedIds);
-      console.log(
-        `Sync Queue: ${processedIds.length} operações processadas e apagadas com sucesso.`
-      );
-    }
+    // Fase 4: Conclusão
+    await setLastSyncTimestamp(newSyncTimestamp);
+    console.log("Sync: Synchronization completed successfully.");
+    eventStore.getState().publish("syncCompleted", {});
+    return true;
   } catch (error) {
     console.error(
-      "Sync Queue: Ocorreu um erro crítico durante o processamento.",
+      "Sync: A critical error occurred during synchronization.",
       error
     );
+    return false;
   } finally {
     isSyncing = false;
   }
-};
+}

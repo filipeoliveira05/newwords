@@ -12,7 +12,6 @@ import {
   updateUserXP,
   GamificationStats,
   ChallengingWord,
-  PracticeHistory,
   getWeeklySummaryStats,
   getWordLearnedOnThisDay,
   getAchievementsCount,
@@ -33,7 +32,6 @@ import {
   setSessionCompletedToday,
   WeeklySummary,
   getLevelUpHistory,
-  LevelUpRecord,
   countWordsForPractice,
 } from "../services/storage";
 import { useNotificationStore } from "./useNotificationStore";
@@ -45,7 +43,7 @@ import {
   goalCategories,
 } from "../config/dailyGoals";
 import { shuffle } from "../utils/arrayUtils";
-import { Word, Deck } from "../types/database";
+import { Word, Deck, PracticeHistory, LevelUpRecord } from "../types/database";
 import { uploadAvatar } from "../services/uploadService";
 import { useAuthStore } from "./useAuthStore";
 import { GameMode, SessionType } from "./usePracticeStore";

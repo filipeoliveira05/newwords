@@ -1,4 +1,4 @@
-import { PracticeHistory } from "../services/storage";
+import { PracticeHistory } from "@/types/database";
 import { IconName } from "../app/components/Icon";
 
 export type DailyGoalCategory = "Prática" | "Coleção" | "Perfeição";

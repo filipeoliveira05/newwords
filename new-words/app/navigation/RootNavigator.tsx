@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, ActivityIndicator } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, ActivityIndicator, AppState } from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { initializeDB } from "../../services/storage";
 import { useAuthStore } from "../../stores/useAuthStore";
@@ -8,11 +8,6 @@ import OnboardingScreen from "../screens/onboarding/OnboardingScreen";
 import UpdatePasswordScreen from "../screens/auth/UpdatePasswordScreen";
 import { RootStackParamList } from "../../types/navigation";
 import AuthNavigator from "./AuthNavigator";
-import {
-  performInitialSync,
-  processSyncQueue,
-} from "../../services/syncService";
-import NetInfo from "@react-native-community/netinfo";
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 
@@ -24,9 +19,9 @@ const RootNavigator = () => {
     isSyncing,
     hasCompletedOnboarding,
     initialize,
+    runAutomaticSync,
     isRecoveringPassword,
   } = useAuthStore();
-  const previousSession = useRef(session);
 
   useEffect(() => {
     const prepareApp = async () => {
@@ -44,37 +39,20 @@ const RootNavigator = () => {
     prepareApp();
   }, [initialize]);
 
-  // Efeito para executar a sincronização inicial quando o utilizador faz login.
+  // Efeito para sincronizar quando a app volta para o primeiro plano.
   useEffect(() => {
-    // A condição verifica se a sessão acabou de se tornar disponível (mudou de null para um objeto).
-    if (session && previousSession.current === null) {
-      console.log("Utilizador autenticado. A iniciar sincronização inicial...");
-      performInitialSync();
-    }
-    // Atualiza a referência da sessão para a próxima renderização.
-    previousSession.current = session;
-  }, [session]);
-
-  // Efeito para processar a fila de sincronização quando a app arranca ou fica online.
-  useEffect(() => {
-    // Garante que este efeito só corre depois de a DB estar inicializada
-    if (!isDbInitialized) {
-      return;
-    }
-
-    // Processa a fila uma vez no arranque, caso haja operações pendentes.
-    processSyncQueue();
-
-    // Subscreve a alterações no estado da rede.
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      if (state.isConnected && state.isInternetReachable) {
-        console.log("Ligação à internet restabelecida. A processar a fila...");
-        processSyncQueue();
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      // Só sincroniza se a app estiver ativa e houver uma sessão.
+      if (nextAppState === "active" && session) {
+        console.log("App has come to the foreground, triggering sync.");
+        runAutomaticSync();
       }
     });
 
-    return () => unsubscribe(); // Limpa a subscrição ao desmontar.
-  }, [isDbInitialized]); // Adiciona a dependência
+    return () => {
+      subscription.remove();
+    };
+  }, [session, runAutomaticSync]); // Depende da sessão para não sincronizar se o utilizador estiver deslogado.
 
   if (!isDbInitialized || isAuthenticating || isSyncing) {
     // Mostra um ecrã de loading enquanto verificamos o estado de onboarding e autenticação.
