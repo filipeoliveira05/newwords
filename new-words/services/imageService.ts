@@ -83,7 +83,7 @@ const images = {
   mascotPodiumCompleteSecond2: require("../assets/images/mascot/inspiration/mascot_podium_complete_second2.png"),
 
   // --- Ícones da Aplicação ---
-  appIcon: require("../assets/images/mascot/mascot_study.png"),
+  appIcon: require("../assets/images/mascot/app_icon2.png"),
   splashIcon: require("../assets/images/mascot/mascot_study.png"),
 } as const;
 

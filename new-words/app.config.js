@@ -15,7 +15,7 @@ module.exports = {
     slug: "new-words",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/mascot/mascot_neutral.png",
+    icon: "./assets/images/mascot/app_icon2.png", // <-- NOVO ÍCONE PRINCIPAL
     // O 'scheme' deve ser dinâmico e corresponder ao package name da aplicação.
     // Isto garante que o deep link (ex: com.filipeoliveira05.newwords.dev://)
     // é único e seguro, cumprindo as políticas do Google OAuth.
@@ -27,8 +27,8 @@ module.exports = {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/adaptive-icon.png",
-        backgroundColor: "#ffffff",
+        foregroundImage: "./assets/images/mascot/app_icon2.png", // <-- NOVO ÍCONE ADAPTATIVO
+        backgroundColor: "#ffffffff", // <-- NOVA COR DE FUNDO (EXEMPLO)
       },
       edgeToEdgeEnabled: true,
       package: androidPackage,
@@ -53,10 +53,10 @@ module.exports = {
       [
         "expo-splash-screen",
         {
-          image: "./assets/images/splash-icon.png",
+          image: "./assets/images/mascot/app_splashIcon.png", // <-- NOVA IMAGEM DE SPLASH
           imageWidth: 200,
           resizeMode: "contain",
-          backgroundColor: "#ffffff",
+          backgroundColor: "#ffffffff", // <-- NOVA COR DE FUNDO (EXEMPLO)
         },
       ],
       "expo-sqlite",

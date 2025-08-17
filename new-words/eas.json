@@ -16,7 +16,15 @@
     "preview": {
       "distribution": "internal",
       "channel": "preview",
-      "developmentClient": true
+      "developmentClient": true,
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "preview-isolated": {
+      "extends": "preview",
+      "channel": "isolated-test",
+      "developmentClient": false
     },
     "production": {
       "autoIncrement": true,
