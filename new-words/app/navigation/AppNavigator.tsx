@@ -62,6 +62,8 @@ import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
 import LevelJourneyScreen from "../screens/profile/LevelJourneyScreen";
 import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
+import SplashScreenTestScreen from "../screens/dev/SplashScreenTestScreen";
+import IconTestScreen from "../screens/dev/IconTestScreen";
 
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
 import Icon from "../components/Icon";
@@ -322,6 +324,11 @@ function ProfileStack() {
         name="LevelUpTest"
         component={LevelUpTestScreen}
       />
+      <ProfileStackNav.Screen
+        name="SplashScreenTest"
+        component={SplashScreenTestScreen}
+      />
+      <ProfileStackNav.Screen name="IconTest" component={IconTestScreen} />
     </ProfileStackNav.Navigator>
   );
 }

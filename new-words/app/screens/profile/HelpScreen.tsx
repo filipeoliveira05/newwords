@@ -257,6 +257,14 @@ const HelpScreen = ({ navigation }: Props) => {
     navigation.navigate("LevelUpTest" as any); // Usamos 'as any' para o teste, mas o tipo deve ser adicionado
   };
 
+  const handleTestSplashScreen = () => {
+    navigation.navigate("SplashScreenTest" as any);
+  };
+
+  const handleTestIcon = () => {
+    navigation.navigate("IconTest" as any);
+  };
+
   const handleSeedTestData = async () => {
     try {
       await seedLevelUpHistory();
@@ -419,6 +427,26 @@ const HelpScreen = ({ navigation }: Props) => {
         <AppText variant="bold" style={styles.sectionTitle}>
           Ferramentas de Teste
         </AppText>
+        <TouchableOpacity
+          style={styles.contactButton}
+          activeOpacity={0.8}
+          onPress={handleTestSplashScreen}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Splash Screen
+          </AppText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.contactButton, { marginTop: 12 }]}
+          activeOpacity={0.8}
+          onPress={handleTestIcon}
+        >
+          <Icon name="bug" size={22} color={theme.colors.surface} />
+          <AppText variant="bold" style={styles.contactButtonText}>
+            Testar Ícone da App
+          </AppText>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.contactButton}
           activeOpacity={0.8}

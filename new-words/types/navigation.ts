@@ -62,6 +62,8 @@ export type ProfileStackParamList = {
   Account: undefined;
   EditAccount: undefined;
   Help: undefined;
+  SplashScreenTest: undefined; // temporário
+  IconTest: undefined; // temporário
   Stats: undefined;
   Achievements: undefined;
   LevelUpTest: undefined;
