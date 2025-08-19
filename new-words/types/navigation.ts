@@ -64,9 +64,9 @@ export type ProfileStackParamList = {
   Help: undefined;
   SplashScreenTest: undefined; // temporário
   IconTest: undefined; // temporário
+  LevelUpTest: undefined; // temporário
   Stats: undefined;
   Achievements: undefined;
-  LevelUpTest: undefined;
   LevelJourney: undefined;
 };
 

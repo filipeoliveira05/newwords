@@ -116,6 +116,9 @@
 │       │   ├── DecksScreen.tsx
 │       │   ├── LibraryHubScreen.tsx
 │       │   └── WordDetailsScreen.tsx
+│       ├── dev
+│       │   ├── IconTestScreen.tsx
+│       │   └── SplashScreenTestScreen.tsx
 │       ├── home
 │       │   ├── HomeScreen.tsx
 │       │   ├── LeagueScreen.tsx
@@ -191,6 +194,7 @@
 │   ├── useUserStore.ts
 │   └── wordStore.ts
 ├── supabaseScript.sql
+├── syncInstructions.txt
 ├── tsconfig.json
 ├── types
 │   ├── database.ts
@@ -200,4 +204,4 @@
     ├── authErrorUtils.ts
     └── sm2.ts
 
-63 directories, 137 files
+64 directories, 140 files

@@ -61,7 +61,7 @@ import AchievementsScreen from "../screens/profile/AchievementsScreen";
 import SettingsScreen from "../screens/profile/SettingsScreen";
 import HelpScreen from "../screens/profile/HelpScreen";
 import LevelJourneyScreen from "../screens/profile/LevelJourneyScreen";
-import LevelUpTestScreen from "../screens/profile/LevelUpTestScreen";
+import LevelUpTestScreen from "../screens/dev/LevelUpTestScreen";
 import SplashScreenTestScreen from "../screens/dev/SplashScreenTestScreen";
 import IconTestScreen from "../screens/dev/IconTestScreen";
 
