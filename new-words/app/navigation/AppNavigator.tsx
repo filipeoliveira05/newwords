@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
 import {
   createBottomTabNavigator,
   BottomTabBarButtonProps,
@@ -12,6 +12,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
+  runOnJS,
 } from "react-native-reanimated";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { useFonts } from "expo-font";
@@ -88,6 +89,12 @@ const shadowStyle = {
 };
 
 const styles = StyleSheet.create({
+  tabBarWrapper: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   customButtonContainer: {
     top: -20, // Elevates the button. This value is used for padding below.
     justifyContent: "center",
@@ -123,6 +130,8 @@ const TAB_BAR_HEIGHT = 60; // Altura padrão da tab bar
 
 const AnimatedTabBar = (props: BottomTabBarProps) => {
   const { state, insets } = props;
+  // Controla a propriedade 'overflow' para garantir que o botão é cortado quando escondido.
+  const [overflow, setOverflow] = useState<ViewStyle["overflow"]>("visible");
   // Obtém o nome da rota focada dentro da stack atual
   const routeName = getFocusedRouteNameFromRoute(state.routes[state.index]);
 
@@ -144,6 +153,9 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
     "Achievements",
     "Settings",
     "Help",
+    "LevelUpTest",
+    "SplashScreenTest",
+    "IconTest",
   ];
 
   const isTabBarVisible = routeName
@@ -160,23 +172,36 @@ const AnimatedTabBar = (props: BottomTabBarProps) => {
       TAB_BAR_HEIGHT +
       (insets.bottom || 0) +
       Math.abs(styles.customButtonContainer.top);
-    translateY.value = withTiming(isTabBarVisible ? 0 : hiddenTranslateY, {
-      duration: 300,
-      easing: Easing.bezier(0.3, 0.01, 0, 1),
-    });
+    translateY.value = withTiming(
+      isTabBarVisible ? 0 : hiddenTranslateY,
+      {
+        duration: 350, // Aumenta ligeiramente a duração para uma animação mais suave
+        easing: Easing.bezier(0.3, 0.01, 0, 1),
+      },
+      (finished) => {
+        // Quando a animação de esconder termina, muda o overflow para 'hidden'.
+        // Isto garante que o botão não fica visível se a animação não o esconder completamente.
+        if (finished && !isTabBarVisible) {
+          runOnJS(setOverflow)("hidden");
+        }
+      }
+    );
+
+    // Se a barra for ficar visível, o overflow tem de ser 'visible' desde o início
+    // para que o botão apareça corretamente durante a animação de entrada.
+    if (isTabBarVisible) {
+      setOverflow("visible");
+    }
   }, [isTabBarVisible, translateY, insets.bottom]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
+  const animatedTransformStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
-    overflow: "visible", // Crucial para o Android não cortar o botão que sobressai
   }));
 
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View
+      style={[styles.tabBarWrapper, { overflow }, animatedTransformStyle]}
+    >
       <BottomTabBar {...props} />
     </Animated.View>
   );
@@ -432,9 +457,26 @@ export default function AppNavigator() {
             name="Practice"
             component={PracticeStack}
             options={{
-              tabBarIcon: () => (
-                <Icon name="flash" size={32} color={theme.colors.surface} />
-              ),
+              tabBarIcon: () => {
+                // O problema do corte do ícone é frequentemente causado pelas métricas internas da fonte do ícone (glyph).
+                // O desenho do ícone pode não estar perfeitamente centrado na sua "caixa" de renderização.
+                // Para resolver isto de forma definitiva, envolvemos o ícone numa View com um tamanho fixo,
+                // exatamente igual ao do ícone. Esta View atua como um "normalizador" de layout.
+                // O `justifyContent` e `alignItems` garantem que o ícone é perfeitamente centrado dentro desta caixa,
+                // e a caixa, por sua vez, é centrada pelo botão circular pai, eliminando o corte.
+                return (
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Icon name="flash" size={32} color={theme.colors.surface} />
+                  </View>
+                );
+              },
               tabBarButton: (props) => <CustomTabBarButton {...props} />,
             }}
             listeners={({ navigation }) => ({

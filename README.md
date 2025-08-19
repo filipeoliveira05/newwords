@@ -71,7 +71,6 @@ A estratégia é clara: primeiro, garantir uma **experiência de utilizador impe
 _Estas são as tarefas críticas para garantir que a primeira impressão do utilizador seja fantástica e que a aplicação seja estável, rápida e intuitiva._
 
 - [ ] 🐞 **Correção de Bugs Críticos:**
-  - [ ] **Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática. Uma navegação sem falhas é fundamental.
 - [ ] ✨ **Polimento Visual e Experiência do Utilizador (UI/UX):**
   - [ ] **Feedback Sensorial:** Expandir o uso de feedback háptico e sonoro para mais interações (ex: abrir um modal, completar uma meta) para tornar a app mais viva.
   - [ ] **Design do LevelUpView:** Redesenhar o ecrã de subida de nível para ser mais impactante e recompensador.
