@@ -73,19 +73,24 @@ const images = {
   mascotTrophy2: require("../assets/images/mascot/mascot_trophy2.png"),
 
   // Inspiration / To Improve
-  mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
-  mascotPodium2: require("../assets/images/mascot/inspiration/mascot_podium2.png"),
-  mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
-  mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
-  mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
-  mascotMapAmazed: require("../assets/images/mascot/inspiration/mascot_map_amazed.png"),
-  mascotPodiumSimpleThird2: require("../assets/images/mascot/inspiration/mascot_podium_simple_third2.png"),
-  mascotPodiumCompleteSecond2: require("../assets/images/mascot/inspiration/mascot_podium_complete_second2.png"),
+  // mascotChef: require("../assets/images/mascot/inspiration/mascot_chef.png"),
+  // mascotPodium2: require("../assets/images/mascot/inspiration/mascot_podium2.png"),
+  // mascotWrite2: require("../assets/images/mascot/inspiration/mascot_write2.png"),
+  // mascotWrite3: require("../assets/images/mascot/inspiration/mascot_write3.png"),
+  // mascotNinjaBlack: require("../assets/images/mascot/inspiration/mascot_ninjaBlack.png"),
+  // mascotMapAmazed: require("../assets/images/mascot/inspiration/mascot_map_amazed.png"),
+  // mascotPodiumSimpleThird2: require("../assets/images/mascot/inspiration/mascot_podium_simple_third2.png"),
+  // mascotPodiumCompleteSecond2: require("../assets/images/mascot/inspiration/mascot_podium_complete_second2.png"),
 
   // --- Ícones da Aplicação ---
-  appIcon: require("../assets/images/mascot/app_icon2.png"),
-  appMascotName: require("../assets/images/app_icon3.png"),
-  splashIcon: require("../assets/images/mascot/mascot_study.png"),
+  appIcon: require("../assets/images/app_icon.png"),
+  appIconBlue: require("../assets/images/app_iconBlue.png"),
+  appIconCircle: require("../assets/images/app_iconCircle.png"),
+  appMascotName: require("../assets/images/app_mascotName.png"),
+  splashScreen: require("../assets/images/splashScreen_vertical.png"),
+  splashScreenDark: require("../assets/images/splashScreenDark_vertical.png"),
+  splashScreenBlue: require("../assets/images/splashScreenBlue_vertical.png"),
+  splashScreenHorizontal: require("../assets/images/splashScreen_horizontal.png"),
   appName: require("../assets/images/app_name.png"),
 } as const;
 

@@ -6,8 +6,13 @@ const ANDROID_PACKAGE = process.env.ANDROID_PACKAGE;
 const name = APP_VARIANT === "development" ? "New Words (Dev)" : "New Words";
 const androidPackage = ANDROID_PACKAGE || "com.filipeoliveira05.newwords";
 
-// O seu projectId, retirado do seu ficheiro original.
 const EAS_PROJECT_ID = "31a840aa-1dac-4e82-8160-8e34659b8c26";
+
+// --- Configuração Centralizada de Assets ---
+// Defina o caminho para o ícone e a cor de fundo aqui para reutilizar em toda a configuração.
+const ICON_PATH = "./assets/images/app_icon.png";
+const SPLASH_SCREEN_PATH = "./assets/images/splashScreen_vertical.png";
+const BACKGROUND_COLOR = "#fff2da";
 
 module.exports = {
   expo: {
@@ -15,7 +20,7 @@ module.exports = {
     slug: "new-words",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/app_icon4.png", // <-- NOVO ÍCONE PRINCIPAL
+    icon: ICON_PATH,
     // O 'scheme' deve ser dinâmico e corresponder ao package name da aplicação.
     // Isto garante que o deep link (ex: com.filipeoliveira05.newwords.dev://)
     // é único e seguro, cumprindo as políticas do Google OAuth.
@@ -27,8 +32,8 @@ module.exports = {
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/app_icon4.png", // <-- NOVO ÍCONE ADAPTATIVO
-        backgroundColor: "#ffffffff", // <-- NOVA COR DE FUNDO (EXEMPLO)
+        foregroundImage: ICON_PATH,
+        backgroundColor: BACKGROUND_COLOR,
       },
       edgeToEdgeEnabled: true,
       package: androidPackage,
@@ -53,10 +58,9 @@ module.exports = {
       [
         "expo-splash-screen",
         {
-          image: "./assets/images/app_icon4.png", // <-- NOVA IMAGEM DE SPLASH
-          imageWidth: 200,
+          image: SPLASH_SCREEN_PATH,
           resizeMode: "contain",
-          backgroundColor: "#ffffffff", // <-- NOVA COR DE FUNDO (EXEMPLO)
+          backgroundColor: BACKGROUND_COLOR,
         },
       ],
       "expo-sqlite",
