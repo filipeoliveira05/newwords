@@ -10,113 +10,156 @@ The main goal of this application is to be more than just a simple notepad; it a
 
 ## 🚀 Implemented Features
 
-The application has a solid and scalable foundation, with the following features being 100% operational:
+The application has a robust and feature-rich foundation, with the following systems fully implemented:
 
-### 1. Full Deck Management
+### 1. Core Architecture & Data Management
 
-- **Full CRUD:** Create, view, edit, and delete decks.
-- **Word Count:** The interface displays a real-time count of the number of words in each deck, keeping data synchronized across screens.
+- **Local-First Database:** Utilizes **Expo-SQLite** for a fast and reliable local database, ensuring the app is fully functional offline. The data layer is built with a fully asynchronous API.
+- **Reactive State Management:** Employs **Zustand** for a clean, centralized, and reactive state management system. Data is organized into logical stores (`deckStore`, `wordStore`, `userStore`, etc.), preventing re-renders and ensuring a smooth UI.
+- **Cloud Sync with Supabase:** A complete synchronization service is implemented to back up and sync user data (decks, words, progress, stats, achievements) with a **Supabase** backend. Sync is triggered automatically on app launch and when returning from the background.
+- **Typed & Nested Navigation:** A sophisticated navigation structure using **React Navigation**, featuring a `BottomTabNavigator` with nested `StackNavigator`s. This provides independent navigation flows for each section and is fully type-safe.
 
-### 2. Full Word (Flashcard) Management
+### 2. Vocabulary & Deck Management
 
-- **Full CRUD:** Add, view, edit, and delete words within a specific deck.
-- **Smart Search:** A search field allows for quick filtering of words by name or meaning.
-- **Polished Modal Interface:** A clean and reusable modal UI for adding and editing words, with saving indicators for enhanced UX feedback.
+- **Full Deck & Word CRUD:** Users can create, view, edit, and delete decks and the words within them. The UI updates reactively to all changes.
+- **Advanced Word Details:** Beyond name and meaning, users can add a grammatical **category**, **synonyms**, **antonyms**, and multiple **example sentences** to each word.
+- **Multi-Select & Batch Actions:** In the decks list, a long-press activates a selection mode, allowing users to select multiple decks and perform batch actions, such as deleting them all at once.
+- **Advanced Sorting & Filtering:** Both the decks list and the words list feature robust sorting options (e.g., by creation date, alphabetically, by mastery) and a debounced search for instant filtering.
 
-### 3. Advanced Architecture and Navigation
+### 3. Intelligent Practice System (SRS)
 
-- **Centralized & Reactive State (Zustand):** All application data logic is managed by central stores (`deckStore`, `wordStore`, `practiceStore`).
-- **Robust Database (Expo-SQLite):** Utilizes a local SQLite database with a fully asynchronous data access layer.
-- **Typed & Nested Navigation (React Navigation):** The app uses a `BottomTabNavigator` with nested `StackNavigator`s, allowing for independent and type-safe navigation flows for each section (Decks, Practice, Stats). All navigation types are defined, ensuring code safety.
-- **Optimized Components:** Rendering optimization techniques (e.g., `React.memo`, atomic state selectors) have been implemented to ensure a fluid UI without infinite loops.
+- **Spaced Repetition System (SM-2):** The core of the practice system is a full implementation of the **SM-2 algorithm**. Every answer updates a word's `easinessFactor`, `interval`, and `repetitions`, automatically scheduling the next review for optimal memory retention.
+- **Multiple Game Modes:** To keep learning engaging, four distinct practice modes are available:
+  - **Classic Flashcards:** A traditional review mode.
+  - **Multiple-Choice:** Select the correct meaning from four options.
+  - **Writing Practice:** Given the meaning, the user must type the word.
+  - **Combine Lists:** Match words with their corresponding meanings from two shuffled lists.
+- **Targeted Practice Sessions:** Users can initiate specific practice sessions, such as:
+  - **Urgent Review:** Automatically selects words that are due for review based on the SRS schedule.
+  - **Challenging Words:** A session focused on words with the lowest success rates.
+  - **Favorite Words:** A session to review words the user has marked as favorites.
+- **Complete Practice Loop:** The practice flow is seamless, from selecting a mode to a loading screen, the game itself, and a detailed results screen summarizing performance.
 
-### 4. Practice Hub Foundation
+### 4. Deep Gamification & Engagement
 
-- **Multiple Game Modes:** The "Practice" tab is a hub where users can choose between "Classic Review" (Flashcards) and "Quick Quiz" (Multiple-Choice).
-- **Intelligent Word Selection (SRS Level 1):** The practice algorithm is no longer random. It prioritizes words that have never been trained, have a higher error rate, or haven't been reviewed in a longer time.
-- **Complete Practice Loop:**
-  - Games are structured in rounds (e.g., 10 words).
-  - A progress bar shows the user's position in the current round.
-  - The results screen summarizes performance and allows the user to start a new round or exit.
-- **Engaging UI/UX:**
-  - **Animations:** The flashcard features a dynamic 3D flip animation.
-  - **Gamification:** A "streak" counter tracks consecutive correct answers, and perfect rounds are celebrated with a confetti animation.
-  - **Sensory Feedback:** Haptic feedback (vibrations) is provided for correct and incorrect answers, enhancing the interactive experience.
-- **Persistent Stats Tracking:** Every answer in a practice session updates the word's statistics (`timesTrained`, `timesCorrect`, `lastTrained`, etc.) in the local database, laying the groundwork for advanced analytics.
-
-### 5. Comprehensive Statistics and Gamification
-
-- **Statistics Dashboard:** A dedicated screen (`StatsScreen`) provides users with key performance indicators, including global success rate, total words mastered, longest correct answer streak, and consecutive days of practice.
-- **Activity Heatmap:** A visual calendar highlights practice days, with color intensity representing the volume of words trained, allowing users to see their consistency at a glance.
+- **XP & Leveling System:** Users earn XP for every correct answer, leveling up when they reach certain thresholds. A visual **Level Journey** screen shows their entire progression path.
+- **Weekly Leagues:** A fully functional league system groups users into tiers (Bronze, Silver, Gold, etc.). Users compete based on weekly XP earned, with promotions and demotions at the end of each week.
 - **Dynamic Daily Goals:** To encourage daily engagement, the app presents three new, randomly selected goals each day (e.g., "Train 10 words," "Complete 1 session"). A countdown timer creates a sense of urgency.
-- **Rich Achievement System:** A comprehensive list of unlockable achievements (badges) rewards users for reaching milestones related to practice, consistency, and vocabulary size. Unlocked achievements are persisted in the database and trigger a notification toast.
-- **Actionable Insights:** The "Challenging Words" section automatically identifies the top 3 words with the lowest success rates. A dedicated button allows the user to instantly start a focused practice session with these words, creating a powerful and immediate improvement loop.
+- **Rich Achievement System:** A comprehensive list of unlockable achievements (badges) rewards users for reaching milestones related to practice, consistency, and vocabulary size.
+- **Weekly Recap:** Every Monday, users are presented with a "story-style" animated summary of their previous week, highlighting key metrics, comparisons, and achievements.
+- **Streaks & Stats:** The app tracks the user's **consecutive day streak** and their **longest correct answer streak** within a session.
+
+### 5. Polished User Experience
+
+- **Custom Animated Components:** The app is filled with polished, custom-built components, including an animated tab bar, a 3D flipping flashcard, animated progress bars, and a custom alert and notification system.
+- **Sensory Feedback:** A centralized service provides haptic feedback and game sounds for key interactions, which can be toggled in the settings.
+- **Dynamic Home Screen:** The home screen is personalized with a dynamic welcome message and features a `DynamicActionCard` that intelligently suggests the most relevant practice session (e.g., Urgent Review, Challenging Words).
+- **Full User Lifecycle:** The app includes a complete authentication flow (Login, Sign Up, Forgot Password) with email/password and Google OAuth, a multi-step onboarding tutorial, and a profile section for account management.
 
 ---
 
 ## 🗺️ Development Roadmap
 
-Com uma base sólida para a prática e estatísticas, o foco agora muda para tornar a aplicação mais interativa, recompensadora e inteligente. A visão está organizada em níveis, começando com o polimento da experiência principal e evoluindo para funcionalidades sociais e de IA.
+Com uma base sólida para a prática e estatísticas, o foco agora é preparar a aplicação para um lançamento de sucesso. A roadmap foi reorganizada com base na pergunta: **"O que é mais importante fazer hoje se a aplicação fosse lançada amanhã?"**.
 
-### 🎯 Current Priorities
+A estratégia é clara: primeiro, garantir uma **experiência de utilizador impecável e polida**; depois, expandir com funcionalidades de **engajamento e retenção**; e, por fim, construir as grandes funcionalidades de **comunidade e IA**.
 
-#### Nível 1: Experiência Principal e Polimento
+---
 
-- [ ] 🎨 **UI/UX e Gamificação:**
-  - [ ] **Modo Escuro:** Implementar um tema escuro completo para a aplicação.
-  - [ ] **Revisão Tinder-Style:** Implementar uma interface de deslizar para a direita/esquerda em alguma parte da aplicação.
-  - [ ] **Flow de Prática Aprimorado:** Melhorar a experiência de prática com um flow adequado com ecrãs condicionais no final (subida de nível, metas diárias concluídas, alterações na liga semanal).
-  - [ ] **Feedback:** Expandir o uso de feedback háptico por toda a app.
-  - [ ] **Resumo Semanal Enriquecido:** Adicionar "fun facts" (ex: "treinaste o equivalente a 2 episódios de uma série") ao `WeeklyRecapScreen`.
-  - [ ] **LevelUp View:** Melhorar o design e UI do `LevelUpView`.
+### 🎯 Nível 1: Essencial para o Lançamento (Prioridade Máxima)
+
+_Estas são as tarefas críticas para garantir que a primeira impressão do utilizador seja fantástica e que a aplicação seja estável, rápida e intuitiva._
+
+- [ ] 🐞 **Correção de Bugs Críticos:**
+  - [ ] **Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática. Uma navegação sem falhas é fundamental.
+- [ ] ✨ **Polimento Visual e Experiência do Utilizador (UI/UX):**
+  - [ ] **Feedback Sensorial:** Expandir o uso de feedback háptico e sonoro para mais interações (ex: abrir um modal, completar uma meta) para tornar a app mais viva.
+  - [ ] **Design do LevelUpView:** Redesenhar o ecrã de subida de nível para ser mais impactante e recompensador.
+  - [ ] **Transição de Liga Clara:** Criar um ecrã ou modal que mostre claramente a transição entre o final de uma liga e o início da nova, celebrando promoções.
+- [ ] 🚀 **Performance:**
+  - [ ] **Listas Otimizadas:** Substituir `FlatList` por `FlashList` nos ecrãs com listas potencialmente longas (`DeckDetailScreen`, `AllWordsScreen`, `AchievementsScreen`) para garantir uma performance fluida.
+- [ ] 🚶 **Experiência do Novo Utilizador:**
+  - [ ] **Onboarding Interativo com Missões:** Criar um sistema de missões iniciais (ex: um checklist no ecrã principal) para guiar os novos utilizadores pelas funcionalidades chave (criar um conjunto, adicionar uma palavra, fazer uma prática).
+
+---
+
+### 📈 Nível 2: Engajamento e Retenção (Pós-Lançamento Imediato)
+
+_Assim que a base estiver polida, o foco passa para funcionalidades que fazem os utilizadores voltar todos os dias._
+
 - [ ] 🗂️ **Funcionalidades do Ecrã Inicial:**
-  - [ ] **Widget "Palavra do Dia":** Destacar uma palavra por dia, talvez uma com a qual o utilizador tem dificuldades, com exemplos e significado.
+
+  - [ ] **Widget "Palavra do Dia":** Destacar uma palavra por dia para incentivar a descoberta.
   - [ ] **Metas Semanais:** Adicionar um novo conjunto de metas com um ciclo semanal para incentivar a consistência a longo prazo.
   - [ ] **Widget da Liga Robusto:** Garantir que o widget mostra sempre os últimos dados em cache quando offline e adicionar uma animação de transição quando a liga semanal é reiniciada.
-  - [ ] **Widget da Liga Animado:** Adicionar uma animação de transição quando a liga semanal é reiniciada.
-- [ ] ⚙️ **Melhorias de Funcionalidades Existentes:**
-  - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações sofisticadas (combinar conjuntos).
+
+- [ ] 🔔 **Notificações Push Inteligentes:**
+
+  - [ ] Implementar lembretes para manter a streak, rever palavras difíceis e avisar sobre o final da liga.
+
+- [ ] 🏆 **Gamificação Aprofundada:**
+
+  - [ ] **Jornada de Níveis Visual:** Melhorar o ecrã que da progressão de níveis do utilizador de forma a torná-lo mais apelativo e cativante.
+  - [ ] **Resumo Semanal Melhorado:** Melhorar o design e UI do Weekly Recap. Adicionar "fun facts" (ex: "treinaste o equivalente a 2 episódios de uma série") ao `WeeklyRecapScreen`.
+  - [ ] **Marcos Partilháveis:** Quando um utilizador atinge um marco importante (ex: nível 20), gerar uma imagem bonita e partilhável.
+
+- [ ] ⚙️ **Melhorias de Qualidade de Vida (QoL):**
+  - [ ] **Gestão de Conjuntos Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar) e, futuramente, combinar conjuntos.
   - [ ] **Gestão de Palavras Avançada:** Permitir mover palavras entre conjuntos.
-  - [ ] **Gestão de Palavras Flexível:** Adicionar interações de "long press" para ações rápidas (editar, apagar, mover para outros conjuntos).
-  - [ ] **Gestão de Palavras Animada:** Adicionar uma animação de "fade in" às palavras quando o ecrã `AllWordsScreen` e `DeckDetailScreen` carrega pela primeira vez.
-- [ ] 🐞 **Bugs e Melhorias Técnicas:**
-  - [ ] **Correções na Tab Bar:** Resolver o bug do botão central que fica visível e o corte no ícone de prática.
-- [ ] ⚡ **Performance:**
-  - [ ] **Listas:** Substituir `FlatList` por `FlashList` nos ecrãs com listas longas (ex: `DeckDetailScreen`).
+  - [ ] **Visualização de Progresso por Palavra:** No ecrã de detalhes da palavra, adicionar um pequeno gráfico que mostre o histórico de acertos/erros ao longo do tempo.
 
-#### Nível 2: O Hábito (Engajamento e Retenção)
+---
 
-- [ ] 🗺️ **Descoberta Guiada (Primeiros Passos):** Criar um sistema de missões simples para guiar os novos utilizadores pelas funcionalidades chave da aplicação.
-- [ ] 🚶 **Jornada de Níveis Visual:** Criar um ecrã que mostre a progressão de níveis do utilizador de forma visual e interativa, destacando os marcos alcançados.
-- [ ] 🔔 **Notificações Push Inteligentes:** Implementar lembretes para manter a streak, rever palavras difíceis, etc.
-- [ ] 🎲 **New Game Modes:**
-  - [ ] **Sprint Contra o Tempo:** Um modo rápido: "Quantas palavras consegue acertar em 60 segundos?".
-  - [ ] **Completa a Frase:** Uma frase aparece com um espaço em branco, e o utilizador deve escolher a palavra correta para o preencher.
-  - [ ] **Prática com "Apostas" (Stakes):** O utilizador "aposta" parte do seu XP na sua performance. Se tiver uma sessão perfeita, duplica o XP; se falhar, perde-o.
-- [ ] 🏆 **Marcos Partilháveis:** Quando um utilizador atinge um marco importante (ex: nível 20), gerar uma imagem bonita e partilhável para as redes sociais.
-- [ ] 🎉 **Eventos Semanais Temáticos:** Lançar um tema semanal (ex: "Semana do Espaço"). As palavras praticadas que pertençam a esse tema valem o dobro do XP.
-- [ ] 🏟️ **Transição de Liga Clara:** Adicionar um ecrã ou componente que mostre claramente a transição entre o final de uma liga e o início da nova.
+### 🎮 Nível 3: Expansão de Conteúdo e Interação
 
-#### Nível 3: Comunidade e Conteúdo Social
+_Com uma base de utilizadores engajada, expandimos as formas de aprender e interagir._
+
+- [ ] 🎲 **Novos Modos de Jogo:**
+
+  - [ ] **Sprint Contra o Tempo:** "Quantas palavras consegue acertar em 60 segundos?".
+  - [ ] **Completa a Frase:** Apresentar uma frase com um espaço em branco para o utilizador preencher.
+  - [ ] **Prática com "Apostas" (Stakes):** O utilizador "aposta" XP na sua performance para ganhar mais ou perder.
+
+- [ ] 🎉 **Eventos Semanais Temáticos:**
+
+  - [ ] **Eventos Temáticos:** Lançar um tema semanal (ex: "Semana do Espaço"). As palavras praticadas que pertençam a esse tema valem o dobro do XP.
+  - [ ] **Desafios Comunitários:** Metas colaborativas onde todos os utilizadores contribuem (ex: "Dominar 10.000 palavras de 'Ciência' em conjunto esta semana"), com uma leaderboard de utilizadores que mais contribuiram.
+
+- [ ] 💬 **Acessibilidade:**
+
+  - [ ] Adicionar `accessibilityLabel` e `accessibilityHint` aos principais componentes interativos para melhorar a experiência para todos os utilizadores.
+
+- [ ] 🛠️ **Ferramentas Avançadas:**
+  - [ ] **Importar/Exportar Conjuntos (CSV):** Permitir que os utilizadores façam backup dos seus conjuntos ou importem listas de palavras de outras fontes.
+
+---
+
+### 🌐 Nível 4: Comunidade e IA (O Futuro)
+
+_Transformar a NewWords numa plataforma de aprendizagem colaborativa e inteligente._
 
 - [ ] 🏪 **Marketplace da Comunidade:**
-- [ ] **Partilha de Conjuntos e Palavras:** Permitir que os utilizadores publiquem os seus próprios conjuntos e palavras para que outros possam adicionar à sua biblioteca.
-- [ ] **Rankings e Votação:** Os utilizadores podem votar (upvote) nos melhores conjuntos, com abas para "Mais Populares", "Tendências" e "Recentes".
-- [ ] ⚔️ **Duelos de Vocabulário (1v1):** Um modo de jogo onde um utilizador pode desafiar um amigo. Ambos respondem às mesmas 10 perguntas num sprint contra o tempo.
-- [ ] 💬 **Interação nos Conjuntos:** Permitir que os utilizadores deixem comentários, dicas ou frases de exemplo nos conjuntos partilhados pela comunidade.
-- [ ] 👤 **Perfis de Utilizador Personalizáveis:** Permitir que os utilizadores personalizem o seu perfil com a sua palavra favorita, a palavra mais treinada, etc.
 
-#### Nível 4: 🤖 Magia com IA (O Tutor Inteligente)
+  - [ ] Permitir que os utilizadores publiquem os seus próprios conjuntos para que outros possam adicionar à sua biblioteca.
+  - [ ] Implementar um sistema de votação (upvote) e categorias para os conjuntos partilhados.
 
-- [ ] **Criação Automática de Flashcards:** O utilizador insere uma palavra, e uma IA gera automaticamente o significado, categoria gramatical, sinónimos, antónimos e 3 frases de exemplo com dificuldade crescente.
-- [ ] **Scanner Inteligente (OCR + NLP):** O utilizador tira uma foto a um texto, e a IA identifica e destaca as palavras mais complexas. O utilizador toca nas palavras que quer aprender, e a app cria os flashcards automaticamente.
-- [ ] **Tutor Conversacional:** Um chat com uma IA que testa o conhecimento do utilizador de forma interativa. Ex: "A palavra de hoje é 'resiliência'. Consegues usá-la numa frase sobre desporto?".
-- [ ] **Gerador de Histórias Contextuais:** O utilizador seleciona 3 a 5 palavras, e a IA cria um micro-conto que usa essas palavras de forma coesa e memorável.
-- [ ] **Constelações de Palavras:** Uma vista gráfica e interativa onde as palavras são "estrelas" ligadas por relações (sinónimos, antónimos, etc.), ajudando a visualizar as conexões do vocabulário.
+- [ ] ⚔️ **Duelos de Vocabulário (1v1):**
 
-#### Nível 5: Escalabilidade e Crescimento
+  - [ ] Modo de jogo onde um utilizador pode desafiar um amigo em tempo real.
 
-- [ ] ☁️ **Authentication and Cloud Sync.**
+- [ ] 🤖 **Magia com IA (O Tutor Inteligente):**
+  - [ ] **Criação Automática de Flashcards:** IA gera significados, sinónimos, antónimos e frases de exemplo.
+  - [ ] **Scanner Inteligente (OCR + NLP):** Extrair palavras de textos e imagens.
+  - [ ] **Tutor Conversacional com IA:** Um chat que desafia o utilizador a usar as palavras que está a aprender em frases, oferecendo correções e sugestões.
+
+---
+
+### 🤔 Talvez implementarei no futuro
+
+_Funcionalidades interessantes mas não prioritárias para o lançamento ou para as fases imediatas pós-lançamento._
+
+- [ ] **Modo Escuro:** Implementar um tema escuro completo. É uma das funcionalidades mais pedidas em qualquer app moderna.
+- [ ] **Animações de Entrada:** Adicionar animações de "fade in" às listas de palavras (`AllWordsScreen`, `DeckDetailScreen`) e aos slides do Onboarding para uma entrada mais suave.
 
 ---
 
