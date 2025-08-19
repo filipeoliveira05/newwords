@@ -5,8 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
+  Image,
 } from "react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../../../types/navigation";
@@ -17,6 +16,7 @@ import { useAuthStore } from "../../../stores/useAuthStore";
 import { useAlertStore } from "../../../stores/useAlertStore";
 import Icon from "@/app/components/Icon";
 import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
+import images from "@/services/imageService";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "ForgotPassword">;
 
@@ -64,34 +64,29 @@ const ForgotPasswordScreen = ({ navigation, route }: Props) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <Icon name="back" size={24} color={theme.colors.text} />
-        </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image source={images.appMascotName} style={styles.logo} />
       </View>
-      <View style={styles.content}>
+      <View style={styles.formContainer}>
         <AppText variant="bold" style={styles.title}>
           Recuperar Palavra-passe
         </AppText>
         <AppText style={styles.subtitle}>
           Insira o seu email para receber um link de recuperação.
         </AppText>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <View style={styles.inputContainer}>
+          <Icon name="mail" size={20} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor={theme.colors.textMuted}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
 
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
@@ -106,66 +101,103 @@ const ForgotPasswordScreen = ({ navigation, route }: Props) => {
             </AppText>
           )}
         </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.goBack()}
+          >
+            <AppText variant="bold" style={styles.linkText}>
+              Voltar para o Login
+            </AppText>
+          </TouchableOpacity>
+        </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSubtle,
+    paddingBottom: 20,
   },
-  header: {
-    paddingTop: 60,
-    paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: "center",
+  logoContainer: {
     alignItems: "center",
   },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
+  logo: {
+    width: 320,
+    height: 320,
+    resizeMode: "contain",
+  },
+  formContainer: {
+    paddingHorizontal: 32,
   },
   title: {
-    fontSize: theme.fontSizes["4xl"],
-    color: theme.colors.text,
+    fontSize: theme.fontSizes["3xl"],
+    color: theme.colors.textPrimary,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: theme.fontSizes.lg,
-    color: theme.colors.textSecondary,
+    color: theme.colors.textSubtle,
     textAlign: "center",
     marginBottom: 32,
   },
-  input: {
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: theme.colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRadius: 12,
-    fontSize: theme.fontSizes.md,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.border,
-    color: theme.colors.text,
+    borderRadius: 20,
+    marginBottom: 10,
+    paddingHorizontal: 15,
+    height: 55,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  inputIcon: {
+    marginRight: 12,
+  },
+  input: {
+    flex: 1,
+    fontSize: theme.fontSizes.xl,
+    color: theme.colors.textPrimary,
+    fontFamily: theme.fonts.regular,
   },
   button: {
-    paddingVertical: 16,
-    borderRadius: 12,
+    height: 55,
+    borderRadius: 20,
     alignItems: "center",
-    marginTop: 16,
+    justifyContent: "center",
   },
   primaryButton: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: theme.colors.accent,
+    marginTop: 16,
   },
   buttonText: {
     color: theme.colors.surface,
-    fontSize: theme.fontSizes.lg,
+    fontSize: theme.fontSizes.xxl,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  footerText: {
+    fontSize: theme.fontSizes.md,
+    color: theme.colors.textSubtle,
+  },
+  linkText: {
+    color: theme.colors.accent,
+    fontSize: theme.fontSizes.md,
   },
 });
 

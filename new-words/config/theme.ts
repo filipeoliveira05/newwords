@@ -4,12 +4,17 @@ const palette = {
   blueLighter: "#e8f0fe",
   blueDarker: "#2c6ecb",
 
+  accent: "#E85D5D",
+
   textDark: "#22223b",
+  textDarker: "#3D3D3D",
   textMedium: "#495057",
   textLight: "#6c757d",
   textLighter: "#adb5bd",
+  textSubtle: "#7A7A7A",
 
   background: "#f8fafc",
+  backgroundSubtle: "#fff2da",
   white: "#fff",
 
   borderLight: "#f1f1f1",
@@ -48,6 +53,7 @@ const palette = {
   brown: "#895129",
 
   dark: "#22223B",
+  black: "#000000",
   grey: "#ced4da",
   greyLighter: "#f1f3f5",
   placeholder: "#9e9e9e",
@@ -59,13 +65,17 @@ export const colors = {
   primaryLighter: palette.blueLighter,
   primaryDarker: palette.blueDarker,
   background: palette.background,
+  backgroundSubtle: palette.backgroundSubtle,
   surface: palette.white,
   backgroundGradient: [palette.blueLighter, palette.white],
+  accent: palette.accent,
 
   text: palette.textDark,
+  textPrimary: palette.textDarker,
   textMedium: palette.textMedium,
   textSecondary: palette.textLight,
   textMuted: palette.textLighter,
+  textSubtle: palette.textSubtle,
   placeholder: palette.placeholder,
 
   success: palette.success,
@@ -96,9 +106,11 @@ export const colors = {
 
   border: palette.border,
   borderLight: palette.borderLight,
+  borderSubtle: "#E0E0E0",
 
   icon: palette.textLight,
   iconMuted: palette.grey,
+  black: palette.black,
 
   dark: palette.dark,
 

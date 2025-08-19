@@ -39,7 +39,7 @@ yarn-error.*
 app-example
 
 # Pasta de inspiração e recursos visuais
-/inspiration/
+inspiration/
 
 # Script Supabase
 supabaseScript.sql

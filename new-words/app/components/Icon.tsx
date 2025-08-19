@@ -77,6 +77,7 @@ export const iconMap = {
   gameController: { name: "game-controller-outline", library: "ionicons" },
   volume: { name: "volume-medium-outline", library: "ionicons" },
   eye: { name: "eye-outline", library: "ionicons" },
+  eyeOff: { name: "eye-off-outline", library: "ionicons" },
   play: { name: "play", library: "ionicons" },
   pause: { name: "pause", library: "ionicons" },
   trash: { name: "trash-outline", library: "ionicons" },

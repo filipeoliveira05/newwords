@@ -84,7 +84,9 @@ const images = {
 
   // --- Ícones da Aplicação ---
   appIcon: require("../assets/images/mascot/app_icon2.png"),
+  appMascotName: require("../assets/images/app_icon3.png"),
   splashIcon: require("../assets/images/mascot/mascot_study.png"),
+  appName: require("../assets/images/app_name.png"),
 } as const;
 
 /**
