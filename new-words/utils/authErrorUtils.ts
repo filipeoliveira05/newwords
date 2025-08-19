@@ -10,6 +10,10 @@ export const getFriendlyAuthErrorMessage = (error: AuthError): string => {
   const defaultMessage =
     "Ocorreu um erro inesperado. Por favor, tente novamente.";
 
+  if (error.message.includes("Database error saving new user")) {
+    return "Ocorreu um erro ao criar o seu perfil na base de dados. Por favor, tente novamente mais tarde ou contacte o suporte.";
+  }
+
   // Mapeamento de mensagens de erro do Supabase para mensagens personalizadas.
   // Usamos .includes() para ser mais robusto a pequenas alterações no texto do erro.
   if (error.message.includes("User already registered")) {

@@ -97,11 +97,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
 
       // --- Lógica de Sincronização de Perfil ---
-      // Esta função garante que os dados do perfil do provedor (ex: Google)
-      // são sincronizados para a nossa base de dados local e para os metadados do Supabase.
+      // Esta função garante que os dados do perfil do provedor (ex: Google) ou do registo por email
+      // são sincronizados para a nossa base de dados local e para os metadados do Supabase,
+      // garantindo uma UI reativa e consistente.
       const syncUserProfile = async (session: Session) => {
         const { user_metadata } = session.user;
-        // Apenas executa se for um login com provedor (ex: Google) e se os dados ainda não estiverem preenchidos.
+        // Caso 1: Login com provedor (ex: Google) que fornece 'full_name' mas não 'first_name'
         if (user_metadata.full_name && !user_metadata.first_name) {
           console.log(
             "[Auth] A sincronizar perfil do provedor pela primeira vez..."
@@ -129,6 +130,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           ]);
 
           // 3. Notifica o resto da app que o perfil foi atualizado.
+          eventStore.getState().publish("userProfileUpdated", {});
+        }
+        // Caso 2: Registo com email/pass, onde os metadados já existem
+        // Isto garante que os dados locais são atualizados imediatamente,
+        // sem esperar pelo sync completo, para uma melhor UX.
+        else if (user_metadata.first_name) {
+          console.log("[Auth] A sincronizar perfil de email/pass para a DB local...");
+          await Promise.all([
+            setMetaValue("first_name", user_metadata.first_name),
+            setMetaValue("last_name", user_metadata.last_name || ""),
+            setMetaValue("email", session.user.email || ""),
+          ]);
           eventStore.getState().publish("userProfileUpdated", {});
         }
       };
