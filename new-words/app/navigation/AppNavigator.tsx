@@ -15,7 +15,6 @@ import Animated, {
   runOnJS,
 } from "react-native-reanimated";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { useFonts } from "expo-font";
 import { theme } from "../../config/theme";
 import { useLeagueStore } from "@/stores/useLeagueStore";
 import { useAchievementStore } from "@/stores/useAchievementStore";
@@ -68,12 +67,6 @@ import IconTestScreen from "../screens/dev/IconTestScreen";
 
 import AnimatedTabBarIcon from "../components/navigation/AnimatedTabBarIcon";
 import Icon from "../components/Icon";
-
-// Import fonts using ES6 modules for consistency and to satisfy the linter
-import SatoshiRegular from "../../assets/fonts/Satoshi-Regular.otf";
-import SatoshiMedium from "../../assets/fonts/Satoshi-Medium.otf";
-import SatoshiBold from "../../assets/fonts/Satoshi-Bold.otf";
-import LoadingScreen from "../screens/LoadingScreen";
 
 // --- Estilos e Componentes da Tab Bar ---
 
@@ -359,12 +352,6 @@ function ProfileStack() {
 }
 
 export default function AppNavigator() {
-  const [fontsLoaded] = useFonts({
-    "Satoshi-Regular": SatoshiRegular,
-    "Satoshi-Medium": SatoshiMedium,
-    "Satoshi-Bold": SatoshiBold,
-  });
-
   const { user } = useUserStore();
 
   // Limpa os dados locais quando o utilizador faz logout.
@@ -390,9 +377,6 @@ export default function AppNavigator() {
     soundService.loadSounds();
   }, []);
 
-  if (!fontsLoaded) {
-    return <LoadingScreen visible={!fontsLoaded} />;
-  }
   return (
     <BottomSheetModalProvider>
       <View style={{ flex: 1 }}>
