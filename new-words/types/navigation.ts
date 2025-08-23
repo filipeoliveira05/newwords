@@ -2,13 +2,21 @@ import { Word } from "@/types/database";
 import { NavigatorScreenParams } from "@react-navigation/native";
 import { WeeklySummary } from "../services/storage";
 
+// O AuthNavigator gere todo o fluxo ANTES de o utilizador estar autenticado.
 export type AuthStackParamList = {
+  // Ecrã inicial para novos utilizadores no dispositivo.
+  Welcome: undefined;
+  // Onboarding para novos utilizadores (pré-login).
+  Onboarding: undefined;
   Login: undefined;
   SignUp: undefined;
   ForgotPassword: { email?: string };
 };
 
+// O RootNavigator é o navegador de topo que decide qual o fluxo principal a mostrar.
 export type RootStackParamList = {
+  // Onboarding para utilizadores já autenticados que nunca o completaram.
+  // A duplicação é intencional para separar os dois contextos (pré e pós-login).
   Onboarding: undefined;
   Auth: NavigatorScreenParams<AuthStackParamList>;
   MainApp: undefined; // Representa o AppNavigator com as tabs

@@ -7,12 +7,12 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useNavigation } from "@react-navigation/native";
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
 } from "react-native-reanimated";
-import { RootStackParamList } from "../../../types/navigation";
+// import { RootStackParamList } from "../../../types/navigation";
 import AppText from "../../components/AppText";
 import { theme } from "@/config/theme";
 import { useAuthStore } from "@/stores/useAuthStore";
@@ -59,19 +59,13 @@ const slides: Slide[] = [
   },
 ];
 
-type OnboardingScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "Onboarding"
->;
-
-type Props = {
-  navigation: OnboardingScreenNavigationProp; // A prop onComplete é removida
-};
-
-const OnboardingScreen = ({ navigation }: Props) => {
+const OnboardingScreen = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const slidesRef = useRef<FlatList>(null);
   const [isCompleting, setIsCompleting] = useState(false);
+  const { session, completeOnboarding } = useAuthStore();
+  // Usamos o hook useNavigation para tornar o componente mais flexível
+  const navigation = useNavigation<any>();
   const showAlert = useAlertStore((state) => state.showAlert);
   const scrollX = useSharedValue(0);
 
@@ -87,31 +81,36 @@ const OnboardingScreen = ({ navigation }: Props) => {
 
   const viewConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
 
-  const handleCompleteOnboarding = async () => {
+  const handleComplete = async () => {
     if (isCompleting) return;
-
     setIsCompleting(true);
-    // Chama a função do store para atualizar o estado no Supabase.
-    // O RootNavigator irá reagir automaticamente à mudança de estado.
-    const { error } = await useAuthStore.getState().completeOnboarding();
 
-    if (error) {
-      showAlert({
-        title: "Erro de Rede",
-        message:
-          "Não foi possível guardar a sua preferência. Por favor, verifique a sua ligação à internet e tente novamente.",
-        buttons: [{ text: "OK", onPress: () => {} }],
-      });
-      setIsCompleting(false); // Permite ao utilizador tentar novamente.
+    if (session) {
+      // Fluxo pós-login: utilizador existente a completar o onboarding.
+      const { error } = await completeOnboarding();
+      if (error) {
+        showAlert({
+          title: "Erro de Rede",
+          message:
+            "Não foi possível guardar a sua preferência. Por favor, verifique a sua ligação à internet e tente novamente.",
+          buttons: [{ text: "OK", onPress: () => {} }],
+        });
+        setIsCompleting(false);
+      }
+      // Se não houver erro, o RootNavigator trata da navegação.
+    } else {
+      // Fluxo pré-login: novo utilizador a ser encaminhado para o registo.
+      navigation.navigate("SignUp");
+      // Permite ao utilizador voltar atrás se mudar de ideias.
+      setIsCompleting(false);
     }
-    // Se não houver erro, o RootNavigator irá mudar de ecrã, pelo que não é preciso fazer setIsCompleting(false).
   };
 
   const scrollToNext = () => {
     if (currentIndex < slides.length - 1) {
       slidesRef.current?.scrollToIndex({ index: currentIndex + 1 });
     } else {
-      handleCompleteOnboarding();
+      handleComplete();
     }
   };
 

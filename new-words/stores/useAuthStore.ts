@@ -117,6 +117,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               first_name: firstName,
               last_name: lastName,
               profile_picture_url: user_metadata.avatar_url,
+              // Garante que o onboarding é marcado como completo para novos utilizadores do Google.
+              has_completed_onboarding: true,
             },
           });
 
@@ -136,7 +138,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // Isto garante que os dados locais são atualizados imediatamente,
         // sem esperar pelo sync completo, para uma melhor UX.
         else if (user_metadata.first_name) {
-          console.log("[Auth] A sincronizar perfil de email/pass para a DB local...");
+          console.log(
+            "[Auth] A sincronizar perfil de email/pass para a DB local..."
+          );
           await Promise.all([
             setMetaValue("first_name", user_metadata.first_name),
             setMetaValue("last_name", user_metadata.last_name || ""),
@@ -243,6 +247,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data: {
           first_name: metadata.firstName.trim(),
           last_name: metadata.lastName.trim(),
+          // Garante que o onboarding é marcado como completo para novos utilizadores de email/pass.
+          has_completed_onboarding: true,
         },
       },
     });

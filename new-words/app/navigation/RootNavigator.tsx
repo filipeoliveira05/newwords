@@ -65,17 +65,23 @@ const RootNavigator = () => {
 
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
+      {/* O RootNavigator funciona como um porteiro principal, decidindo o estado global da app. */}
       {isRecoveringPassword ? (
+        // 1. Prioridade máxima: Se o utilizador veio de um link de recuperação de passe.
         <RootStack.Screen
           name="UpdatePassword"
           component={UpdatePasswordScreen}
-        /> // Se não há sessão, o utilizador deve autenticar-se primeiro.
+        />
       ) : !session ? (
+        // 2. Se não há sessão, o controlo é passado para o AuthNavigator,
+        // que gere o fluxo de boas-vindas, onboarding para novos utilizadores, login e registo.
         <RootStack.Screen name="Auth" component={AuthNavigator} />
       ) : !hasCompletedOnboarding ? (
-        // Se há sessão mas o onboarding não foi feito, mostra o onboarding.
+        // 3. Se há sessão mas o onboarding nunca foi concluído (ex: utilizador antigo),
+        // força a passagem pelo onboarding antes de entrar na app principal.
         <RootStack.Screen name="Onboarding" component={OnboardingScreen} />
       ) : (
+        // 4. Se há sessão e o onboarding está completo, o utilizador entra na app.
         <RootStack.Screen name="MainApp" component={AppNavigator} />
       )}
     </RootStack.Navigator>
