@@ -55,11 +55,13 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: theme.fontSizes["5xl"],
+    color: theme.colors.textPrimary,
     textAlign: "center",
     marginBottom: 10,
   },
   description: {
     fontSize: theme.fontSizes.xxl,
+    color: theme.colors.textSecondary,
     textAlign: "center",
     lineHeight: 24,
   },

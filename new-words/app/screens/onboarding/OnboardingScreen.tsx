@@ -158,7 +158,7 @@ const OnboardingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.backgroundSubtle,
     justifyContent: "space-between",
     alignItems: "center",
   },
@@ -169,10 +169,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   button: {
-    backgroundColor: theme.colors.primary,
-    paddingVertical: 16,
-    borderRadius: 16,
-    marginBottom: 20,
+    backgroundColor: theme.colors.accent,
+    height: 55,
+    borderRadius: 20,
+    marginBottom: 10,
     width: "90%",
     alignItems: "center",
     alignSelf: "center",
