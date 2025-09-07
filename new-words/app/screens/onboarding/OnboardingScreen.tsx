@@ -100,7 +100,7 @@ const OnboardingScreen = () => {
       // Se não houver erro, o RootNavigator trata da navegação.
     } else {
       // Fluxo pré-login: novo utilizador a ser encaminhado para o registo.
-      navigation.navigate("SignUp");
+      navigation.navigate("SignUp", { fromOnboarding: true });
       // Permite ao utilizador voltar atrás se mudar de ideias.
       setIsCompleting(false);
     }
@@ -170,12 +170,13 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: theme.colors.accent,
-    height: 55,
+    height: 60,
     borderRadius: 20,
     marginBottom: 10,
     width: "90%",
     alignItems: "center",
     alignSelf: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: theme.colors.surface,

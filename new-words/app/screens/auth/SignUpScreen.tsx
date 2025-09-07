@@ -19,7 +19,8 @@ import { getFriendlyAuthErrorMessage } from "../../../utils/authErrorUtils";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "SignUp">;
 
-const SignUpScreen = ({ navigation }: Props) => {
+const SignUpScreen = ({ route, navigation }: Props) => {
+  const fromOnboarding = route.params?.fromOnboarding ?? false;
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -47,7 +48,12 @@ const SignUpScreen = ({ navigation }: Props) => {
     setLoading(true);
     const { error } = await useAuthStore
       .getState()
-      .signUpWithEmail(email, password, { firstName, lastName });
+      .signUpWithEmail(
+        email,
+        password,
+        { firstName, lastName },
+        fromOnboarding
+      );
     if (error) {
       showAlert({
         title: "Erro ao Criar Conta",

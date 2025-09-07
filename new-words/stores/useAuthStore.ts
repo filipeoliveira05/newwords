@@ -32,7 +32,8 @@ interface AuthState {
   signUpWithEmail: (
     email: string,
     pass: string,
-    metadata: { firstName: string; lastName: string }
+    metadata: { firstName: string; lastName: string },
+    fromOnboarding?: boolean
   ) => Promise<{ error: AuthError | null }>;
   updateUserPassword: (
     password: string
@@ -117,8 +118,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
               first_name: firstName,
               last_name: lastName,
               profile_picture_url: user_metadata.avatar_url,
-              // Garante que o onboarding é marcado como completo para novos utilizadores do Google.
-              has_completed_onboarding: true,
             },
           });
 
@@ -239,7 +238,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return { error };
   },
 
-  signUpWithEmail: async (email, password, metadata) => {
+  signUpWithEmail: async (
+    email,
+    password,
+    metadata,
+    fromOnboarding = false
+  ) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -247,8 +251,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         data: {
           first_name: metadata.firstName.trim(),
           last_name: metadata.lastName.trim(),
-          // Garante que o onboarding é marcado como completo para novos utilizadores de email/pass.
-          has_completed_onboarding: true,
+          // Se o utilizador veio do fluxo de onboarding, marca-o como completo.
+          has_completed_onboarding: fromOnboarding,
         },
       },
     });

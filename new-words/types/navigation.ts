@@ -9,7 +9,7 @@ export type AuthStackParamList = {
   // Onboarding para novos utilizadores (pré-login).
   Onboarding: undefined;
   Login: undefined;
-  SignUp: undefined;
+  SignUp: { fromOnboarding?: boolean };
   ForgotPassword: { email?: string };
 };
 
