@@ -24,7 +24,6 @@ import { useWordStore } from "@/stores/wordStore";
 import { useUserStore } from "@/stores/useUserStore";
 import { usePracticeStore } from "@/stores/usePracticeStore";
 import * as hapticService from "../../services/hapticService";
-import * as soundService from "../../services/soundService";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 
 import {
@@ -374,7 +373,6 @@ export default function AppNavigator() {
     useLeagueStore.getState().checkAndInitializeLeagues();
     // Initialize achievement store and listeners
     useAchievementStore.getState().initialize();
-    soundService.loadSounds();
   }, []);
 
   return (
@@ -410,7 +408,7 @@ export default function AppNavigator() {
             }}
             listeners={({ navigation }) => ({
               tabPress: (e) => {
-                hapticService.impactAsync();
+                hapticService.selectionAsync();
                 e.preventDefault();
                 navigation.navigate("Home", { screen: "HomeDashboard" });
               },
@@ -431,7 +429,7 @@ export default function AppNavigator() {
             }}
             listeners={({ navigation }) => ({
               tabPress: (e) => {
-                hapticService.impactAsync();
+                hapticService.selectionAsync();
                 e.preventDefault();
                 navigation.navigate("Decks", { screen: "LibraryHub" });
               },
@@ -465,7 +463,7 @@ export default function AppNavigator() {
             }}
             listeners={({ navigation }) => ({
               tabPress: (e) => {
-                hapticService.impactAsync();
+                hapticService.selectionAsync();
                 e.preventDefault();
                 navigation.navigate("Practice", { screen: "PracticeHub" });
               },
@@ -486,7 +484,7 @@ export default function AppNavigator() {
             }}
             listeners={({ navigation }) => ({
               tabPress: () => {
-                hapticService.impactAsync();
+                hapticService.selectionAsync();
               },
             })}
           />
@@ -507,7 +505,7 @@ export default function AppNavigator() {
             }}
             listeners={({ navigation }) => ({
               tabPress: (e) => {
-                hapticService.impactAsync();
+                hapticService.selectionAsync();
                 // Previne a ação padrão para podermos controlar a navegação.
                 e.preventDefault();
                 // Navega para o ecrã inicial do stack de Perfil.

@@ -7,7 +7,7 @@ export enum SoundType {
   Flip,
 }
 
-const soundFiles = {
+export const soundFiles = {
   [SoundType.Correct]: require("../assets/sounds/correct.mp3"),
   [SoundType.Incorrect]: require("../assets/sounds/incorrect.mp3"),
   [SoundType.Flip]: require("../assets/sounds/flip.mp3"),
@@ -19,23 +19,17 @@ const canPlaySound = (): boolean => {
   return useSettingsStore.getState().gameSoundsEnabled;
 };
 
-export const loadSounds = async () => {
-  // console.log("A carregar sons...");
-  for (const key in soundFiles) {
-    const soundType = Number(key) as SoundType;
-    try {
-      const player = new AudioPlayer(soundFiles[soundType], 500);
-      soundObjects[soundType] = player;
-    } catch (error) {
-      // console.error(
-      //   `Não foi possível carregar o som para o tipo ${soundType}:`,
-      //   error
-      // );
-    }
-  }
-  // console.log("Sons carregados.");
+/**
+ * Regista um objeto de áudio no serviço.
+ * Esta função será chamada pelo SoundProvider.
+ */
+export const registerSound = (type: SoundType, player: AudioPlayer) => {
+  soundObjects[type] = player;
 };
 
+/**
+ * Toca um som que já foi registado.
+ */
 export const playSound = async (type: SoundType) => {
   if (!canPlaySound()) {
     return;
@@ -48,12 +42,18 @@ export const playSound = async (type: SoundType) => {
       await player.seekTo(0);
       await player.play();
     } catch (error) {
-      // console.error(`Não foi possível tocar o som para o tipo ${type}:`, error);
+      console.error(`Não foi possível tocar o som para o tipo ${type}:`, error);
     }
   } else {
-    //console.warn(`O som para o tipo ${type} não está carregado.`);
+    console.warn(`O som para o tipo ${type} não está carregado.`);
   }
 };
 
-// Futuramente, pode adicionar uma função para descarregar os sons se necessário.
-// export const unloadAllSounds = async () => { ... };
+/**
+ * Descarrega todos os sons da memória.
+ */
+export const unloadSounds = () => {
+  for (const key in soundObjects) {
+    delete soundObjects[Number(key) as SoundType];
+  }
+};

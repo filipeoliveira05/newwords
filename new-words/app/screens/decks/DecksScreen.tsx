@@ -39,6 +39,7 @@ import { DecksStackParamList } from "../../../types/navigation";
 import Icon from "../../components/Icon";
 import images from "../../../services/imageService";
 import LoadingScreen from "../LoadingScreen";
+import * as hapticService from "../../../services/hapticService";
 
 type Props = NativeStackScreenProps<DecksStackParamList, "DecksList">;
 
@@ -160,7 +161,12 @@ export default function DecksScreen({ navigation }: Props) {
             <TouchableOpacity // Aplicado o mesmo estilo para consistência
               style={styles.headerButton}
               activeOpacity={0.8}
-              onPress={() => sortBottomSheetRef.current?.present()}
+              onPress={() => {
+                hapticService.impactAsync(
+                  hapticService.ImpactFeedbackStyle.Light
+                );
+                sortBottomSheetRef.current?.present();
+              }}
             >
               <Icon
                 name="swapVertical"

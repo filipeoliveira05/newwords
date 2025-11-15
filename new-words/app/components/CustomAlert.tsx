@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { useAlertStore, AlertButton } from "@/stores/useAlertStore";
 import AppText from "./AppText";
+import * as hapticService from "../../services/hapticService";
 import { theme } from "../../config/theme";
 
 const CustomAlert = () => {
@@ -71,6 +72,9 @@ const CustomAlert = () => {
     if (isVisible) {
       setIsRendered(true);
       // Anima a opacidade e a escala ao mesmo tempo
+      runOnJS(hapticService.notificationAsync)(
+        hapticService.NotificationFeedbackType.Warning
+      );
       progress.value = withTiming(1, { duration: 250 });
     } else if (isRendered) {
       // Se não for para estar visível, mas ainda estiver renderizado, faz fade-out

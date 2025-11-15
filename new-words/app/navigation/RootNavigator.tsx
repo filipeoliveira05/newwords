@@ -11,7 +11,6 @@ import UpdatePasswordScreen from "../screens/auth/UpdatePasswordScreen";
 import { RootStackParamList } from "../../types/navigation";
 import AuthNavigator from "./AuthNavigator";
 import images from "@/services/imageService";
-import * as soundService from "@/services/soundService";
 import { theme } from "@/config/theme";
 
 // Import fonts
@@ -56,8 +55,6 @@ const RootNavigator = () => {
           ...Object.values(images).map((image) =>
             Asset.fromModule(image).downloadAsync()
           ),
-          // Pre-load all sounds
-          soundService.loadSounds(),
           // Garante que a base de dados e as tabelas existem antes de qualquer leitura.
           initializeDB(),
         ];

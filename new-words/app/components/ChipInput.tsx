@@ -10,6 +10,7 @@ import {
 import AppText from "./AppText";
 import { theme } from "../../config/theme";
 import Icon from "./Icon";
+import * as hapticService from "../../services/hapticService";
 
 type ChipInputProps = {
   label: string;
@@ -41,6 +42,7 @@ const ChipInput = ({
 
   const handleAddItem = () => {
     if (currentValue.trim()) {
+      hapticService.impactAsync(hapticService.ImpactFeedbackStyle.Light);
       onItemsChange([...items, currentValue.trim()]);
       setCurrentValue("");
       // Esconde o campo de input depois de adicionar um item para um fluxo mais limpo.

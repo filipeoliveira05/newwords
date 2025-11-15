@@ -5,15 +5,18 @@ import RootNavigator from "./navigation/RootNavigator";
 import { MenuProvider } from "react-native-popup-menu";
 import CustomAlert from "./components/CustomAlert";
 import NotificationToast from "./components/notifications/NotificationToast";
+import SoundProvider from "./components/SoundProvider";
 
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <MenuProvider>
-        <RootNavigator />
-        <CustomAlert />
-        <NotificationToast />
-      </MenuProvider>
+      <SoundProvider>
+        <MenuProvider>
+          <RootNavigator />
+          <CustomAlert />
+          <NotificationToast />
+        </MenuProvider>
+      </SoundProvider>
     </GestureHandlerRootView>
   );
 }

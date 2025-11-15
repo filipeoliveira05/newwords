@@ -44,6 +44,7 @@ import {
   SortConfig,
 } from "../../../services/wordSorting";
 import images from "../../../services/imageService";
+import * as hapticService from "../../../services/hapticService";
 
 // A constant empty array to use as a stable fallback in selectors, preventing infinite loops.
 const EMPTY_ARRAY: number[] = [];
@@ -172,7 +173,12 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
           <TouchableOpacity
             style={styles.headerButton}
             activeOpacity={0.8}
-            onPress={() => sortBottomSheetRef.current?.present()}
+            onPress={() => {
+              hapticService.impactAsync(
+                hapticService.ImpactFeedbackStyle.Light
+              );
+              sortBottomSheetRef.current?.present();
+            }}
           >
             <Icon
               name="swapVertical"
@@ -458,7 +464,12 @@ export default function DeckDetailScreen({ navigation, route }: Props) {
         {wordsForCurrentDeck.length > 0 && (
           <TouchableOpacity
             style={[styles.fab, styles.practiceFab]}
-            onPress={() => practiceBottomSheetRef.current?.present()}
+            onPress={() => {
+              hapticService.impactAsync(
+                hapticService.ImpactFeedbackStyle.Light
+              );
+              practiceBottomSheetRef.current?.present();
+            }}
             activeOpacity={0.8}
           >
             <Icon name="flash" size={28} color={theme.colors.surface} />

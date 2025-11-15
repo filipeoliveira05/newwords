@@ -28,6 +28,7 @@ import { theme } from "../../../config/theme";
 import Icon from "../Icon";
 import CategorySelectionModal from "../modals/CategorySelectionModal";
 import { Word } from "../../../types/database";
+import * as hapticService from "../../../services/hapticService";
 
 export interface WordEditSheetRef {
   present: (initialData?: Word | null) => void;
@@ -118,6 +119,9 @@ const WordEditSheet = forwardRef<WordEditSheetRef, WordEditSheetProps>(
       setIsSaving(true);
       try {
         await onSave({ name, meaning, category }, wordId);
+        hapticService.notificationAsync(
+          hapticService.NotificationFeedbackType.Success
+        );
       } catch (error) {
         // O erro já é tratado no ecrã pai, mas paramos o estado de 'saving' aqui.
         console.log("Save failed, handled by parent screen.", error);
