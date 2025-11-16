@@ -96,6 +96,7 @@ export const iconMap = {
   cloudDone: { name: "cloud-done-outline", library: "ionicons" },
   cloudOffline: { name: "cloud-offline-outline", library: "ionicons" },
   camera: { name: "camera-outline", library: "ionicons" },
+  sparkles: { name: "sparkles-outline", library: "ionicons" },
 
   // Practice & Learning
   school: { name: "school-outline", library: "ionicons" },

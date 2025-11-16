@@ -58,10 +58,6 @@ const ActionCard = ({
 );
 
 const LibraryHubScreen = ({ navigation }: Props) => {
-  // For now, we assume the user is online.
-  // In the future, we would use a hook like `useIsConnected()`.
-  const isOffline = false;
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -96,27 +92,27 @@ const LibraryHubScreen = ({ navigation }: Props) => {
             title="Criar com IA"
             subtitle="Gere palavras e exemplos automaticamente."
             onPress={() => {}} // Placeholder
-            disabled={isOffline}
+            disabled={true}
           />
           <ActionCard
             icon="scan"
             title="Scanner Inteligente"
             subtitle="Extraia palavras de textos com a câmara."
             onPress={() => {}} // Placeholder
-            disabled={isOffline}
+            disabled={true}
           />
-          {isOffline && (
-            <View style={styles.offlineMessageContainer}>
-              <Icon
-                name="cloudOffline"
-                size={20}
-                color={theme.colors.textSecondary}
-              />
-              <AppText style={styles.offlineMessageText}>
-                As ferramentas de IA necessitam de uma ligação à internet.
-              </AppText>
-            </View>
-          )}
+          {/* Mensagem genérica de "em breve" para as funcionalidades de IA */}
+          <View style={styles.aiTeaserMessageContainer}>
+            <Icon
+              name="sparkles"
+              size={20}
+              color={theme.colors.textSecondary}
+            />
+            <AppText style={styles.aiTeaserMessageText}>
+              Funcionalidades inteligentes para acelerar a sua aprendizagem
+              estão a chegar.
+            </AppText>
+          </View>
         </View>
       </ScrollView>
     </View>
@@ -147,6 +143,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 90,
   },
   card: {
     backgroundColor: theme.colors.surface,
@@ -187,16 +184,16 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingHorizontal: 4,
   },
-  offlineMessageContainer: {
+  aiTeaserMessageContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     padding: 12,
     borderRadius: 12,
-    backgroundColor: theme.colors.surface,
-    marginTop: 8,
+    backgroundColor: "transparent",
+    marginTop: -16,
   },
-  offlineMessageText: {
+  aiTeaserMessageText: {
     marginLeft: 8,
     color: theme.colors.textSecondary,
     fontSize: theme.fontSizes.sm,
