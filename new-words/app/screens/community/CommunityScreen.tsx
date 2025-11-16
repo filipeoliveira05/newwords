@@ -1,11 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  GestureResponderEvent,
-} from "react-native";
+import { View, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -21,8 +15,8 @@ import images from "@/services/imageService";
 import OfflinePlaceholder from "@/app/components/OfflinePlaceholder";
 import Icon from "@/app/components/Icon";
 import { CommunityStackParamList } from "@/types/navigation";
-import CommunityDeckCard from "@/app/components/community/CommunityDeckCard";
-import { useAlertStore } from "@/stores/useAlertStore";
+// import CommunityDeckCard from "@/app/components/community/CommunityDeckCard";
+// import { useAlertStore } from "@/stores/useAlertStore";
 import LoadingScreen from "../LoadingScreen";
 
 import LeagueWidget from "@/app/components/home/LeagueWidget";
@@ -52,54 +46,54 @@ const TabButton = ({
   </TouchableOpacity>
 );
 
-const dummyDecks = {
-  trending: [
-    {
-      id: 1,
-      title: "Vocabulário Essencial de Inglês",
-      authorName: "Ana Pereira",
-      wordCount: 150,
-      upvotes: 1234,
-      category: "Idiomas",
-    },
-    {
-      id: 2,
-      title: "Termos de Biologia Celular",
-      authorName: "Carlos Silva",
-      wordCount: 85,
-      upvotes: 876,
-      category: "Ciência",
-    },
-  ],
-  new: [
-    {
-      id: 3,
-      title: "História da Arte Renascentista",
-      authorName: "Sofia Almeida",
-      wordCount: 50,
-      upvotes: 12,
-      category: "Artes",
-    },
-    {
-      id: 4,
-      title: "Capitais do Mundo",
-      authorName: "Rui Viana",
-      wordCount: 195,
-      upvotes: 5,
-      category: "Geografia",
-    },
-  ],
-  top: [
-    {
-      id: 5,
-      title: "Conceitos de Programação",
-      authorName: "Beatriz Costa",
-      wordCount: 210,
-      upvotes: 2500,
-      category: "Tecnologia",
-    },
-  ],
-};
+// const dummyDecks = {
+//   trending: [
+//     {
+//       id: 1,
+//       title: "Vocabulário Essencial de Inglês",
+//       authorName: "Ana Pereira",
+//       wordCount: 150,
+//       upvotes: 1234,
+//       category: "Idiomas",
+//     },
+//     {
+//       id: 2,
+//       title: "Termos de Biologia Celular",
+//       authorName: "Carlos Silva",
+//       wordCount: 85,
+//       upvotes: 876,
+//       category: "Ciência",
+//     },
+//   ],
+//   new: [
+//     {
+//       id: 3,
+//       title: "História da Arte Renascentista",
+//       authorName: "Sofia Almeida",
+//       wordCount: 50,
+//       upvotes: 12,
+//       category: "Artes",
+//     },
+//     {
+//       id: 4,
+//       title: "Capitais do Mundo",
+//       authorName: "Rui Viana",
+//       wordCount: 195,
+//       upvotes: 5,
+//       category: "Geografia",
+//     },
+//   ],
+//   top: [
+//     {
+//       id: 5,
+//       title: "Conceitos de Programação",
+//       authorName: "Beatriz Costa",
+//       wordCount: 210,
+//       upvotes: 2500,
+//       category: "Tecnologia",
+//     },
+//   ],
+// };
 
 const tabIndices = { trending: 0, new: 1, top: 2 };
 
@@ -118,7 +112,8 @@ const CommunityScreen = ({ navigation }: Props) => {
     opacity: opacity.value,
   }));
 
-  const { showAlert } = useAlertStore.getState();
+  // const { showAlert } = useAlertStore.getState();
+
   // Simula uma nova tentativa de carregamento
   const handleRetry = useCallback(() => {
     setIsRetrying(true);
@@ -163,24 +158,25 @@ const CommunityScreen = ({ navigation }: Props) => {
     );
   };
 
-  const handleAddDeck = (event: GestureResponderEvent, deckTitle: string) => {
-    // Impede que o evento de clique se propague para o card pai,
-    // evitando que a navegação seja acionada ao mesmo tempo.
-    event.stopPropagation();
+  // const handleAddDeck = (event: GestureResponderEvent, deckTitle: string) => {
+  //   // Impede que o evento de clique se propague para o card pai,
+  //   // evitando que a navegação seja acionada ao mesmo tempo.
+  //   event.stopPropagation();
 
-    showAlert({
-      title: "Adicionar Conjunto",
-      message: `Tem a certeza que quer adicionar o conjunto "${deckTitle}" à sua biblioteca?`,
-      buttons: [
-        { text: "Cancelar", style: "cancel", onPress: () => {} },
-        {
-          text: "Adicionar",
-          style: "default",
-          onPress: () => {}, // Lógica futura para adicionar o conjunto
-        },
-      ],
-    });
-  };
+  //   showAlert({
+  //     title: "Adicionar Conjunto",
+  //     message: `Tem a certeza que quer adicionar o conjunto "${deckTitle}" à sua biblioteca?`,
+  //     buttons: [
+  //       { text: "Cancelar", style: "cancel", onPress: () => {} },
+  //       {
+  //         text: "Adicionar",
+  //         style: "default",
+  //         onPress: () => {}, // Lógica futura para adicionar o conjunto
+  //       },
+  //     ],
+  //   });
+  // };
+
   // Estado de carregamento inicial ou durante uma nova tentativa
   if (netInfo.isConnected === null || isRetrying) {
     return (
@@ -243,18 +239,18 @@ const CommunityScreen = ({ navigation }: Props) => {
             />
           </View>
           <Animated.View style={animatedListStyle} collapsable={false}>
-            {dummyDecks[activeTab].map((deck) => (
-              <CommunityDeckCard
-                key={deck.id}
-                title={deck.title}
-                authorName={deck.authorName}
-                wordCount={deck.wordCount}
-                upvotes={deck.upvotes}
-                category={deck.category}
-                onPress={() => {}} // Futuramente, navegar para os detalhes do conjunto
-                onAddPress={(e) => handleAddDeck(e, deck.title)}
+            {/* Substitui a lista de dummy decks por um placeholder */}
+            <View style={[styles.teaserCard, styles.exploreTeaser]}>
+              <Icon
+                name="libraryOutline"
+                size={32}
+                color={theme.colors.iconMuted}
               />
-            ))}
+              <AppText variant="bold" style={styles.teaserTitle}>
+                Marketplace de Conjuntos
+              </AppText>
+              <AppText style={styles.teaserSubtitle}>Em breve...</AppText>
+            </View>
           </Animated.View>
         </View>
 
@@ -287,7 +283,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   header: {
     paddingTop: 60,
@@ -397,6 +393,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: theme.colors.borderLight,
     opacity: 0.6,
+  },
+  exploreTeaser: {
+    // Estilo adicional para o teaser de exploração para garantir que não tem opacidade
+    // e tem uma margem superior para o separar dos separadores.
+    opacity: 1,
+    marginTop: 16,
   },
   teaserTitle: {
     fontSize: theme.fontSizes.xl,
